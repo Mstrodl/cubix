@@ -1,0 +1,147 @@
+#!/usr/bin/env lua
+--cubix
+
+AUTHOR = "Lukas Mendes"
+VERSION = "0.1.0"
+
+local pcid = fs.open("/var/pcid", 'w')
+pcid.write(os.getComputerLabel())
+pcid.close()
+
+local version = fs.open("/proc/version", 'w')
+version.write(VERSION)
+version.close()
+
+local sttime = fs.open("/proc/sttime", 'w')
+sttime.write(tostring(os.time()))
+sttime.close()
+
+DEVICES = {}
+MANAGED_FILES = {}
+TTYS = {}
+
+function strsplit(inputstr, sep)
+    if sep == nil then
+        sep = "%s"
+    end
+    local t={} ; i=1
+    for str in string.gmatch(inputstr, "([^"..sep.."]+)") do
+        t[i] = str
+        i = i + 1
+    end
+    return t
+end
+
+if os.loadAPI("/lib/video_manager") then
+    print("loaded video")
+end
+
+if os.loadAPI("/lib/debug_manager") then
+    debug = _G["debug_manager"]
+    debug.debug_write("debug: loaded")
+else
+    debug.debug_write = print
+    debug.debug_write("debug: not loaded")
+end
+
+if os.loadAPI("/lib/hash_manager") then
+    hash = _G["hash_manager"]
+    debug.debug_write("hash: loaded")
+else
+    debug.debug_write("hash: not loaded")
+end
+
+function register_device(d)
+    debug.debug_write("[device_manager] "..d.name.." created")
+    DEVICES[d.name] = d.device
+    fs.open(d.name, 'w').close()
+end
+
+if os.loadAPI("/lib/device_manager") then
+    devicemngr = _G["device_manager"]
+    debug.debug_write("device_manager: loaded")
+else
+    debug.debug_write("device_manager: not loaded")
+end
+
+register_device(devicemngr._dev_random.dev_random)
+register_device(devicemngr._dev_null.dev_null)
+register_device(devicemngr._dev_zero.dev_zero)
+
+os.list_devices = DEVICES
+
+if os.loadAPI("/lib/fs_manager") then
+    fs_mngr = _G["fs_manager"]
+    debug.debug_write("fs_manager: loaded")
+else
+    debug.debug_write("fs_manager: not loaded")
+end
+
+function register_mfile(controller)
+    debug.debug_write("[mfile] "..controller.name.." created")
+    MANAGED_FILES[controller.name] = controller.file
+end
+
+if os.loadAPI("/lib/proc_manager") then
+    proc_mngr = _G["proc_manager"]
+    debug.debug_write("proc_manager: loaded")
+else
+    debug.debug_write("proc_manager: not loaded")
+end
+
+register_mfile(proc_mngr.cpuinfo_file)
+
+os.list_mfiles = MANAGED_FILES
+
+function register_tty(path, tty)
+    TTYS[path] = tty
+end
+
+if os.loadAPI("/lib/tty_manager") then
+    tty_mngr = _G["tty_manager"]
+    debug.debug_write("tty_manager: loaded")
+else
+    debug.debug_write("tty_manager: not loaded")
+end
+
+register_tty("/dev/tty0", tty_mngr.new_tty("/dev/tty0"))
+register_tty("/dev/tty1", tty_mngr.new_tty("/dev/tty1"))
+register_tty("/dev/tty2", tty_mngr.new_tty("/dev/tty2"))
+register_tty("/dev/tty3", tty_mngr.new_tty("/dev/tty3"))
+register_tty("/dev/tty4", tty_mngr.new_tty("/dev/tty4"))
+register_tty("/dev/tty5", tty_mngr.new_tty("/dev/tty5"))
+
+term.set_term_color = function (c)
+    if term.isColor() then
+        term.setTextColor(c)
+    end
+end
+
+os.viewTable = function (t)
+    for k,v in pairs(t) do
+        print(k.." TO "..tostring(v))
+    end
+end
+
+if os.loadAPI("/lib/login_manager") then
+    login_mngr = _G["login_manager"]
+    debug.debug_write("login_manager: loaded")
+else
+    debug.debug_write("login_manager: not loaded")
+end
+
+--print(MANAGED_FILES["/proc/cpuinfo"].read())
+
+term.clear()
+term.setCursorPos(1,1)
+
+shell.run("/sbin/login")
+
+debug.debug_write("[reboot] rebooting...")
+debug.debug_write("deleting temporary")
+
+shell.run("rm /tmp")
+shell.run("mkdir /tmp")
+
+os.sleep(1)
+os.reboot()

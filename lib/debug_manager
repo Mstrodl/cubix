@@ -1,0 +1,25 @@
+#!/usr/bin/env lua
+--debug manager
+--task: simplify debug information from program to user
+
+__debug_buffer = ''
+__debug_counter = 0
+
+function debug_write_tobuffer(dmessage)
+    __debug_buffer = __debug_buffer .. '[' .. __debug_counter ..']' .. dmessage
+    __debug_counter = __debug_counter + 1
+end
+
+function debug_write(dmessage)
+    print('[' .. __debug_counter ..']' .. dmessage)
+    debug_write_tobuffer(dmessage)
+    os.sleep(0.01)
+end
+
+function dmesg()
+    print(__debug_buffer)
+end
+
+function kpanic()
+    debug_write("Kerneo Panik!")
+end

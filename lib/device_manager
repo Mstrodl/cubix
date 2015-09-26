@@ -1,0 +1,41 @@
+#!/usr/bin/env lua
+--device manager
+--task: create devices in /dev
+
+--device.name = string
+--device.device = table
+--device.device.read = function
+--device.device.devwrite = function
+
+devices = {}
+
+if os.loadAPI("/lib/debug_manager") then
+    debug = _G["debug_manager"]
+    debug.debug_write("[devmanager] debug: loaded")
+else
+    debug.debug_write("[devmanager] debug: not loaded")
+end
+
+debug.debug_write("[devmanager] device_manager: loading random_dev")
+if os.loadAPI("/lib/devices/random_device.lua") then
+    _dev_random = _G["random_device.lua"]
+    debug.debug_write("[devmanager] device_manager: loaded random_dev")
+end
+
+debug.debug_write("[devmanager] device_manager: loading null_dev")
+if os.loadAPI("/lib/devices/null_device.lua") then
+    _dev_null = _G["null_device.lua"]
+    debug.debug_write("[devmanager] device_manager: loaded null_dev")
+end
+
+debug.debug_write("[devmanager] device_manager: loading zero_dev")
+if os.loadAPI("/lib/devices/zero_device.lua") then
+    _dev_zero = _G["zero_device.lua"]
+    debug.debug_write("[devmanager] device_manager: loaded zero_dev")
+end
+
+function mount()
+    
+end
+
+

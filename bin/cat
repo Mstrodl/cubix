@@ -1,0 +1,26 @@
+#!/usr/bin/env lua
+--/bin/cat
+
+local DEVICES = os.list_devices
+local MFILES = os.list_mfiles
+local file, bytes = ...
+
+function cat(file, bytes)
+    if DEVICES[file] ~= nil then
+        print(DEVICES[file].read(bytes))
+    elseif MFILES[file] ~= nil then
+        print(MFILES[file].read(bytes))
+    elseif fs.exists(file) and not fs.isDir(file) then
+        print(fs.open(file, 'r').readAll())
+    elseif fs.exists(fs.combine(CURRENT_PATH, file)) and not fs.isDir(file) then
+        local p = fs.combine(CURRENT_PATH, file)
+        print(fs.open(p, 'r').readAll())
+    elseif fs.exists(file) and fs.isDir(file) then
+        print("cat: cannot cat into folders")
+    else
+        print("cat: file not found")
+    end
+end
+
+cat(file, bytes)
+

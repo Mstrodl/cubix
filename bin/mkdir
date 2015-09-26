@@ -1,0 +1,16 @@
+#!/usr/bin/env lua
+--/bin/mkdir: wrapper to CC mkdir
+
+local d = ...
+
+cpth = fs.open("/tmp/current_path", 'r')
+cpath = cpth.readAll()
+cpth.close()
+
+if d[1] == '/' then
+	shell.run("mkdir " .. d)
+elseif not fs.exists(fs.combine(cpath, d)) then
+	shell.run("mkdir " .. fs.combine(cpath, d))
+end
+
+

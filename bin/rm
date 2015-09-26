@@ -1,0 +1,14 @@
+#!/usr/bin/env lua
+--/bin/rm: removes files and folders
+
+local cpath = fs.open("/tmp/current_path", 'r')
+local current_path = cpath.readAll()
+cpath.close()
+
+local f = ...
+
+if fs.exists(f) then
+    fs.delete(f)
+elseif fs.exists(fs.combine(current_path, f)) then
+    shell.run("rm "..fs.combine(current_path, f))
+end

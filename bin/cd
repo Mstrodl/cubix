@@ -1,0 +1,48 @@
+#!/usr/bin/env lua
+--/bin/cd : change directory
+
+local pth = ...
+local CURRENT_PATH = cpath
+
+local cpath = fs.open("/tmp/current_path", 'r')
+CURRENT_PATH = cpath.readAll()
+cpath.close()
+
+function pth_goup(p)
+    elements = strsplit(p, '/')
+    res = ''
+    for i = 1, (#elements - 1) do
+        print(res)
+        res = res .. '/' .. elements[i]
+    end
+    return res
+end
+
+function cd(pth)
+    if CURRENT_PATH == nil then
+        CURRENT_PATH = '/'
+    elseif pth == '.' then
+        CURRENT_PATH = CURRENT_PATH
+    elseif pth == '..' then
+        CURRENT_PATH = pth_goup(CURRENT_PATH)
+    elseif pth == '/' then
+        CURRENT_PATH = pth
+    elseif fs.exists(CURRENT_PATH .. '/' .. pth) == true then
+        CURRENT_PATH = CURRENT_PATH .. '/' .. pth
+    elseif fs.exists(pth) == true then
+        CURRENT_PATH = pth
+    elseif pth == nil then
+        print(CURRENT_PATH)
+    else
+        print("cd: not found!")
+    end --end
+end
+
+cd(pth)
+
+local _cpath = fs.open("/tmp/current_path", 'w')
+_cpath.write(CURRENT_PATH)
+_cpath.close()
+
+
+

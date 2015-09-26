@@ -1,0 +1,4 @@
+#!/usr/bin/env lua
+--/bin/hwclock: """"hardware"""" clock
+
+print(textutils.formatTime(tonumber(os.time()), false))

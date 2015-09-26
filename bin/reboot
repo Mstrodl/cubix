@@ -1,0 +1,11 @@
+#!/usr/bin/env lua
+--/bin/reboot: wrapper to CC reboot
+
+debug.debug_write("[reboot] rebooting...")
+debug.debug_write("deleting temporary")
+
+shell.run("rm /tmp")
+shell.run("mkdir /tmp")
+
+os.sleep(1)
+os.reboot()

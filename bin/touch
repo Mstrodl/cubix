@@ -1,0 +1,8 @@
+#!/usr/bin/env lua
+--/bin/touch: creates empty files
+
+local f = ...
+
+fs.open(f, 'w').close()
+
+

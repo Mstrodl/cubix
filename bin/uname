@@ -1,0 +1,40 @@
+#!/usr/bin/env lua
+--/bin/uname: system information
+
+local argmt = ...
+
+local fpcid = fs.open("/var/pcid", 'r')
+local fversion = fs.open("/proc/version", 'r')
+local PC_ID = fpcid.readAll()
+local VERSION = fversion.readAll()
+fpcid.close()
+fversion.close()
+
+function uname(arg)
+    args = {0, arg}
+    if args == nil then
+        return 'Cubix'
+    elseif args[2] == '-a' then
+        return 'Cubix '..PC_ID..' v'..VERSION..'-ccraft  Cubix '..VERSION..' (2015-08-26) x666 GNU/Deusas'
+    elseif args[2] == '-s' then
+        return 'Cubix'
+    elseif args[2] == '-n' then
+        return PC_ID
+    elseif args[2] == '-r' then
+        return VERSION..'-ccraft'
+    elseif args[2] == '-v' then
+        return 'Cubix '..VERSION..' (2015-08-26)'
+    elseif args[2] == '-m' then
+        return 'x666'
+    elseif args[2] == '-p' then
+        return 'unknown'
+    elseif args[2] == '-i' then
+        return 'unknown'
+    elseif args[2] == '-o' then
+        return 'GNU/Deusas'
+    else
+        return 'uname: what?'
+    end
+end
+
+print(uname(argmt))

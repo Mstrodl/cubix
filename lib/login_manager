@@ -1,0 +1,49 @@
+#!/usr/bin/env lua
+--login manager
+--task: automate login, reading from /etc/shadow
+--/bin/login uses login_manager
+--/bin/whoami uses cubix internal user registry, not login_manager
+
+if os.loadAPI("/lib/debug_manager") then
+    debug = _G["debug_manager"]
+    debug.debug_write("[login_manager] debug: loaded")
+else
+    debug.debug_write = print
+    debug.debug_write("[login_manager] debug: not loaded")
+end
+
+if os.loadAPI("/lib/hash_manager") then
+    hash_mngr = _G["hash_manager"]
+    debug.debug_write("[login_manager] hash_manager: loaded")
+else
+    debug.debug_write("[login_manager] hash_manager: not loaded")
+end
+
+function strsplit(inputstr, sep)
+        if sep == nil then
+                sep = "%s"
+        end
+        local t={} ; i=1
+        for str in string.gmatch(inputstr, "([^"..sep.."]+)") do
+                t[i] = str
+                i = i + 1
+        end
+        return t
+end
+
+function login(user, pwd)
+    local hashed_pwd = hash_mngr.hash.sha256(pwd)
+    local h2 = fs.open("/etc/shadow", 'r')
+    users = strsplit(h2.readAll(), "\n")
+    local i = 0
+    for k,v in pairs(users) do
+        local udata = strsplit(users[k], '^')
+        if udata[1] == user and udata[2] == hashed_pwd then
+            h2.close()
+            return true
+        end
+    end
+    h2.close()
+    return false
+end
+

@@ -1,0 +1,103 @@
+#!/usr/bin/env lua
+
+-- 200 up
+-- 208 down
+-- 28 enter
+
+term.clear()
+term.setCursorPos(1,1)
+
+function strsplit(inputstr, sep)
+        if sep == nil then
+                sep = "%s"
+        end
+        local t={} ; i=1
+        for str in string.gmatch(inputstr, "([^"..sep.."]+)") do
+                t[i] = str
+                i = i + 1
+        end
+        return t
+end
+
+term.set_term_color = function (c)
+    if term.isColor() then
+        term.setTextColor(c)
+    end
+end
+
+local function cprint(text)
+    local x,y = term.getSize()
+    local x2,y2 = term.getCursorPos()
+    term.setCursorPos(math.ceil((x / 2) - (text:len() / 2)), y2)
+    write(text..'\n')
+end
+
+function CUI(m)
+    n=1
+    l=#m
+    while true do
+        term.clear()
+        term.setCursorPos(1,2)
+	    cprint("-- SBL (Simple BootLoader) --")
+        for i=1, l, 1 do
+        if i==n then cprint(i .. " ["..m[i].."]") else cprint(i .. " " .. m[i]) end
+        end
+        cprint("Select an OS to load[arrow up/arrow down]")
+        a, b= os.pullEventRaw()
+        if a == "key" then
+            if b==200 and n>1 then n=n-1 end
+            if b==208 and n<=l then n=n+1 end
+            if b==28 then break end
+        end
+    end
+    term.clear()
+    term.setCursorPos(1,1)
+    return n
+end
+
+function read_osfile()
+    local systems_file = fs.open("/systems.cfg", 'r')
+    local systems = strsplit(systems_file.readAll(), "\n")
+    local i = 1
+    local detected_oses_name = {}
+    local detected_oses_path = {}
+    print("reading config file...")
+    for k,v in pairs(systems) do
+        local sysdat = strsplit(systems[k], ';')
+        detected_oses_name[i] = sysdat[1]
+        detected_oses_path[i] = sysdat[2]
+        print("detected from systems.cfg: "..sysdat[1]..' : '..sysdat[2])
+        i = i + 1
+        os.sleep(.2)
+    end
+    systems_file.close()
+    return {detected_oses_name, detected_oses_path}
+end
+
+os.sleep(.5)
+
+term.set_term_color(colors.green)
+print("Welcome to SBL!\n")
+term.set_term_color(colors.white)
+
+os.sleep(.5)
+
+oses = read_osfile()
+os.sleep(2)
+local loados = CUI(oses[1]) --only names
+
+function loadkernel(kfile, memory, vmode)
+    --loads a .lua kernel file with its main function
+    print("load -kfile "..kfile.." -mem "..tostring(memory).." -vmode "..vmode)
+    print("\nBootLoader: loading "..kfile); os.sleep(1)
+    shell.run(kfile) --no, srysly?, we need more fake things
+end
+
+loadkernel(oses[2][loados], 512, 'ccraft-generic-video')
+
+term.setTextColor(colors.red)
+print("\nSBL: what? returned command to bootloader? loading CraftOS as default.\n")
+term.setTextColor(colors.white)
+
+loadkernel("/rom/programs/shell", 512, "ccraft-generic-video")
+

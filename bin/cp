@@ -1,0 +1,7 @@
+#!/usr/bin/env lua
+--/bin/mkdir: wrapper to CC cp
+
+local arg1, arg2 = ...
+
+shell.run("cp " .. arg1 .. ' ' .. arg2)
+

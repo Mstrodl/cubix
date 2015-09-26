@@ -1,0 +1,9 @@
+#!/usr/bin/env lua
+--/bin/mv: move files or folders
+
+local from, to = ...
+if from == nil or to == nil then
+    print("usage: mv from to")
+else
+    shell.run("mv "..from.." "..to)
+end

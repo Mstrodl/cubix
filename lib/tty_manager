@@ -1,0 +1,31 @@
+#!/usr/bin/env lua
+--tty manager
+--task: manage TTYs
+--register ttys to users
+--/bin/switch from tty to another
+--/bin/who uses it
+--/bin/users uses it
+
+function using_tty(t)
+    local h = fs.open("/tmp/current_tty", 'w')
+    h.write(t)
+    h.close()
+end
+
+function new_tty(tid)
+    new_empty_tty = {}
+    new_empty_tty.buffer = ""
+    new_empty_tty.id = tid
+
+    function new_empty_tty.write(data)
+        new_empty_tty.buffer = new_empty_tty.buffer .. data
+        write(data)
+    end
+
+    function new_empty_tty.read()
+        return read()
+    end
+
+    return new_empty_tty
+end
+
