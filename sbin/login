@@ -1,6 +1,14 @@
 #!/usr/bin/env lua
 --/bin/login: login user to its shell access
 
+_handler = {}
+_handler.signal_handler = function (sig)
+    if sig == 'kill' then
+        print("login: recieved SIGKILL")
+        return 0
+    end
+end
+
 local user = ...
 if user == nil then user = "^" end
 
@@ -13,29 +21,24 @@ else
     exit()
 end
 
-term.clear()
-term.setCursorPos(1,1)
-
 local try_user = ""
 local try_pwd = ""
 
 if user == "^" then
-    write("\n"..PC_LABEL.." login: ")
+    write(PC_LABEL.." login: ")
     try_user = read()
     write("\nPassword: ")
     try_pwd = read("")
 else
     try_user = user
-    write("user: "..try_user.."\n")
     write("\nPassword: ")
     try_pwd = read("")
 end
 
 if loginmngr.login(try_user, try_pwd) then
-    print("logged")
     local k = fs.open("/tmp/current_user", 'w') k.write(try_user) k.close()
     local k2 = fs.open("/tmp/current_path", 'w') k2.write("/home/"..try_user) k2.close()
-    shell.run("/bin/shell")
+    os.runfile_proc("/bin/wshell")
 else
     print("erroneus user or password.")
 end

@@ -1,0 +1,14 @@
+#!/usr/bin/env lua
+--/bin/ps
+
+p = os.processes
+
+print("PID  PROCESS")
+for k,v in pairs(p) do
+    if v.parent == nil then
+        print(k.."  "..(v.file))
+    else
+        print(k.."  "..(v.parent).." | " .. (v.file))
+    end
+end
+

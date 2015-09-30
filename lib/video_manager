@@ -1,7 +1,7 @@
 #!/usr/bin/env lua
 -- cubix: video_manager
 
-function central_print(msg)
+central_print = function(msg)
     local x,y = term.getSize()
     local x2,y2 = term.getCursorPos()
     term.setCursorPos(math.ceil((x / 2) - (text:len() / 2)), y2)

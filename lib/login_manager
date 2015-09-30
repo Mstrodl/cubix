@@ -2,11 +2,11 @@
 --login manager
 --task: automate login, reading from /etc/shadow
 --/bin/login uses login_manager
---/bin/whoami uses cubix internal user registry, not login_manager
+--/bin/whoami uses /tmp/current_user (from /bin/login), not login_manager
 
 if os.loadAPI("/lib/debug_manager") then
     debug = _G["debug_manager"]
-    debug.debug_write("[login_manager] debug: loaded")
+    debug.debug_write("[login_manager] debug: loaded", false)
 else
     debug.debug_write = print
     debug.debug_write("[login_manager] debug: not loaded")
@@ -14,7 +14,7 @@ end
 
 if os.loadAPI("/lib/hash_manager") then
     hash_mngr = _G["hash_manager"]
-    debug.debug_write("[login_manager] hash_manager: loaded")
+    debug.debug_write("[login_manager] hash_manager: loaded", false)
 else
     debug.debug_write("[login_manager] hash_manager: not loaded")
 end

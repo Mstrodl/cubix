@@ -1,0 +1,14 @@
+#!/usr/bin/env lua
+--/bin/dd
+
+--TODO: support for devices
+
+local infile, outfile, bytes = ...
+
+local i = fs.open(infile, 'r')
+local o = fs.open(outfile, 'w')
+o.write(
+i.readAll().sub(0, bytes))
+i.close()
+o.close()
+

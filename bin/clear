@@ -1,0 +1,5 @@
+#!/usr/bin/env lua
+--/bin/clear
+
+shell.run("clear")
+

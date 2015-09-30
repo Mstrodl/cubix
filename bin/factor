@@ -1,0 +1,41 @@
+#!/usr/bin/env lua
+--/bin/factor: factors numbers
+
+local n = ...
+
+function IsPrime( n )
+    if n <= 1 or ( n ~= 2 and n % 2 == 0 ) then
+        return false
+    end
+    for i = 3, math.sqrt(n), 2 do
+	if n % i == 0 then
+  	    return false
+	end
+    end
+    return true
+end
+
+function PrimeDecomposition( n )
+    local f = {}
+    if IsPrime( n ) then
+        f[1] = n
+        return f
+    end
+    local i = 2
+    repeat
+        while n % i == 0 do
+            f[#f+1] = i
+            n = n / i
+        end
+        repeat
+            i = i + 1
+        until IsPrime( i )       
+    until n == 1
+    return f
+end
+
+write(n .. ": ")
+for k,v in pairs(PrimeDecomposition(tonumber(n))) do
+    write(v .. " ")
+end
+write('\n')

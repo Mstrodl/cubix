@@ -20,6 +20,20 @@ DEVICES = {}
 MANAGED_FILES = {}
 TTYS = {}
 
+os.list_mfiles = {}
+
+os.system_halt = function()
+    os.sleep(1000000) --yea...
+end
+
+os.viewTable = function (t)
+    for k,v in pairs(t) do
+        print(k..","..tostring(v))
+    end
+end
+
+os.runfile = shell.run
+
 function strsplit(inputstr, sep)
     if sep == nil then
         sep = "%s"
@@ -79,7 +93,7 @@ end
 
 function register_mfile(controller)
     debug.debug_write("[mfile] "..controller.name.." created")
-    MANAGED_FILES[controller.name] = controller.file
+    os.list_mfiles[controller.name] = controller.file
 end
 
 if os.loadAPI("/lib/proc_manager") then
@@ -90,8 +104,7 @@ else
 end
 
 register_mfile(proc_mngr.cpuinfo_file)
-
-os.list_mfiles = MANAGED_FILES
+register_mfile(proc_mngr.temperature_file)
 
 function register_tty(path, tty)
     TTYS[path] = tty
@@ -117,12 +130,6 @@ term.set_term_color = function (c)
     end
 end
 
-os.viewTable = function (t)
-    for k,v in pairs(t) do
-        print(k.." TO "..tostring(v))
-    end
-end
-
 if os.loadAPI("/lib/login_manager") then
     login_mngr = _G["login_manager"]
     debug.debug_write("login_manager: loaded")
@@ -135,7 +142,9 @@ end
 term.clear()
 term.setCursorPos(1,1)
 
-shell.run("/sbin/login")
+os.__debug_buffer = debug.__debug_buffer
+
+os.runfile_proc("/sbin/login")
 
 debug.debug_write("[reboot] rebooting...")
 debug.debug_write("deleting temporary")
@@ -143,5 +152,5 @@ debug.debug_write("deleting temporary")
 shell.run("rm /tmp")
 shell.run("mkdir /tmp")
 
-os.sleep(1)
+os.sleep(.3)
 os.reboot()

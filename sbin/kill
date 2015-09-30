@@ -1,0 +1,7 @@
+#!/usr/bin/env lua
+--/bin/kill: kills processes
+
+local pid = ...
+
+p = os.processes[tonumber(pid)]
+os.send_signal(p, os.signals.SIGKILL)

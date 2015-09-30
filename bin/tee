@@ -1,0 +1,13 @@
+#!/usr/bin/env lua
+--/bin/tee: same as unix tee
+--the Cubix Shell does not support any pipelines, so tee doesn't work.
+--this is just an ideia of how tee could work with pipes
+
+local args = ...
+
+local stdout_from = pipes.recieve_pipe()
+local handle = fs.open(args[1], 'w')
+handle.write(stdout_from)
+handle.close()
+pipes.transmit(stdout_from)
+

@@ -1,0 +1,4 @@
+#!/usr/bin/env lua
+--/bin/arch: same as uname -m
+
+shell.run("/bin/uname -m")

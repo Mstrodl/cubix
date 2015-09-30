@@ -1,5 +1,5 @@
 #!/usr/bin/env lua
 --/bin/sulogin: logins to root
 
-shell.run("/bin/login root")
+shell.run("/sbin/login root")
 

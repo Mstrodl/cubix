@@ -8,6 +8,11 @@ local cpath = fs.open("/tmp/current_path", 'r')
 CURRENT_PATH = cpath.readAll()
 cpath.close()
 
+local cuser = fs.open("/tmp/current_user", 'r')
+local current_user = cuser.readAll()
+cuser.close()
+
+
 function pth_goup(p)
     elements = strsplit(p, '/')
     res = ''
@@ -32,7 +37,7 @@ function cd(pth)
     elseif fs.exists(pth) == true then
         CURRENT_PATH = pth
     elseif pth == nil then
-        print(CURRENT_PATH)
+        CURRENT_PATH = "/home/"..current_user
     else
         print("cd: not found!")
     end --end

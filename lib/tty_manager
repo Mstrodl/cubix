@@ -2,9 +2,9 @@
 --tty manager
 --task: manage TTYs
 --register ttys to users
---/bin/switch from tty to another
+--/bin/switch: (will) switch from tty to another
 --/bin/who uses it
---/bin/users uses it
+--/bin/users: (will) use it
 
 function using_tty(t)
     local h = fs.open("/tmp/current_tty", 'w')

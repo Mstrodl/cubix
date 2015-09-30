@@ -5,7 +5,7 @@
 
 if os.loadAPI("/lib/debug_manager") then
     debug = _G["debug_manager"]
-    debug.debug_write("[proc_manager] debug_manager: loaded")
+    debug.debug_write("[proc_manager] debug_manager: loaded", false)
 else
     debug.debug_write("[proc_manager] debug_manager: not loaded")
 end
@@ -35,24 +35,10 @@ os.pid_last = 1
 os.signals = {}
 os.signals.SIGKILL = 0
 
-local function search(master, target) --target is a string
-    for k,v in next, master do
-        if type(v)=="table" and v[target] then return true end
-    end
-end
-
-os.call_handle = function(process, handler)
-	print("rfile: ", process.rfile)
-	if process.rfile ~= nil then
-		r = process.rfile
-		if r._handler then
-			r._handler.signal_handler(handler)
-		else
-			debug.debug_write("[proc_handler] "..process.file.." does not have a signal handler, ignoring it")
-		end
-	else
-		debug.debug_write("[proc_handler] "..process.file.." does not have anything to show, ignoring it")
-	end
+os.call_handle = function(proc, handl)
+    r = proc.rfile
+    h = r._handler
+    h.signal_handler(handl)
 end
 
 os.send_signal = function (proc, signal)
@@ -62,8 +48,7 @@ os.send_signal = function (proc, signal)
         debug.debug_write("[proc_manager] "..proc.file.." recieved SIGKILL.", false)
         os.processes[proc.pid] = nil
         for k,v in pairs(proc.childs) do
-			print("os.terminate to "..tostring(v.file))
-            os.terminate(v)
+            os.send_signal(v, 'kill')
         end
         os.terminate(proc)
     end
@@ -77,15 +62,11 @@ end
 os.run_process = function(p)
     debug.debug_write("[testing] running "..p.file, false)
     os.processes[p.pid] = p
-    if os.loadAPI(p.file) then
-		K = strsplit(p.file, '/')
-		p.rfile = _G[K[#K]]
-		write("rfile from "..p.file..'::\n')
-		os.viewTable(p.rfile)
-		os.sleep(2)
-	else
-		print("cannot load "..p.file)
-	end
+    os.loadAPI(p.file)
+    K = strsplit(p.file, '/')
+    p.rfile = _G[K[#K]]
+    os.viewTable(p.rfile)
+    --os.sleep(2)
 end
 
 os.set_child = function(prnt, proc)

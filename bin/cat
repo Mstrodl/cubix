@@ -5,6 +5,10 @@ local DEVICES = os.list_devices
 local MFILES = os.list_mfiles
 local file, bytes = ...
 
+local cpth = fs.open("/tmp/current_path", 'r')
+local CURRENT_PATH = cpth.readAll()
+cpth.close()
+
 function cat(file, bytes)
     if DEVICES[file] ~= nil then
         print(DEVICES[file].read(bytes))

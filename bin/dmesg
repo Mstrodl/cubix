@@ -1,0 +1,7 @@
+#!/usr/bin/env lua
+--/bin/dmesg: debug messages
+
+debug_file = fs.open("/tmp/debug_info", 'r')
+print(debug_file.readAll())
+debug_file.close()
+
