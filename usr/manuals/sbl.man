@@ -1,0 +1,13 @@
+Simple Boot Loader
+
+The objective of SBL is to create a boot loader capable of load systems in their respective folders
+
+By default SBL ships with 3 entries in systems.cfg:
+
+Cubix;/boot/cubix
+Cubix(minimal);/boot/cubix_minimal
+CraftOS;/rom/programs/shell
+
+It loads a Menu with there entries and when selected it loads the specified file in the entry.
+
+Since SBL is a startup script, if the OS fails to load and sends control to SBL, it gives 5 seconds of debugging and then shutdowns the computer.

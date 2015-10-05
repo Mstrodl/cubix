@@ -1,0 +1,5 @@
+Cubix API
+
+The Cubix kernel has quite good variables that deserve to be listed, so here we are(in order they are defined in /boot/cubix).
+
+os.list

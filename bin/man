@@ -1,0 +1,72 @@
+#!/usr/bin/env lua
+--/bin/man: manuals! :D
+
+_handler = {}
+_handler.signal_handler = function (sig)
+    if sig == 'kill' then
+        --print("man: SIGKILL'd!")
+        return 0
+    end
+end
+
+MANPATH = "/usr/manuals"
+
+function main(args)
+    local topic, page = {0,0}
+    if #args == 1 then
+        topic = args[1]
+    elseif #args == 2 then
+        topic, page = args[1], args[2]
+    else
+        print("man: what manual do you want?")
+        return 0
+    end
+    local file = {}
+    local p = ''
+    if topic == 'manuals' then
+        pages = fs.list(MANPATH)
+        for k,v in pairs(pages) do
+            if fs.isDir(fs.combine(MANPATH, v)) then
+                write(v .. " ")
+            else
+                write(string.sub(v, 0, #v - 4) .. " ")
+            end
+        end
+        write('\n')
+        return 0
+    end
+    if page == nil then
+        --work for getting <topic>.man
+        p = topic..".man"
+        file = io.open(fs.combine(MANPATH, p))
+    else
+        --get <topic>/<page>.man
+        p = topic..'/'..page..'.man'
+        file = io.open(fs.combine(MANPATH, p))
+    end
+    local w,h = term.getSize()
+    if file then
+        term.clear()
+        term.setCursorPos(1,1)
+        os.central_print(p)
+        local sLine = file:read()
+        local nLines = 0
+        while sLine do
+            nLines = nLines + textutils.pagedPrint(sLine, (h-3) - nLines)
+            sLine = file:read()
+        end
+	    file:close()
+    elseif fs.isDir(fs.combine(MANPATH, topic)) then
+        --print available pages in topic
+        print('Pages in the topic "'..topic..'":\n')
+        pages = fs.list(fs.combine(MANPATH, topic))
+        for k,v in pairs(pages) do
+            write(string.sub(v, 0, #v - 4) .. " ")
+        end
+        write('\n')
+    else
+        print("No manual available")
+    end
+    return 0
+end
+

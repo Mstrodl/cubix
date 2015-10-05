@@ -1,15 +1,20 @@
 #!/usr/bin/env lua
 --/bin/cat
 
-local DEVICES = os.list_devices
-local MFILES = os.list_mfiles
-local file, bytes = ...
-
-local cpth = fs.open("/tmp/current_path", 'r')
-local CURRENT_PATH = cpth.readAll()
-cpth.close()
+_handler = {}
+_handler.signal_handler = function(sig)
+    if sig == 'kill' then
+        --print("cat: SIGKILL")
+        return 0
+    end
+end
 
 function cat(file, bytes)
+    local DEVICES = os.list_devices
+    local MFILES = os.list_mfiles
+    local cpth = fs.open("/tmp/current_path", 'r')
+    local CURRENT_PATH = cpth.readAll()
+    cpth.close()
     if DEVICES[file] ~= nil then
         print(DEVICES[file].read(bytes))
     elseif MFILES[file] ~= nil then
@@ -26,5 +31,7 @@ function cat(file, bytes)
     end
 end
 
-cat(file, bytes)
+function main(args)
+    cat(args[1], args[2])
+end
 

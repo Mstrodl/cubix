@@ -1,4 +1,14 @@
 #!/usr/bin/env lua
 --/bin/arch: same as uname -m
 
-shell.run("/bin/uname -m")
+_handler = {}
+_handler.signal_handler = function (sig)
+    if sig == 'kill' then
+        --print("arch: recieved SIGKILL")
+        return 0
+    end
+end
+
+function main(args)
+    os.runfile_proc("/bin/uname", {"-m"})
+end

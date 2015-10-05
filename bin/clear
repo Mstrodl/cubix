@@ -1,5 +1,15 @@
 #!/usr/bin/env lua
 --/bin/clear
 
-shell.run("clear")
+_handler = {}
+_handler.signal_handler = function (sig)
+    if sig == 'kill' then
+        --print("clear: recieved SIGKILL")
+        return 0
+    end
+end
+
+function main(args)
+    os.runfile("clear")
+end
 

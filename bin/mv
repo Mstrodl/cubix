@@ -1,9 +1,33 @@
 #!/usr/bin/env lua
 --/bin/mv: move files or folders
 
-local from, to = ...
-if from == nil or to == nil then
-    print("usage: mv from to")
-else
-    shell.run("mv "..from.." "..to)
+_handler = {}
+_handler.signal_handler = function(sig)
+    if sig == 'kill' then
+        --print("mv: SIGKILL")
+        return 0
+    end
+end
+
+function main(args)
+    local from, to = args[1], args[2]
+    local _h = fs.open("/tmp/current_path", 'r')
+    local current_path = _h.readAll()
+    _h.close()
+    function _combine(c) return fs.combine(current_path, c) end
+    if from == nil or to == nil then
+        print("usage: mv from to")
+    else
+        if fs.exists(_combine(from)) and fs.exists(_combine(to)) then
+            os.runfile("mv ".._combine(from).." ".._combine(to))
+        elseif fs.exists(_combine(from)) and to[1] == '/' then
+            os.runfile("mv ".._combine(from).." "..to)
+        elseif fs.exists(_combine(to)) and from[1] == '/' then
+            os.runfile("mv "..from.." ".._combine(to))
+        elseif from[1] == '/' and to[1] == '/' then
+            os.runfile("mv "..from.." "..to)
+        else
+            print("mv: check command syntax")
+        end
+    end
 end

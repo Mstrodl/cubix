@@ -7,8 +7,11 @@ _handler = {}
 _handler.signal_handler = function (sig)
     if sig == 'kill' then
         print("init: recieved SIGKILL")
-        os.runfile("/sbin/shutdown")
+        os.safe_shutdown()
     end
 end
 
-return 0
+function main()
+    return 0
+end
+

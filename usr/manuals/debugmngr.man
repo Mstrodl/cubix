@@ -1,0 +1,13 @@
+Debug Manager
+
+Primary task: Manage debug information from the OS
+
+Functions:
+  -debug_write(message[, toscreen])
+    -writes message to screen if toscreen is nil
+    -if toscreen is false it does not write a message
+    -but in any of the cases it writes the message to the __debug_buffer
+  -dmesg()
+    -shows __debug_buffer
+  -kpanic()
+    -Kernel Panic!

@@ -42,7 +42,6 @@ local function search(master, target) --target is a string
 end
 
 os.call_handle = function(process, handler)
-	print("rfile: ", process.rfile)
 	if process.rfile ~= nil then
 		r = process.rfile
 		if r._handler then
@@ -51,18 +50,17 @@ os.call_handle = function(process, handler)
 			debug.debug_write("[proc_handler] "..process.file.." does not have a signal handler, ignoring it")
 		end
 	else
-		debug.debug_write("[proc_handler] "..process.file.." does not have anything to show, ignoring it")
+		debug.debug_write("[proc_handler] "..process.file.." does not have anything to show, ignoring it", false)
 	end
 end
 
 os.send_signal = function (proc, signal)
     if proc == nil then
         print("process not encoutered")
-    elseif signal == 0 then
+    elseif signal == os.signals.SIGKILL then
         debug.debug_write("[proc_manager] "..proc.file.." recieved SIGKILL.", false)
-        os.processes[proc.pid] = nil
+        os.processes[proc.pid] = nil --removing anything related to the process in os.processes
         for k,v in pairs(proc.childs) do
-			print("os.terminate to "..tostring(v.file))
             os.terminate(v)
         end
         os.terminate(proc)
@@ -72,20 +70,24 @@ end
 os.terminate = function (p)
     os.call_handle(p, "kill")
     p = nil
+    --os.sleep(1)
 end
 
-os.run_process = function(p)
-    debug.debug_write("[testing] running "..p.file, false)
+os.run_process = function(p, args)
+    if args == nil then args = {} end
+    debug.debug_write("[process] running "..p.file, false)
     os.processes[p.pid] = p
     if os.loadAPI(p.file) then
-		K = strsplit(p.file, '/')
-		p.rfile = _G[K[#K]]
-		write("rfile from "..p.file..'::\n')
-		os.viewTable(p.rfile)
-		os.sleep(2)
-	else
-		print("cannot load "..p.file)
-	end
+        K = strsplit(p.file, '/')
+        p.rfile = _G[K[#K]] --non-localized variables in _G
+        if p.rfile.main ~= nil then
+            p.rfile.main(args)
+        else
+            debug.debug_write("[process] cannot call main() function from "..p.file)
+        end
+    else
+        print("cannot load "..p.file)
+    end
 end
 
 os.set_child = function(prnt, proc)
@@ -112,13 +114,13 @@ end
 parent_init = os.new_process("/sbin/init")
 os.run_process(parent_init)
 
-os.runfile_proc = function(executable, parent)
+os.runfile_proc = function(executable, arguments, parent)
     if parent == nil then _parent = parent_init end --making sure /sbin/init is parent of all processes
-    _process = os.new_process(executable)
-    os.set_parent(_process, _parent)
-    os.run_process(_process)
-    print("trying to kill")
-    os.send_signal(_process, os.signals.SIGKILL)
+    if arguments == nil then arguments = {} end
+    _process = os.new_process(executable) --creating a process
+    os.set_parent(_process, _parent) --making parenting possible
+    os.run_process(_process, arguments) -- running
+    os.send_signal(_process, os.signals.SIGKILL) --killing after its task is done
 end
 
 function test_processes()

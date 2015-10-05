@@ -1,13 +1,28 @@
-shell.run("mkdir /proc")
-shell.run("mkdir /bin")
-shell.run("mkdir /sbin")
-shell.run("mkdir /boot")
-shell.run("mkdir /etc")
-shell.run("mkdir /home")
-shell.run("mkdir /lib")
-shell.run("mkdir /mnt")
-shell.run("mkdir /root")
-shell.run("mkdir /usr")
-shell.run("mkdir /var")
-shell.run("mkdir /tmp")
-shell.run("mkdir /media")
+#!/usr/bin/env lua
+--/dev/MAKEDEV: create the basics of unix folder structure in /
+
+_handler = {}
+_handler.signal_handler = function (sig)
+    if sig == 'kill' then
+        --print("MAKEDEV: SIGKILL'd!", false)
+        return 0
+    end
+end
+
+function main(args)
+    os.runfile("mkdir /proc") --proc_manager
+    os.runfile("mkdir /bin") --binaries
+    os.runfile("mkdir /sbin") --root binaries
+    os.runfile("mkdir /boot") --boot things
+    os.runfile("mkdir /etc") --system-wide configuration files and system databases
+    os.runfile("mkdir /home") --home folder
+    os.runfile("mkdir /lib") --libraries used by /boot/cubix and the binaries
+    os.runfile("mkdir /mnt") --mounting (coming soon)
+    os.runfile("mkdir /root") --home for root
+    os.runfile("mkdir /usr") --user things
+    os.runfile("mkdir /var") --variables
+    os.runfile("mkdir /tmp") --temporary, deleted when shutdown
+    os.runfile("mkdir /media") --mounting (coming soon)
+    os.runfile("mkdir /usr/manuals") --manuals
+    print("created all / folders")
+end

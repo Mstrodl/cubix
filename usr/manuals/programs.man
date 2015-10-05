@@ -1,0 +1,10 @@
+Programs in Cubix
+
+By default if you want to run a normal Lua program you need to open the lua interpreter(/rom/programs/lua) and use shell.run to run it, but if you want to create a program compatible with the cubix process management system you need to create a main() function, its task is to simply run the program.
+
+Example:
+  function main(args)
+    os.viewTable(args)
+  end
+
+Because prog_manager("man progmngr") runs its main function and closes the program, it is a control to the script to not stop the system execution.

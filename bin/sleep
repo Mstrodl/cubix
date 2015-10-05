@@ -1,6 +1,15 @@
 #!/usr/bin/env lua
 --/bin/sleep
 
-local time = ...
+_handler = {}
+_handler.signal_handler = function (sig)
+    if sig == 'kill' then
+        --print("sleep: recieved SIGKILL")
+        return 0
+    end
+end
 
-os.sleep(tonumber(time))
+function main(args)
+    local t = args[1]
+    os.sleep(tonumber(t))
+end

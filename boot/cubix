@@ -1,8 +1,16 @@
 #!/usr/bin/env lua
---cubix
+--cubix: well, cubix!
 
 AUTHOR = "Lukas Mendes"
-VERSION = "0.1.0"
+BUILD_DATE = "2015-10-03"
+VERSION = "0.2.1"
+--[[
+    version: major.revision.minor
+        major: linear
+        revision: odd: unstable
+        revision: even: stable
+        minor: number of RELEASES necessary to get to this version, not including BUILDS
+]]
 
 local pcid = fs.open("/var/pcid", 'w')
 pcid.write(os.getComputerLabel())
@@ -11,6 +19,10 @@ pcid.close()
 local version = fs.open("/proc/version", 'w')
 version.write(VERSION)
 version.close()
+
+local build = fs.open("/proc/build_date", 'w')
+build.write(BUILD_DATE)
+build.close()
 
 local sttime = fs.open("/proc/sttime", 'w')
 sttime.write(tostring(os.time()))
@@ -33,6 +45,19 @@ os.viewTable = function (t)
 end
 
 os.runfile = shell.run
+
+os.safe_shutdown = function()
+    debug.debug_write("[safe_shutdown] turning off...")
+    debug.debug_write("[safe_shutdown] deleting /tmp")
+
+    shell.run("rm /tmp")
+    shell.run("mkdir /tmp")
+
+    os.sleep(1)
+    debug.debug_write("[safe_shutdown] sending HALT.")
+    os.sleep(1)
+    os.shutdown()
+end
 
 function strsplit(inputstr, sep)
     if sep == nil then
@@ -57,6 +82,10 @@ else
     debug.debug_write = print
     debug.debug_write("debug: not loaded")
 end
+
+os.debug = debug
+
+debug.debug_write("Cubix version "..VERSION.." loading...")
 
 if os.loadAPI("/lib/hash_manager") then
     hash = _G["hash_manager"]

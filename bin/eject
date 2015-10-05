@@ -1,6 +1,15 @@
 #!/usr/bin/env lua
 --/bin/eject: wrapper to CC "eject"
 
-local side = ...
+_handler = {}
+_handler.signal_handler = function(sig)
+    if sig == 'kill' then
+        --print("cat: SIGKILL")
+        return 0
+    end
+end
 
-shell.run("/rom/programs/eject "..side)
+function main(args)
+    local side = args[1]
+    os.runfile("/rom/programs/eject "..side)
+end

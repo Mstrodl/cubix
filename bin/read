@@ -1,5 +1,7 @@
 #!/usr/bin/env lua
 --/bin/read
 
-return read()
+function main(args)
+    return read()
+end
 

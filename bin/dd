@@ -3,12 +3,25 @@
 
 --TODO: support for devices
 
-local infile, outfile, bytes = ...
+_handler = {}
+_handler.signal_handler = function (sig)
+    if sig == 'kill' then
+        --print("dd: recieved SIGKILL")
+        return 0
+    end
+end
 
-local i = fs.open(infile, 'r')
-local o = fs.open(outfile, 'w')
-o.write(
-i.readAll().sub(0, bytes))
-i.close()
-o.close()
+function main(args)
+    local infile, outfile, bytes = args
+    if infile == nil or outfile == nil or bytes == nil then
+        print("usage: dd infile outfile bytes")
+        return 0
+    end
+    local i = fs.open(infile, 'r')
+    local o = fs.open(outfile, 'w')
+    o.write(
+    i.readAll().sub(0, bytes))
+    i.close()
+    o.close()
+end
 

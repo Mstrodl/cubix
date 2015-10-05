@@ -1,13 +1,29 @@
 #!/usr/bin/env lua
 --/bin/tee: same as unix tee
---the Cubix Shell does not support any pipelines, so tee doesn't work.
+--the Cubix Shell does not support any pipes, so tee doesn't work.
 --this is just an ideia of how tee could work with pipes
 
-local args = ...
+_handler = {}
+_handler.signal_handler = function (sig)
+    if sig == 'kill' then
+        --print("tee: recieved SIGKILL")
+        return 0
+    end
+end
 
-local stdout_from = pipes.recieve_pipe()
-local handle = fs.open(args[1], 'w')
-handle.write(stdout_from)
-handle.close()
-pipes.transmit(stdout_from)
+if os.loadAPI("/lib/pipe_manager") then
+    pipe_mngr = _G["pipe_manager"]
+    debug.debug_write("[tee] pipe_manager: loaded", false)
+else
+    debug.debug_write("[tee] pipe_manager: not loaded")
+end
 
+function main(args)
+    --cmd1 | tee output_file | cmd2 -
+    pipes = pipe_mngr.new_pipe('main')
+    local stdout_from = pipes.recieve_pipe() --this will become a string
+    local h = fs.open(args[1], 'w')
+    h.write(stdout_from)
+    h.close()
+    pipes.transmit(stdout_from)
+end

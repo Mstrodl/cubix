@@ -1,0 +1,7 @@
+These functions are used by the kernel to do its inner workings, so dont mess with them!
+
+  -register_device(device) - loads a device into DEVICES list
+  -register_mfile(controller) - registers a Managed File(MFILE) into cubix(see "man mfile")
+  -register_tty(path, tty) - registers a TTY to TTYS list
+
+  -os.__debug_buffer - a interface to Cubix's debug module(used by dmesg)

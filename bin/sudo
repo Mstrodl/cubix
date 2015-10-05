@@ -8,6 +8,22 @@
 -- and because of this point sudo can be created without fs_manager
 -- craziness.
 
+if os.loadAPI("/lib/debug_manager") then
+    debug = _G["debug_manager"]
+    debug.debug_write("debug: loaded", false)
+else
+    debug.debug_write = print
+    debug.debug_write("debug: not loaded")
+end
+
+_handler = {}
+_handler.signal_handler = function (sig)
+    if sig == 'kill' then
+        debug.debug_write("sudo: SIGKILL'd!", false)
+        return 0
+    end
+end
+
 if os.loadAPI("/lib/login_manager") then
     loginmngr = _G["login_manager"]
 else
@@ -15,51 +31,50 @@ else
     exit()
 end
 
-local _args = {...}
+function main(_args)
+    write("Password: ")
+    local try_pwd = read('')
 
-write("Password: ")
-try_pwd = read('')
+    if loginmngr.login('root', try_pwd) then
+    else
+        print("erroneus user or password.")
+        return 0
+    end
 
-if loginmngr.login('root', try_pwd) then
-else
-    print("erroneus user or password.")
-    return 0
+    function tail(t)
+       if # t <= 1 then
+          return nil
+       end
+       local newtable = {}
+       for i, v in ipairs(t) do
+          if i > 1 then
+              table.insert(newtable, v)
+          end
+       end
+       return newtable
+    end
+
+    local program = _args[1]
+    local args = tail(_args)
+    --if args ~= nil then
+    --    args = ' ' .. table.concat(args, " ")
+    --else
+    --    args = ''
+    --end
+
+    local h = fs.open("/tmp/current_path", 'r')
+    local current_path = h.readAll()
+    h.close()
+
+    if fs.exists(program) then
+        os.runfile_proc(program, args)
+    elseif fs.exists(fs.combine(current_path, program)) then
+        os.runfile_proc(fs.combine(current_path, program), args)
+    elseif fs.exists(fs.combine("/bin/", program)) then
+        os.runfile_proc(fs.combine("/bin/", program), args)
+    elseif fs.exists(fs.combine("/sbin/", program)) then
+        os.runfile_proc(fs.combine("/sbin/", program), args)
+    end
 end
-
-function tail(t)
-   if # t <= 1 then
-      return nil
-   end
-   local newtable = {}
-   for i, v in ipairs(t) do
-      if i > 1 then
-          table.insert(newtable, v)
-      end
-   end
-   return newtable
-end
-
-program = _args[1]
-args = tail(_args)
-if args ~= nil then
-    args = ' ' .. table.concat(args, " ")
-else
-    args = ''
-end
-
-h = fs.open("/tmp/current_path", 'r')
-current_path = h.readAll()
-h.close()
-
-if fs.exists(program) then
-    shell.run(program .. args)
-elseif fs.exists(fs.combine(current_path, program)) then
-    shell.run(fs.combine(current_path, program) .. args)
-elseif fs.exists(fs.combine("/bin/", program)) then
-    shell.run(fs.combine("/bin/", program) .. args)
-elseif fs.exists(fs.combine("/sbin/", program)) then
-    shell.run(fs.combine("/sbin/", program) .. args)
-end
-
 
 

@@ -1,4 +1,14 @@
 #!/usr/bin/env lua
 --/bin/sh: wrapper for /bin/wshell
 
-os.runfile("/bin/wshell")
+_handler = {}
+_handler.signal_handler = function (sig)
+    if sig == 'kill' then
+        --print("uname: recieved SIGKILL")
+        return 0
+    end
+end
+
+function main(args)
+    os.runfile("/bin/cshell")
+end

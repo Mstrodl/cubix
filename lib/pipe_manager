@@ -1,0 +1,17 @@
+#!/usr/bin/env lua
+--pipe manager
+--task: support piping, like bash
+
+if os.loadAPI("/lib/debug_manager") then
+    debug = _G["debug_manager"]
+    debug.debug_write("[pipe] debug: loaded", false)
+else
+    debug.debug_write = print
+    debug.debug_write("[pipe] debug: not loaded")
+end
+
+function new_pipe(ptype)
+    if ptype == 'main' then
+    elseif ptype == 'empty' then
+    end
+end

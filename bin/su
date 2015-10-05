@@ -1,5 +1,7 @@
 #!/usr/bin/env lua
 --/bin/su: logins to root
 
-shell.run("/sbin/login root")
+function main(args)
+    shell.run("/sbin/login root")
+end
 

@@ -1,7 +1,16 @@
 #!/usr/bin/env lua
 --/bin/kill: kills processes
 
-local pid = ...
+_handler = {}
+_handler.signal_handler = function (sig)
+    if sig == 'kill' then
+        os.debug.debug_write("kill: recieved SIGKILL", false)
+        return 0
+    end
+end
 
-p = os.processes[tonumber(pid)]
-os.send_signal(p, os.signals.SIGKILL)
+function main(args)
+    local pid = args[1]
+    p = os.processes[tonumber(pid)]
+    os.send_signal(p, os.signals.SIGKILL)
+end

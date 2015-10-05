@@ -1,8 +1,18 @@
 #!/usr/bin/env lua
 --/bin/pwd: print working directory
 
-local cpth = fs.open("/tmp/current_path", 'r')
-local CURRENT_PATH = cpth.readAll()
-cpth.close()
+_handler = {}
+_handler.signal_handler = function (sig)
+    if sig == 'kill' then
+        --print("pwd: recieved SIGKILL")
+        return 0
+    end
+end
 
-print(CURRENT_PATH)
+function main()
+    local cpth = fs.open("/tmp/current_path", 'r')
+    local CURRENT_PATH = cpth.readAll()
+    cpth.close()
+
+    print(CURRENT_PATH)
+end

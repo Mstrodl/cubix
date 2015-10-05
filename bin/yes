@@ -1,8 +1,10 @@
 #!/usr/bin/env lua
 --/bin/yes: outputs "y"
 
-while true do
-    print("y")
+function main(args)
+    while true do
+        print("y")
+    end
 end
 
 

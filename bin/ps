@@ -1,14 +1,32 @@
 #!/usr/bin/env lua
 --/bin/ps
 
-p = os.processes
+if os.loadAPI("/lib/debug_manager") then
+    debug = _G["debug_manager"]
+    debug.debug_write("[ps] debug: loaded", false)
+else
+    debug.debug_write = print
+    debug.debug_write("debug: not loaded")
+end
 
-print("PID  PROCESS")
-for k,v in pairs(p) do
-    if v.parent == nil then
-        print(k.."  "..(v.file))
-    else
-        print(k.."  "..(v.parent).." | " .. (v.file))
+_handler = {}
+_handler.signal_handler = function(sig)
+    if sig == 'kill' then
+        debug.debug_write("ps: SIGKILL'd!", false)
+        return 0
+    end
+end
+
+function main(args)
+    p = os.processes
+
+    print("PID  PROCESS")
+    for k,v in pairs(p) do
+        if v.parent == nil then
+            print(k.."  "..(v.file))
+        else
+            print(k.."  "..(v.parent).." | " .. (v.file))
+        end
     end
 end
 

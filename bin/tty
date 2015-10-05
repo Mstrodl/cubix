@@ -1,6 +1,16 @@
 #!/usr/bin/env lua
 --/bin/tty: shows the current tty by reading /tmp/current_tty
 
-k = fs.open("/tmp/current_tty", 'r')
-print(k.readAll())
-k.close()
+_handler = {}
+_handler.signal_handler = function (sig)
+    if sig == 'kill' then
+        --print("tty: recieved SIGKILL")
+        return 0
+    end
+end
+
+function main(args)
+    k = fs.open("/tmp/current_tty", 'r')
+    print(k.readAll())
+    k.close()
+end

@@ -1,17 +1,27 @@
 #!/usr/bin/env lua
 --/bin/cd : change directory
 
-local pth = ...
-local CURRENT_PATH = cpath
+_handler = {}
+_handler.signal_handler = function(sig)
+    if sig == 'kill' then
+        --print("cd: SIGKILL")
+        return 0
+    end
+end
 
-local cpath = fs.open("/tmp/current_path", 'r')
-CURRENT_PATH = cpath.readAll()
-cpath.close()
+CURRENT_PATH = ''
 
-local cuser = fs.open("/tmp/current_user", 'r')
-local current_user = cuser.readAll()
-cuser.close()
-
+function strsplit(inputstr, sep)
+    if sep == nil then
+        sep = "%s"
+    end
+    local t={} ; i=1
+    for str in string.gmatch(inputstr, "([^"..sep.."]+)") do
+        t[i] = str
+        i = i + 1
+    end
+    return t
+end
 
 function pth_goup(p)
     elements = strsplit(p, '/')
@@ -43,11 +53,24 @@ function cd(pth)
     end --end
 end
 
-cd(pth)
+function main(args)
+    local pth = args[1]
+    CURRENT_PATH = cpath
 
-local _cpath = fs.open("/tmp/current_path", 'w')
-_cpath.write(CURRENT_PATH)
-_cpath.close()
+    local cpath = fs.open("/tmp/current_path", 'r')
+    CURRENT_PATH = cpath.readAll()
+    cpath.close()
+
+    local cuser = fs.open("/tmp/current_user", 'r')
+    local current_user = cuser.readAll()
+    cuser.close()
+
+    cd(pth)
+
+    local _cpath = fs.open("/tmp/current_path", 'w')
+    _cpath.write(CURRENT_PATH)
+    _cpath.close()
+end
 
 
 

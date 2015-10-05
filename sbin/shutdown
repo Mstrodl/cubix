@@ -1,13 +1,17 @@
 #!/usr/bin/env lua
 --/sbin/reboot: wrapper to CC shutdown
 
-debug.debug_write("[shutdown] turning off...")
-debug.debug_write("deleting temporary")
+debug = {}
+debug.debug_write = print
 
-shell.run("rm /tmp")
-shell.run("mkdir /tmp")
+function main()
+    debug.debug_write("[shutdown] turning off...")
+    debug.debug_write("deleting temporary")
 
-os.sleep(1)
-debug.debug_write("[shutdown] sending HALT.")
-shell.run("shutdown")
+    os.runfile("rm /tmp")
+    os.runfile("mkdir /tmp")
 
+    debug.debug_write("[shutdown] sending HALT.")
+    os.sleep(1)
+    os.shutdown()
+end

@@ -1,0 +1,35 @@
+Process Manager
+
+Primary task: Interface process
+Secondary task: Manage /proc
+
+Primary:
+  Non-localized variables:
+    -os.processes - list - shows the list of actual processes running at the system
+    -os.pid_last - number - the last PID of a process, used to create the PID of the next process
+    -os.signals - table - system signals
+      -os.signals.SIGKILL - number
+
+  Functions:
+    -Process related:
+      -os.call_handle(process, handler)
+        -calls a process _handler, which calls a program _handler
+      -os.send_signal(process, signal)
+        -sends a signal to a process, depending of what signal
+          -SIGKILL: kills the process and its children
+      -os.terminate(process)
+        -terminates a process, first it calls its _handle using os.call_handle
+      -os.run_process(process, arguments)
+        -runs a process with its arguments in a table
+      -os.set_child(parent, child)
+        -sets a relation between parent process and child process
+      -os.set_parent(child, parent)
+        -inverse of os.set_child
+      -os.new_process(executable)
+        -creates a process
+      -os.runfile_proc(executable, arguments, parent)
+        -creates a process, set its parent and runs it with specified arguments, after that, sends a SIGKILL to it
+
+
+Secondary:
+  -proc_manager creates /proc/cpuinfo and /proc/temperature, two fake files to simulate a real unix /proc

@@ -1,0 +1,9 @@
+0.1.0a - 0.2.0a (by 09-30-2015)
+ -proc_manager now can kill processes, including their childs!
+   -every program has to have its main(args) function defined!, it's a rule.
+   -proc_manager runs this function when the process of a file is created and run(using os.run_process)
+ -Manuals!, use man to run, following the syntax:
+   -man <topic> <manual>
+     -follows to /usr/manuals/topic/manual.man
+   -man <manual>
+     -follows to /usr/manuals/manual.man
