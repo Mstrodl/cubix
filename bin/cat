@@ -20,10 +20,13 @@ function cat(file, bytes)
     elseif MFILES[file] ~= nil then
         print(MFILES[file].read(bytes))
     elseif fs.exists(file) and not fs.isDir(file) then
-        print(fs.open(file, 'r').readAll())
+        local h = fs.open(file, 'r')
+        print(h.readAll())
+        h.close()
     elseif fs.exists(fs.combine(CURRENT_PATH, file)) and not fs.isDir(file) then
-        local p = fs.combine(CURRENT_PATH, file)
-        print(fs.open(p, 'r').readAll())
+        local h = fs.open(fs.combine(CURRENT_PATH, file), 'r')
+        print(h.readAll())
+        h.close()
     elseif fs.exists(file) and fs.isDir(file) then
         print("cat: cannot cat into folders")
     else

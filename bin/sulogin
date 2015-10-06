@@ -1,7 +1,7 @@
 #!/usr/bin/env lua
 --/bin/sulogin: logins to root
 
-function main()
-    shell.run("/sbin/login root")
+function main(args)
+    os.runfile("/sbin/login root")
 end
 

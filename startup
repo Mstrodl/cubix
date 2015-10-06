@@ -87,7 +87,7 @@ function loadkernel(kfile, memory, vmode)
     --loads a .lua kernel file with its main function
     print("load -kfile "..kfile.." -mem "..tostring(memory).." -vmode "..vmode)
     print("\nBootLoader: loading "..kfile.."\n")
-    os.sleep(1)
+    os.sleep(.5)
     shell.run(kfile)
 end
 

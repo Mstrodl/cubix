@@ -34,7 +34,7 @@ end
 function login(user, pwd)
     local hashed_pwd = hash_mngr.hash.sha256(pwd)
     local h2 = fs.open("/etc/shadow", 'r')
-    users = strsplit(h2.readAll(), "\n")
+    local users = strsplit(h2.readAll(), "\n")
     local i = 0
     for k,v in pairs(users) do
         local udata = strsplit(users[k], '^')
@@ -45,5 +45,40 @@ function login(user, pwd)
     end
     h2.close()
     return false
+end
+
+function add_new_user(u, p)
+    --adding new users to /etc/shadow
+    local hp = hash_mngr.hash.sha256(p)
+    local user_string = u .. '^' .. hp .. '\n'
+    local h = fs.open("/etc/shadow", 'a')
+    h.write(user_string)
+    h.close()
+    os.runfile("mkdir /home/"..u)
+    return true
+end
+
+function changepwd(user, p, np)
+    if login(user, p) then
+        --change pwd
+        local h = fs.open("/etc/shadow", 'r')
+        local fLines = strsplit(h.readAll(), '\n')
+        for k,v in pairs(fLines) do
+            local pair = strsplit(v, '^')
+            if pair[1] == user then
+                pair[2] = hash_mngr.hash.sha256(np)
+            end
+            fLines[k] = pair[1] .. '^' .. pair[2] .. '\n'
+        end
+        h.close()
+        local h2 = fs.open("/etc/shadow", 'w')
+        for k,v in pairs(fLines) do
+            h2.write(v)
+        end
+        h2.close()
+        return true
+    else
+        return false
+    end
 end
 

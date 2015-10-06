@@ -16,6 +16,8 @@ The Cubix kernel has quite good variables that deserve to be listed, so here we 
     -centralized text
   -os.debug
     -a parachute if the debug api does not work, you can use this!
+  -os.ferror(s) [new!]
+    -wrapper to a emulation of stderr
 
   -hash.sha256(s) - SHA256 hash of a string, returns string.
   -hash.md5(s) - MD5 hash of a string, returns string.

@@ -2,8 +2,8 @@
 --cubix: well, cubix!
 
 AUTHOR = "Lukas Mendes"
-BUILD_DATE = "2015-10-03"
-VERSION = "0.2.1"
+BUILD_DATE = "2015-10-05"
+VERSION = "0.3.0"
 --[[
     version: major.revision.minor
         major: linear
@@ -57,6 +57,12 @@ os.safe_shutdown = function()
     debug.debug_write("[safe_shutdown] sending HALT.")
     os.sleep(1)
     os.shutdown()
+end
+
+os.ferror = function(message)
+    term.set_term_color(colors.red)
+    print(message)
+    term.set_term_color(colors.white)
 end
 
 function strsplit(inputstr, sep)

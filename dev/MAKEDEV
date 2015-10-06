@@ -16,10 +16,15 @@ function main(args)
     os.runfile("mkdir /boot") --boot things
     os.runfile("mkdir /etc") --system-wide configuration files and system databases
     os.runfile("mkdir /home") --home folder
+    os.runfile("mkdir /home/deusa") --default user
     os.runfile("mkdir /lib") --libraries used by /boot/cubix and the binaries
     os.runfile("mkdir /mnt") --mounting (coming soon)
     os.runfile("mkdir /root") --home for root
     os.runfile("mkdir /usr") --user things
+    os.runfile("mkdir /usr/bin")
+    os.runfile("mkdir /usr/games")
+    os.runfile("mkdir /usr/lib")
+    os.runfile("mkdir /usr/sbin")
     os.runfile("mkdir /var") --variables
     os.runfile("mkdir /tmp") --temporary, deleted when shutdown
     os.runfile("mkdir /media") --mounting (coming soon)

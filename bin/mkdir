@@ -14,8 +14,7 @@ function main(args)
     cpth = fs.open("/tmp/current_path", 'r')
     cpath = cpth.readAll()
     cpth.close()
-
-    if d[1] == '/' then
+    if string.sub(d, 0, 1) == '/' then
         os.runfile("mkdir " .. d)
     elseif not fs.exists(fs.combine(cpath, d)) then
         os.runfile("mkdir " .. fs.combine(cpath, d))

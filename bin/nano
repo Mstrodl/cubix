@@ -23,8 +23,8 @@ function main(args)
     local _h = fs.open("/tmp/current_path", 'r')
     local current_path = _h.readAll()
     _h.close()
-
-    if file[1] == '/' then
+    function check_slash(s) return string.sub(s, 0, 1) == '/' end
+    if check_slash(file) then
         if fs.exists(file) then
             local h = fs.open(file, 'a')
         else

@@ -1,0 +1,29 @@
+#!/usr/bin/env lua
+--/sbin/adduser: adding new users to cubix
+
+_handler = {}
+_handler.signal_handler = function(sig)
+    if sig == 'kill' then
+        --print("adduser: SIGKILL")
+        return 0
+    end
+end
+
+if os.loadAPI("/lib/login_manager") then
+    login_mngr = _G["login_manager"]
+    os.debug.debug_write("[passwd] login_manager: loaded", false)
+else
+    os.debug.debug_write("[passwd] login_manager: not loaded")
+end
+
+function main(args)
+    local nu, np = args[1], args[2]
+    if nu == 'root' then
+        os.ferror("cannot create a new root user")
+    end
+    if login_mngr.add_new_user(nu, np) then
+        print("created "..nu)
+    else
+        os.ferror("adduser: error creating new user")
+    end
+end

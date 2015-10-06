@@ -2,6 +2,6 @@
 --/bin/su: logins to root
 
 function main(args)
-    shell.run("/sbin/login root")
+    os.runfile("/sbin/login root")
 end
 

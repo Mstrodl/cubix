@@ -1,1 +1,59 @@
-[14][shutdown] sending HALT.
+[0]debug: loaded
+[1]Cubix version 0.3.0 loading...
+[0][hash] debug: loaded
+[1][hash] sha256: loaded
+[2][hash] sha256('hell') test = PASS
+[3][hash] md5: loaded
+[4][hash] md5('hell') test = PASS
+[2]hash: loaded
+[0][devmanager] debug: loaded
+[1][devmanager] device_manager: loading random_dev
+[2][devmanager] device_manager: loaded random_dev
+[3][devmanager] device_manager: loading null_dev
+[4][devmanager] device_manager: loaded null_dev
+[5][devmanager] device_manager: loading zero_dev
+[6][devmanager] device_manager: loaded zero_dev
+[3]device_manager: loaded
+[4][device_manager] /dev/random created
+[5][device_manager] /dev/null created
+[6][device_manager] /dev/zero created
+[7]fs_manager: loaded
+[0][proc_manager] debug_manager: loaded
+[1][proc_manager] new process: /sbin/init
+[2][process] running /sbin/init
+[8]proc_manager: loaded
+[9][mfile] /proc/cpuinfo created
+[10][mfile] /proc/temperature created
+[11]tty_manager: loaded
+[0][login_manager] debug: loaded
+[0][hash] debug: loaded
+[1][hash] sha256: loaded
+[2][hash] sha256('hell') test = PASS
+[3][hash] md5: loaded
+[4][hash] md5('hell') test = PASS
+[1][login_manager] hash_manager: loaded
+[12]login_manager: loaded
+[3][proc_manager] new process: /sbin/login
+[4][process] running /sbin/login
+[0][login_manager] debug: loaded
+[0][hash] debug: loaded
+[1][hash] sha256: loaded
+[2][hash] sha256('hell') test = PASS
+[3][hash] md5: loaded
+[4][hash] md5('hell') test = PASS
+[1][login_manager] hash_manager: loaded
+[5][proc_manager] new process: /bin/cshell
+[6][process] running /bin/cshell
+[0]debug: loaded
+[1][cshell] tty_manager: loaded
+[0][pipe] debug: loaded
+[2][wshell] pipe_manager: loaded
+[7][proc_manager] new process: bin/ls
+[8][process] running bin/ls
+[9][proc_manager] bin/ls recieved SIGKILL.
+[10][proc_manager] new process: bin/mkdir
+[11][process] running bin/mkdir
+[12][proc_manager] bin/mkdir recieved SIGKILL.
+[13][proc_manager] new process: bin/ls
+[14][process] running bin/ls
+[15][proc_manager] bin/ls recieved SIGKILL.

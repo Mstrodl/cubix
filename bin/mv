@@ -15,16 +15,17 @@ function main(args)
     local current_path = _h.readAll()
     _h.close()
     function _combine(c) return fs.combine(current_path, c) end
+    function check_slash(s) return string.sub(s, 0, 1) == '/' end
     if from == nil or to == nil then
         print("usage: mv from to")
     else
         if fs.exists(_combine(from)) and fs.exists(_combine(to)) then
             os.runfile("mv ".._combine(from).." ".._combine(to))
-        elseif fs.exists(_combine(from)) and to[1] == '/' then
+        elseif fs.exists(_combine(from)) and check_slash(to) then
             os.runfile("mv ".._combine(from).." "..to)
-        elseif fs.exists(_combine(to)) and from[1] == '/' then
+        elseif fs.exists(_combine(to)) and check_slash(from) then
             os.runfile("mv "..from.." ".._combine(to))
-        elseif from[1] == '/' and to[1] == '/' then
+        elseif check_slash(from) and check_slash(to) then
             os.runfile("mv "..from.." "..to)
         else
             print("mv: check command syntax")

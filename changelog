@@ -1,9 +1,18 @@
-0.1.0a - 0.2.0a (by 09-30-2015)
- -proc_manager now can kill processes, including their childs!
-   -every program has to have its main(args) function defined!, it's a rule.
-   -proc_manager runs this function when the process of a file is created and run(using os.run_process)
- -Manuals!, use man to run, following the syntax:
-   -man <topic> <manual>
-     -follows to /usr/manuals/topic/manual.man
-   -man <manual>
-     -follows to /usr/manuals/manual.man
+0.2.1 - 0.3.0 (10-05-2015)
+  -bugfix in cp, rn, mv, mkdir, touch (including the draft nano)... (string comparison, "s[1] == 'a'" does not work)
+  -consistency fix on cat: opening a file and not closing it after use
+  -cp: does not require absolute paths now!
+  -su and sulogin: using os.runfile() now
+  -cleanup: not using /bin/shell and /bin/wshell anymore!
+  -/dev/MAKEDEV now creates /usr
+  -login manager: add users and change password of a user
+
+0.1.0a - 0.2.1 (by 09-30-2015)
+  -proc_manager now can kill processes, including their childs!
+    -every program has to have its main(args) function defined!, it's a rule.
+    -proc_manager runs this function when the process of a file is created and run(using os.run_process)
+  -Manuals!, use man to run, following the syntax:
+    -man <topic> <manual>
+      -follows to /usr/manuals/topic/manual.man
+    -man <manual>
+      -follows to /usr/manuals/manual.man

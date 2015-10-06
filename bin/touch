@@ -16,7 +16,8 @@ function main(args)
     cpath = cpth.readAll()
     cpth.close()
 
-    if d[1] == '/' then
+    function check_slash(s) return string.sub(s, 0, 1) == '/' end
+    if check_slash(d) then
         fs.open(d, 'a').close()
     elseif not fs.exists(fs.combine(cpath, d)) then
         fs.open(fs.combine(cpath, d), 'a').close()

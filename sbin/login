@@ -45,7 +45,7 @@ function main(args)
         k2.close()
         os.runfile_proc("/bin/cshell")
     else
-        print("erroneus user or password.")
+        os.ferror("login: error on user or on password.")
     end
 end
 
