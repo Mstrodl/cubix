@@ -1,3 +1,55 @@
 #!/usr/bin/env lua
 --/bin/wget
 --TODO: download files using HTTP
+
+_handler = {}
+_handler.signal_handler = function (sig)
+    if sig == 'kill' then
+        --print("wget: recieved SIGKILL")
+        return 0
+    end
+end
+
+if not http then
+    os.ferror("wget: cannot use HTTP API, closing.")
+    return 0
+end
+
+function usage()
+    print("usage: wget <url> <file>")
+end
+
+function main(args)
+    if args == nil then
+        usage()
+    end
+    local url, dest = args[1], args[2]
+    local response = http.get(url)
+    local sResponse = ''
+    if response then
+        print("wget: GET success")
+        sResponse = response.readAll()
+        response.close()
+    else
+        os.ferror("wget: failed!")
+    end
+
+    local _h = fs.open("/tmp/current_path", 'r')
+    local CPATH = _h.readAll()
+    _h.close()
+
+    local fh = {}
+    if string.sub(dest, 0, 1) == '/' then
+        fh = fs.open(dest, 'w')
+    elseif not fs.exists(fs.combine(CPATH, dest)) then
+        fh = fs.open(fs.combine(CPATH, dest), 'w')
+    else
+        fh = fs.open(fs.combine(CPATH, dest), 'w')
+    end
+
+    fh.write(sResponse)
+    fh.close()
+
+    print("Downloaded as "..dest.. " from "..url)
+    return 0
+end

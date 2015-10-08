@@ -1,0 +1,28 @@
+#!/usr/bin/env lua
+--/bin/glep: port of ClamShell's glep to Cubix (http://github.com/Team-CC-Corp/ClamShell)
+
+_handler = {}
+_handler.signal_handler = function (sig)
+    if sig == 'kill' then
+        --print("glep: recieved SIGKILL")
+        return 0
+    end
+end
+
+function main(args, pipe)
+    local pattern, files = args
+    local RFiles = {}
+    for k,v in pairs(files) do
+        RFiles[k] = fs.open(v, 'r')
+    end
+    for i, fh in pairs(RFiles) do
+        while true do
+            local line = fh.readLine()
+            if not line then break end
+            if line:find(pattern) then
+                print(line)
+            end
+        end
+        fh.close()
+    end
+end

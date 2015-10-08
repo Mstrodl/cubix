@@ -19,7 +19,7 @@ else
 end
 
 function main(args)
-    --cmd1 | tee output_file | cmd2 -
+    --cmd1 | tee output_file | cmd2
     pipes = pipe_mngr.new_pipe('main')
     local stdout_from = pipes.recieve_pipe() --this will become a string
     local h = fs.open(args[1], 'w')

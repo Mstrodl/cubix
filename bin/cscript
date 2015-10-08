@@ -1,0 +1,50 @@
+#!/usr/bin/env lua
+--/bin/cscript: CubixScript
+
+_handler = {}
+_handler.signal_handler = function (sig)
+    if sig == 'kill' then
+        --print("cscript: recieved SIGKILL")
+        return 0
+    end
+end
+
+--$("echo ;Hello World!")
+
+function parseCommand(cmd)
+    local _k = cmd:find('"')
+    local command = string.sub(cmd, _k, #cmd-2)
+    os.cshell.__shell_command(command)
+end
+
+function main(args)
+    local file = args[1]
+    if file == nil then
+        print("usage: cscript <file>")
+        return 0
+    end
+    local _h = fs.open("/tmp/current_path", 'r')
+    local CPATH = _h.readAll()
+    _h.close()
+    local fh = {}
+    if string.sub(file, 0, 1) == '/' then
+        fh = fs.open(file, 'r')
+    elseif fs.exists(fs.combine(CPATH, file)) then
+        fh = fs.open(fs.combine(CPATH, file), 'r')
+    else
+        os.ferror("cscript: file not found")
+        return 0
+    end
+    local fLines = {}
+    local F = fh.readAll()
+    local K = os.strsplit(F, "\n")
+    for k,v in pairs(K) do
+        fLines[k] = v
+    end
+    fh.close()
+    for k,v in pairs(fLines) do
+        if string.sub(v, 0, 1) == '$' then
+            parseCommand(v)
+        end
+    end
+end

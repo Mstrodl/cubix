@@ -47,10 +47,10 @@ os.call_handle = function(process, handler)
 		if r._handler then
 			r._handler.signal_handler(handler)
 		else
-			debug.debug_write("[proc_handler] "..process.file.." does not have a signal handler, ignoring it")
+			os.debug.debug_write("[proc_handler] "..process.file.." does not have a signal handler, ignoring it")
 		end
 	else
-		debug.debug_write("[proc_handler] "..process.file.." does not have anything to show, ignoring it", false)
+		os.debug.debug_write("[proc_handler] "..process.file.." does not have anything to show, ignoring it", false)
 	end
 end
 
@@ -58,7 +58,7 @@ os.send_signal = function (proc, signal)
     if proc == nil then
         print("process not encoutered")
     elseif signal == os.signals.SIGKILL then
-        debug.debug_write("[proc_manager] "..proc.file.." recieved SIGKILL.", false)
+        os.debug.debug_write("[proc_manager] "..proc.file.." recieved SIGKILL.", false)
         os.processes[proc.pid] = nil --removing anything related to the process in os.processes
         for k,v in pairs(proc.childs) do
             os.terminate(v)
@@ -75,7 +75,7 @@ end
 
 os.run_process = function(p, args)
     if args == nil then args = {} end
-    debug.debug_write("[process] running "..p.file, false)
+    os.debug.debug_write("[process] running "..p.file, false)
     os.processes[p.pid] = p
     if os.loadAPI(p.file) then
         K = strsplit(p.file, '/')
@@ -83,10 +83,10 @@ os.run_process = function(p, args)
         if p.rfile.main ~= nil then
             p.rfile.main(args)
         else
-            debug.debug_write("[process] cannot call main() function from "..p.file)
+            os.debug.debug_write("[process] cannot call main() function from "..p.file)
         end
     else
-        print("cannot load "..p.file)
+        os.debug.debug_write("[process] cannot load "..p.file)
     end
 end
 
@@ -107,16 +107,16 @@ os.new_process = function(executable)
     cls.parent = nil
     cls.childs = {}
     cls.rfile = nil
-    debug.debug_write("[proc_manager] new process: "..cls.file, false)
+    os.debug.debug_write("[proc_manager] new process: "..cls.file, false)
     return cls
 end
 
-parent_init = os.new_process("/sbin/init")
-os.run_process(parent_init)
-
-os.runfile_proc = function(executable, arguments, parent)
-    if parent == nil then _parent = parent_init end --making sure /sbin/init is parent of all processes
+os.runfile_proc = function(executable, arguments, parent, pipe)
+    if parent == nil then
+        _parent = os.__parent_init --making sure /sbin/init is parent of all processes
+    end
     if arguments == nil then arguments = {} end
+    --if pipe == nil then pipe = pipemgr.new_pipe("empty") end
     _process = os.new_process(executable) --creating a process
     os.set_parent(_process, _parent) --making parenting possible
     os.run_process(_process, arguments) -- running

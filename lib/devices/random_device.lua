@@ -1,11 +1,3 @@
-
-function safestr(s)
-    if string.byte(s) > 191 then
-        return '#'..string.byte(s)..'#'
-    end
-    return s
-end
-
 function rawread()
     while true do
         local sEvent, param = os.pullEvent("key")
@@ -20,7 +12,7 @@ end
 function print_rndchar()
     while true do
         s = string.char(math.random(0, 255))
-        io.write(safestr(s))
+        io.write(os.safestr(s))
     end
 end
 
@@ -34,7 +26,7 @@ end
 
 dev_random.device.read = function (bytes)
     local crand = {}
-    math.randomseed(os.time())
+    math.randomseed(os.clock())
     if bytes == nil then
         crand = coroutine.create(print_rndchar)
         coroutine.resume(crand)
@@ -48,7 +40,7 @@ dev_random.device.read = function (bytes)
         result = ''
         for i = 0, bytes do
             s = string.char(math.random(0, 255))
-            result = result .. safestr(s)
+            result = result .. os.safestr(s)
         end
         return result
     end

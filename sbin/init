@@ -12,6 +12,7 @@ _handler.signal_handler = function (sig)
 end
 
 function main()
+    os.runfile_proc("/sbin/login")
     return 0
 end
 

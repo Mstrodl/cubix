@@ -2,8 +2,8 @@
 --cubix: well, cubix!
 
 AUTHOR = "Lukas Mendes"
-BUILD_DATE = "2015-10-05"
-VERSION = "0.3.0"
+BUILD_DATE = "2015-10-07"
+VERSION = "0.3.1"
 --[[
     version: major.revision.minor
         major: linear
@@ -65,7 +65,26 @@ os.ferror = function(message)
     term.set_term_color(colors.white)
 end
 
+os.safestr = function (s)
+    if string.byte(s) > 191 then
+        return '@'..string.byte(s)
+    end
+    return s
+end
+
 function strsplit(inputstr, sep)
+    if sep == nil then
+        sep = "%s"
+    end
+    local t={} ; i=1
+    for str in string.gmatch(inputstr, "([^"..sep.."]+)") do
+        t[i] = str
+        i = i + 1
+    end
+    return t
+end
+
+os.strsplit = function (inputstr, sep)
     if sep == nil then
         sep = "%s"
     end
@@ -172,20 +191,12 @@ else
     debug.debug_write("login_manager: not loaded")
 end
 
---print(MANAGED_FILES["/proc/cpuinfo"].read())
-
 term.clear()
 term.setCursorPos(1,1)
 
 os.__debug_buffer = debug.__debug_buffer
 
-os.runfile_proc("/sbin/login")
+os.__parent_init = os.new_process("/sbin/init")
+os.run_process(os.__parent_init)
 
-debug.debug_write("[reboot] rebooting...")
-debug.debug_write("deleting temporary")
-
-shell.run("rm /tmp")
-shell.run("mkdir /tmp")
-
-os.sleep(.3)
-os.reboot()
+os.safe_shutdown()

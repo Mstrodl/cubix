@@ -19,7 +19,7 @@ end
 function main(args)
     local nu, np = args[1], args[2]
     if nu == 'root' then
-        os.ferror("cannot create a new root user")
+        os.ferror("you cannot create a new root user")
     end
     if login_mngr.add_new_user(nu, np) then
         print("created "..nu)

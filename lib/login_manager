@@ -49,6 +49,7 @@ end
 
 function add_new_user(u, p)
     --adding new users to /etc/shadow
+    --TODO: permissions
     local hp = hash_mngr.hash.sha256(p)
     local user_string = u .. '^' .. hp .. '\n'
     local h = fs.open("/etc/shadow", 'a')

@@ -93,7 +93,12 @@ function shell_command(k)
     end
 end
 
+os.cshell = {}
+os.cshell.__shell_command = shell_command
+
 function main()
+    local command = ""
+    local HISTORY = {}
     while true do
         local cuser = fs.open("/tmp/current_user", 'r')
         local cpath = fs.open("/tmp/current_path", 'r')
@@ -107,10 +112,12 @@ function main()
             shell_char = '$ '
         end
         shell_tty.write(current_user .. ':' .. current_path .. shell_char)
-        command = shell_tty.read()
+        command = read(nil, HISTORY)
+        table.insert(HISTORY, command)
         if command == "exit" then
             break
         elseif command ~= nil then
+            HISTORY[#HISTORY] = command
             shell_command(command)
         end
     end
