@@ -19,16 +19,16 @@ end
 
 if os.loadAPI("/lib/tty_manager") then
     tty_mngr = _G["tty_manager"]
-    debug.debug_write("[cshell] tty_manager: loaded", false)
+    os.debug.debug_write("[cshell] tty_manager: loaded", false)
 else
-    debug.debug_write("[cshell] tty_manager: not loaded")
+    os.debug.debug_write("[cshell] tty_manager: not loaded")
 end
 
 if os.loadAPI("/lib/pipe_manager") then
-    pipe_mngr = _G["pipe_manager"]
-    debug.debug_write("[wshell] pipe_manager: loaded", false)
+    pipemngr = _G["pipe_manager"]
+    os.debug.debug_write("[wshell] pipe_manager: loaded", false)
 else
-    debug.debug_write("[wshell] pipe_manager: not loaded")
+    os.debug.debug_write("[wshell] pipe_manager: not loaded")
 end
 
 function strsplit(inputstr, sep)
@@ -57,46 +57,81 @@ shell_tty = tty_mngr.new_tty("/dev/wshell_tty")
 tty_mngr.using_tty("/dev/wshell_tty")
 
 function shell_command(k)
+    --TODO: add support for && (in cscript /etc/scripts/set_env.csp && ps && exit)
+    --TODO: add support for &
     if k == nil or k == "" then return 0 end
-    local c = strsplit(k, " ")
-    local program = c[1]
-    if program == 'echo' then
-        args = strsplit(k, ';')
-        print(args[2])
-        return 0
-    end
-    local args = {}
-    for k,v in pairs(c) do
-        if v == program then
-        else
-            args[#args+1] = v
-        end
-    end
-    if fs.exists(program) then
-        os.runfile_proc(program, args)
-    elseif fs.exists(fs.combine(current_path, program)) then
-        os.runfile_proc(fs.combine(current_path, program), args)
-    elseif fs.exists(fs.combine("/bin/", program)) then
-        os.runfile_proc(fs.combine("/bin/", program), args)
-    elseif fs.exists(fs.combine("/sbin/", program)) then
-        if current_user == "root" then
-            os.runfile_proc(fs.combine("/sbin/", program), args)
-        else
-            term.set_term_color(colors.red)
-            print("you are not root to run this program!")
-            term.set_term_color(colors.white)
+    if k:find("|") then
+        print("found pipe")
+        local count = 1
+        local programs = os.strsplit(k, "|")
+        local npipe = pipemngr.new_empty_pipe('main')
+        for k,v in pairs(programs) do
+            local c = os.strsplit(v, ' ')
+            local program = c[1]
+            local pargs = {}
+            for k,v in pairs(c) do
+                if v ~= program then
+                    pargs[#pargs+1] = tostring(v)
+                end
+            end
+            if count > 2 then
+                print("flushed")
+                pipemngr.flush_pipe(npipe)
+            end
+            if fs.exists(program) then
+                os.runfile_proc(program, pargs, nil, npipe)
+            elseif fs.exists(fs.combine(current_path, program)) then
+                os.runfile_proc(fs.combine(current_path, program), pargs, nil, npipe)
+            elseif fs.exists(fs.combine("/bin/", program)) then
+                os.runfile_proc(fs.combine("/bin/", program), pargs, nil, npipe)
+            elseif fs.exists(fs.combine("/sbin/", program)) then
+                if current_user == "root" then
+                    os.runfile_proc(fs.combine("/sbin/", program), pargs, nil, npipe)
+                else
+                    os.ferror("you are not root to run this program!")
+                end
+            else
+                os.ferror("Program not found")
+            end
+            count = count + 1
         end
     else
-        term.set_term_color(colors.red)
-        print("Program not found")
-        term.set_term_color(colors.white)
+        local c = strsplit(k, " ")
+        local program = c[1]
+        if program == 'echo' then
+            args = strsplit(k, ';')
+            print(args[2])
+            return 0
+        end
+        local args = {}
+        for k,v in pairs(c) do
+            if v == program then
+            else
+                args[#args+1] = v
+            end
+        end
+        if fs.exists(program) then
+            os.runfile_proc(program, args)
+        elseif fs.exists(fs.combine(current_path, program)) then
+            os.runfile_proc(fs.combine(current_path, program), args)
+        elseif fs.exists(fs.combine("/bin/", program)) then
+            os.runfile_proc(fs.combine("/bin/", program), args)
+        elseif fs.exists(fs.combine("/sbin/", program)) then
+            if current_user == "root" then
+                os.runfile_proc(fs.combine("/sbin/", program), args)
+            else
+                os.ferror("you are not root to run this program!")
+            end
+        else
+            os.ferror("Program not found")
+        end
     end
 end
 
 os.cshell = {}
 os.cshell.__shell_command = shell_command
 
-function main()
+function main(args)
     local command = ""
     local HISTORY = {}
     while true do
@@ -115,9 +150,8 @@ function main()
         command = read(nil, HISTORY)
         table.insert(HISTORY, command)
         if command == "exit" then
-            break
+            return 0
         elseif command ~= nil then
-            HISTORY[#HISTORY] = command
             shell_command(command)
         end
     end

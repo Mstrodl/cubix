@@ -11,6 +11,7 @@ end
 
 function main(args)
     n = args[1]
+    if tonumber(n) == 0 then return 0 end
     function IsPrime(n)
         if n <= 1 or (n ~= 2 and n % 2 == 0) then
             return false

@@ -11,8 +11,18 @@ _handler.signal_handler = function (sig)
     end
 end
 
-function main()
-    os.runfile_proc("/sbin/login")
+function main(args)
+    --TODO: ability to runlevel
+    if args[1] ~= nil then
+        runlevel = tonumber(args[1])
+    else
+        runlevel = 1
+    end
+    if runlevel == 0 then
+        os.safe_shutdown()
+    elseif runlevel == 1 then
+        os.runfile_proc("/sbin/login")
+    end
     return 0
 end
 

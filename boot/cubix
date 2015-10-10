@@ -2,8 +2,8 @@
 --cubix: well, cubix!
 
 AUTHOR = "Lukas Mendes"
-BUILD_DATE = "2015-10-07"
-VERSION = "0.3.1"
+BUILD_DATE = "2015-10-10"
+VERSION = "0.3.2"
 --[[
     version: major.revision.minor
         major: linear
@@ -11,6 +11,44 @@ VERSION = "0.3.1"
         revision: even: stable
         minor: number of RELEASES necessary to get to this version, not including BUILDS
 ]]
+
+local Args = {...} --arguments to shell
+
+os.strsplit = function (inputstr, sep)
+    if sep == nil then
+        sep = "%s"
+    end
+    if inputstr == nil then
+        return ''
+    end
+    local t={} ; i=1
+    for str in string.gmatch(inputstr, "([^"..sep.."]+)") do
+        t[i] = str
+        i = i + 1
+    end
+    return t
+end
+
+kflag = {}
+
+for k,v in pairs(Args) do
+    if v == 'quiet' then
+        kflag.quiet = true
+    elseif v == 'nodebug' then
+        kflag.nodebug = true
+    elseif v == 'splash' then
+        kflag.splash = true
+    elseif string.sub(v, 0, 4) == 'init' then
+        k = os.strsplit(v, '=')
+        kflag.init = k[2]
+    end
+end
+
+if kflag.init == nil then
+    kflag.init = "/sbin/init"
+end
+
+os.__kflag = kflag
 
 local pcid = fs.open("/var/pcid", 'w')
 pcid.write(os.getComputerLabel())
@@ -46,12 +84,16 @@ end
 
 os.runfile = shell.run
 
+os.__clear_temporary = function()
+    shell.run("rm /tmp")
+    shell.run("mkdir /tmp")
+end
+
 os.safe_shutdown = function()
     debug.debug_write("[safe_shutdown] turning off...")
     debug.debug_write("[safe_shutdown] deleting /tmp")
 
-    shell.run("rm /tmp")
-    shell.run("mkdir /tmp")
+    os.__clear_temporary()
 
     os.sleep(1)
     debug.debug_write("[safe_shutdown] sending HALT.")
@@ -77,19 +119,7 @@ function strsplit(inputstr, sep)
         sep = "%s"
     end
     local t={} ; i=1
-    for str in string.gmatch(inputstr, "([^"..sep.."]+)") do
-        t[i] = str
-        i = i + 1
-    end
-    return t
-end
-
-os.strsplit = function (inputstr, sep)
-    if sep == nil then
-        sep = "%s"
-    end
-    local t={} ; i=1
-    for str in string.gmatch(inputstr, "([^"..sep.."]+)") do
+    for str in string.gmatch(inputstr, "([^" .. sep .. "]+)") do
         t[i] = str
         i = i + 1
     end
@@ -106,6 +136,11 @@ if os.loadAPI("/lib/debug_manager") then
 else
     debug.debug_write = print
     debug.debug_write("debug: not loaded")
+end
+
+if kflag.quiet then
+    debug = {}
+    debug.debug_write = function(x)end
 end
 
 os.debug = debug
@@ -191,12 +226,34 @@ else
     debug.debug_write("login_manager: not loaded")
 end
 
+if os.loadAPI("/lib/pipe_manager") then
+    pipemngr = _G["pipe_manager"]
+    os.debug.debug_write("pipe: loaded", false)
+else
+    os.debug.debug_write("pipe: not loaded")
+end
+
+os.pipemngr = pipemngr
+
+os.pprint = function(message, pipe)
+    if pipe ~= nil then
+        os.pipemngr.write_topipe(pipe, message..'\n')
+    else
+        print(message)
+    end
+end
+
+--[[
+pipemngr.test_pipe()
+os.sleep(2)
+]]
+
 term.clear()
 term.setCursorPos(1,1)
 
 os.__debug_buffer = debug.__debug_buffer
 
-os.__parent_init = os.new_process("/sbin/init")
-os.run_process(os.__parent_init)
+os.__parent_init = os.new_process(kflag.init)
+os.run_process(os.__parent_init, {"1"})
 
 os.safe_shutdown()

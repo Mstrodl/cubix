@@ -2,12 +2,45 @@
 --pipe manager
 --task: support piping, like bash
 
-if os.loadAPI("/lib/debug_manager") then
-    debug = _G["debug_manager"]
-    debug.debug_write("[pipe] debug: loaded", false)
-else
-    debug.debug_write = print
-    debug.debug_write("[pipe] debug: not loaded")
+os.__pipes = {}
+
+function new_empty_pipe(n)
+    local cls = {}
+    cls.ptype = n
+    cls.__buffer = ''
+    return cls
+end
+
+function readLine(handle)
+    local tBuffer = os.strsplit(handle.__buffer, '\n')
+    local data = tBuffer[handle.point]
+    --print(handle.point .. ': ' .. data)
+    handle.point = handle.point + 1
+    return data
+end
+
+function getHandle(pipe)
+    local cls = {}
+    cls.point = 1
+    cls.__buffer = pipe.__buffer
+    return cls
+end
+
+function write_topipe(pipe, str)
+    if pipe == nil or str == nil or pipe.__buffer == nil then return 0 end
+    pipe.__buffer = pipe.__buffer .. str
+end
+
+function flush_pipe(p)
+    p.__buffer = ''
+end
+
+function test_pipe()
+    local t = new_empty_pipe()
+    write_topipe(t, "Hello\nWorld!\n")
+    local h = getHandle(t)
+    print(t.__buffer == h.__buffer)
+    print(readLine(h))
 end
 
 function new_pipe(ptype)

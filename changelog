@@ -1,3 +1,15 @@
+0.3.1 - 0.3.2 (10-10-2015)
+  *bugfix: factor makes a infinite loop when n is 0
+  +/bin/cscript: CubixScript [going to create a manual]!
+  +/bin/glep: grep in lua!
+  +SBL: now you can load a kernel manually!
+  +/bin/cubix
+    +added boot options, for now its just "quiet" and "nodebug".
+    +NEW os.pprint, stands for "pipe print"
+  +/sbin/init
+    +runlevels (still working)
+  +/bin/cshell: FINALLY, PIPES! ("ps | glep login" works)
+
 0.3.0 - 0.3.1 (10-07-2015)
   +/bin/cshell: now has a history
   +/bin/wget

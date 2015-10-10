@@ -39,9 +39,15 @@ function CUI(m)
         term.clear()
         term.setCursorPos(1,2)
 	    cprint("-- SBL (Simple BootLoader) --")
+        cprint("\n")
         for i=1, l, 1 do
-        if i==n then cprint(i .. " ["..m[i].."]") else cprint(i .. " " .. m[i]) end
+            if i==n then
+                cprint(i .. " ["..m[i].."]")
+            else
+                cprint(i .. " " .. m[i])
+            end
         end
+        cprint("\n")
         cprint("Select an OS to load[arrow up/arrow down]")
         a, b= os.pullEventRaw()
         if a == "key" then
@@ -81,19 +87,27 @@ term.set_term_color(colors.white)
 os.sleep(.5)
 
 oses = read_osfile()
+table.insert(oses[1], "Load a OS manually")
+table.insert(oses[2], "lineboot")
 local loados = CUI(oses[1]) --only names
 
 function loadkernel(kfile, memory, vmode)
     --loads a .lua kernel file with its main function
-    print("load -kfile "..kfile.." -mem "..tostring(memory).." -vmode "..vmode)
+    if kfile == 'lineboot' then
+        write("SBL:loadkernel> ")
+        lFile = read()
+    else
+        lFile = kfile
+    end
+    print("load -kfile "..lFile.." -mem "..tostring(memory).." -vmode "..vmode)
     print("\nBootLoader: loading "..kfile.."\n")
     os.sleep(.5)
-    shell.run(kfile)
+    shell.run(lFile)
 end
 
 loadkernel(oses[2][loados], 512, 'ccraft-generic-video')
 
-os.sleep(5)
+while true do os.sleep(0) end
 os.shutdown()
 
 term.setTextColor(colors.red)

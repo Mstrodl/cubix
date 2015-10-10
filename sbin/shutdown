@@ -4,7 +4,7 @@
 debug = {}
 debug.debug_write = print
 
-function main()
+function main(args)
     debug.debug_write("[shutdown] turning off...")
     debug.debug_write("deleting temporary")
 

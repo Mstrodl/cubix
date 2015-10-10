@@ -56,11 +56,6 @@ function main(_args)
 
     local program = _args[1]
     local args = tail(_args)
-    --if args ~= nil then
-    --    args = ' ' .. table.concat(args, " ")
-    --else
-    --    args = ''
-    --end
 
     local h = fs.open("/tmp/current_path", 'r')
     local current_path = h.readAll()

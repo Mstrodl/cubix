@@ -10,6 +10,13 @@ else
     debug.debug_write("[proc_manager] debug_manager: not loaded")
 end
 
+if os.loadAPI("/lib/pipe_manager") then
+    pipemngr = _G["pipe_manager"]
+    os.debug.debug_write("[proc_manager] pipe: loaded", false)
+else
+    os.debug.debug_write("[proc_manager] pipe: not loaded")
+end
+
 if os.loadAPI("/lib/fs_manager") then
     fsmngr = _G["fs_manager"]
 else
@@ -73,15 +80,16 @@ os.terminate = function (p)
     --os.sleep(1)
 end
 
-os.run_process = function(p, args)
+os.run_process = function(p, args, pipe)
     if args == nil then args = {} end
+    --if pipe == nil then pipe = {} end
     os.debug.debug_write("[process] running "..p.file, false)
     os.processes[p.pid] = p
     if os.loadAPI(p.file) then
         K = strsplit(p.file, '/')
         p.rfile = _G[K[#K]] --non-localized variables in _G
         if p.rfile.main ~= nil then
-            p.rfile.main(args)
+            p.rfile.main(args, pipe)
         else
             os.debug.debug_write("[process] cannot call main() function from "..p.file)
         end
@@ -116,10 +124,10 @@ os.runfile_proc = function(executable, arguments, parent, pipe)
         _parent = os.__parent_init --making sure /sbin/init is parent of all processes
     end
     if arguments == nil then arguments = {} end
-    --if pipe == nil then pipe = pipemgr.new_pipe("empty") end
+    --if pipe == nil then pipe = pipemngr.new_pipe("empty") end
     _process = os.new_process(executable) --creating a process
     os.set_parent(_process, _parent) --making parenting possible
-    os.run_process(_process, arguments) -- running
+    os.run_process(_process, arguments, pipe) -- running
     os.send_signal(_process, os.signals.SIGKILL) --killing after its task is done
 end
 

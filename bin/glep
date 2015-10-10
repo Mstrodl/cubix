@@ -1,6 +1,13 @@
 #!/usr/bin/env lua
 --/bin/glep: port of ClamShell's glep to Cubix (http://github.com/Team-CC-Corp/ClamShell)
 
+if os.loadAPI("/lib/pipe_manager") then
+    pipemngr = _G["pipe_manager"]
+    os.debug.debug_write("[glep] pipe: loaded", false)
+else
+    os.debug.debug_write("[glep] pipe: not loaded")
+end
+
 _handler = {}
 _handler.signal_handler = function (sig)
     if sig == 'kill' then
@@ -9,9 +16,9 @@ _handler.signal_handler = function (sig)
     end
 end
 
-function main(args, pipe)
-    local pattern, files = args
+function work_files(pattern, files)
     local RFiles = {}
+
     for k,v in pairs(files) do
         RFiles[k] = fs.open(v, 'r')
     end
@@ -25,4 +32,40 @@ function main(args, pipe)
         end
         fh.close()
     end
+end
+
+function work_pipe(pat, pipe)
+    local k = pipemngr.getHandle(pipe)
+    while true do
+        local line = pipemngr.readLine(k)
+        if not line or line == nil then break end
+        local K = string.find(line, pat)
+        if K ~= nil then
+            print(line)
+        end
+    end
+end
+
+function main(args, pipe)
+    function tail(t)
+       if # t <= 1 then
+          return nil
+       end
+       local newtable = {}
+       for i, v in ipairs(t) do
+          if i > 1 then
+              table.insert(newtable, v)
+          end
+       end
+       return newtable
+    end
+    if pipe ~= nil then
+        print("recieved pipe")
+        local pattern = args[1]
+        work_pipe(pattern, pipe)
+    else
+        local pattern, files = args[1], tail(args)
+        work_files(pattern, files)
+    end
+    return 0
 end
