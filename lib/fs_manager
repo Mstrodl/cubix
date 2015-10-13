@@ -1,5 +1,93 @@
 #!/usr/bin/env lua
 --filesystem manager
---task: ???
+--task: manage filesystem permissions
+
+function deepcopy(orig)
+    local orig_type = type(orig)
+    local copy
+    if orig_type == 'table' then
+        copy = {}
+        for orig_key, orig_value in next, orig, nil do
+            copy[deepcopy(orig_key)] = deepcopy(orig_value)
+        end
+        setmetatable(copy, deepcopy(getmetatable(orig)))
+    else -- number, string, boolean, etc
+        copy = orig
+    end
+    return copy
+end
+
+oldfs = deepcopy(fs)
+
+--[[
+
+fs.open
+fs.getName
+fs.combine
+fs.isReadOnly
+fs.move
+fs.copy
+fs.delete
+fs.isDir
+fs.getFreeSpace
+fs.complete
+fs.getDrive
+fs.getSize
+fs.list
+fs.exists
+fs.makeDir
+fs.find
+fs.getDir
+
+PERMISSIONS:
+
+Symbolic Notation 	Numeric Notation English
+---------- 	0000 	no permissions
+---x--x--x 	0111 	execute
+--w--w--w- 	0222 	write
+--wx-wx-wx 	0333 	write & execute
+-r--r--r-- 	0444 	read
+-r-xr-xr-x 	0555 	read & execute
+-rw-rw-rw- 	0666 	read & write
+-rwxrwxrwx 	0777 	read, write, & execute
+
+read
+write
+execute
+
+]]
+
+fs.perm = function (path)
+    local perm_obj = {}
+    perm_obj.writeperm = true
+    return perm_obj
+end
+
+fs.getSize = oldfs.getSize
+
+fs.getFreeSpace = oldfs.getFreeSpace
+
+fs.move = function(fpath, tpath)
+    return oldfs.move(fpath, tpath)
+end
+
+fs.copy = function(fpath, tpath)
+    return oldfs.copy(fpath, tpath)
+end
+
+fs.delete = function(pth)
+    if fs.perm(pth).writeperm then
+        oldfs.delete(pth)
+    end
+end
+
+fs.isReadOnly = oldfs.isReadOnly
+
+fs.open = function (file, mode)
+    return oldfs.open(file, mode)
+end
+
+
+
 
 

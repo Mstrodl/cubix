@@ -17,7 +17,7 @@ function main(args)
     function _combine(c) return fs.combine(current_path, c) end
     function check_slash(s) return string.sub(s, 0, 1) == '/' end
     if from == nil or to == nil then
-        print("usage: mv from to")
+        os.ferror("usage: mv from to")
     else
         if fs.exists(_combine(from)) and fs.exists(_combine(to)) then
             os.runfile("mv ".._combine(from).." ".._combine(to))
@@ -28,7 +28,7 @@ function main(args)
         elseif check_slash(from) and check_slash(to) then
             os.runfile("mv "..from.." "..to)
         else
-            print("mv: check command syntax")
+            os.ferror("mv: check command syntax")
         end
     end
 end

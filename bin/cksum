@@ -1,0 +1,19 @@
+#!/usr/bin/env lua
+--/bin/cksum
+
+_handler = {}
+_handler.signal_handler = function (sig)
+    if sig == 'kill' then
+        --print("cksum: recieved SIGKILL")
+        return 0
+    end
+end
+
+function main(args, pipe)
+    if pipe ~= nil then
+        print()
+    else
+        local file = args[1]
+        print(cksum_file(file))
+    end
+end

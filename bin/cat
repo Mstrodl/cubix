@@ -9,6 +9,13 @@ _handler.signal_handler = function(sig)
     end
 end
 
+if os.loadAPI("/lib/pipe_manager") then
+    pipemngr = _G["pipe_manager"]
+    os.debug.debug_write("[cat] pipe: loaded", false)
+else
+    os.debug.debug_write("[cat] pipe: not loaded")
+end
+
 function cat(file, bytes)
     local DEVICES = os.list_devices
     local MFILES = os.list_mfiles
@@ -34,7 +41,20 @@ function cat(file, bytes)
     end
 end
 
-function main(args)
-    cat(args[1], args[2])
+function cat_pipe(pipe)
+    local h = pipemngr.Pipe.copyPipe(pipe)
+    while true do
+        local line = h:readLine()
+        if not line or line == nil then break end
+        os.pprint(line, pipe, true)
+    end
+end
+
+function main(args, pipe)
+    if pipe == nil then
+        cat(args[1], args[2])
+    else
+        cat_pipe(pipe)
+    end
 end
 

@@ -1,8 +1,6 @@
 #!/usr/bin/env lua
 --/sbin/init: manages (some part of) the user space
 
---well, for now its just a placeholder for being a parent of all processes
-
 _handler = {}
 _handler.signal_handler = function (sig)
     if sig == 'kill' then
@@ -11,18 +9,59 @@ _handler.signal_handler = function (sig)
     end
 end
 
+local RUNLEVELFUNC = {}
+
+function runlevel_0()
+    os.safe_shutdown()
+end
+
+function runlevel_1()
+    --single-user
+    for k,v in pairs(fs.list("/etc/rc1.d/")) do
+        os.runfile(fs.combine("/etc/rc1.d",v))
+    end
+    os.runfile_proc("/sbin/login")
+end
+
+function runlevel_2()
+    --multiuser withtout network service
+    os.runfile_proc("/sbin/login")
+end
+
+function runlevel_3()
+    --multiuser and network service
+    os.runfile_proc("/sbin/login")
+end
+
+function runlevel_5()
+    --start LuaX
+end
+
+function runlevel_6()
+    --reboot
+    os.runfile_proc("/sbin/reboot")
+end
+
+RUNLEVELFUNC[0] = runlevel_0
+RUNLEVELFUNC[1] = runlevel_1
+RUNLEVELFUNC[2] = runlevel_2
+RUNLEVELFUNC[6] = runlevel_6
+
 function main(args)
     --TODO: ability to runlevel
     if args[1] ~= nil then
         runlevel = tonumber(args[1])
     else
-        runlevel = 1
+        if fs.exists("/etc/inittab") then
+            local inittab = fs.open("/etc/inittab", 'r')
+            local r = os.strsplit(inittab.readAll(), ':')[2]
+            runlevel = tonumber(r)
+            inittab.close()
+        else
+            os.debug.kpanic("[init] /etc/inittab not found")
+        end
     end
-    if runlevel == 0 then
-        os.safe_shutdown()
-    elseif runlevel == 1 then
-        os.runfile_proc("/sbin/login")
-    end
+    RUNLEVELFUNC[runlevel]()
     return 0
 end
 

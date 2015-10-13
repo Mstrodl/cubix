@@ -12,18 +12,38 @@ _handler.signal_handler = function (sig)
 end
 
 if os.loadAPI("/lib/pipe_manager") then
-    pipe_mngr = _G["pipe_manager"]
-    debug.debug_write("[tee] pipe_manager: loaded", false)
+    pipemngr = _G["pipe_manager"]
+    os.debug.debug_write("[tee] pipe_manager: loaded", false)
 else
-    debug.debug_write("[tee] pipe_manager: not loaded")
+    os.debug.debug_write("[tee] pipe_manager: not loaded")
 end
 
-function main(args)
+function main(args, pipe)
     --cmd1 | tee output_file | cmd2
-    pipes = pipe_mngr.new_pipe('main')
-    local stdout_from = pipes.recieve_pipe() --this will become a string
-    local h = fs.open(args[1], 'w')
-    h.write(stdout_from)
+    local hpipe = pipemngr.Pipe.copyPipe(pipe)
+    local from = ''
+    while true do
+        local line = hpipe:readLine()
+        if not line or line == '' then break end
+        from = from .. line .. '\n'
+    end
+
+    local _h = fs.open("/tmp/current_path", 'r')
+    local CPATH = _h.readAll()
+    _h.close()
+    local file = args[1]
+    local h = {}
+
+    if string.sub(file, 0, 1) == '/' then
+        h = fs.open(file, 'w')
+    elseif not fs.exists(fs.combine(CPATH, file)) then
+        h = fs.open(fs.combine(CPATH, file), 'w')
+    else
+        os.ferror("tee: cannot write to path")
+        return 0
+    end
+
+    h.write(from)
     h.close()
-    pipes.transmit(stdout_from)
+    return 0
 end

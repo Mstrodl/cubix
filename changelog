@@ -1,5 +1,16 @@
+0.3.2 - 0.3.3 (10-13-2015)
+  +new pipe logic using classes
+  +starting fs_manager
+  +/bin/tee now works!
+  *bugfix: "while true do" in /bin/yes
+  +/bin/cshell: now searches in path
+  +/bin/sudo: now ignores if current user is root
+  +/bin/init: runlevels (incomplete)
+  +debug: kernel panic complete
+  *fix: proc_manager: now the first PID is 1, not 2!
+
 0.3.1 - 0.3.2 (10-10-2015)
-  *bugfix: factor makes a infinite loop when n is 0
+  *bugfix: factor makes a infinite loop when n <= 0
   +/bin/cscript: CubixScript [going to create a manual]!
   +/bin/glep: grep in lua!
   +SBL: now you can load a kernel manually!

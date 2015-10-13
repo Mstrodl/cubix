@@ -27,6 +27,10 @@ function dmesg()
     print(__debug_buffer)
 end
 
-function kpanic()
-    debug_write("Kerneo Panik!")
+function kpanic(message)
+    debug_write("[cubix] Kernel Panic!")
+    term.set_term_color(colors.red)
+    debug_write(message)
+    term.set_term_color(colors.white)
+    os.system_halt()
 end

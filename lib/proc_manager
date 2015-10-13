@@ -21,7 +21,7 @@ if os.loadAPI("/lib/fs_manager") then
     fsmngr = _G["fs_manager"]
 else
     print("cannot load fs_manager")
-    exit()
+    return 0
 end
 
 function strsplit(inputstr, sep)
@@ -37,7 +37,7 @@ function strsplit(inputstr, sep)
 end
 
 os.processes = {}
-os.pid_last = 1
+os.pid_last = 0
 
 os.signals = {}
 os.signals.SIGKILL = 0

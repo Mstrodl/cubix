@@ -4,13 +4,13 @@
 _handler = {}
 _handler.signal_handler = function (sig)
     if sig == 'kill' then
-        --print("uname: recieved SIGKILL")
+        --print("dmesg: recieved SIGKILL")
         return 0
     end
 end
 
 function main(args)
-    debug_file = fs.open("/tmp/debug_info", 'r')
+    local debug_file = fs.open("/tmp/debug_info", 'r')
     print(debug_file.readAll())
     debug_file.close()
 end

@@ -99,7 +99,7 @@ function loadkernel(kfile, memory, vmode)
     else
         lFile = kfile
     end
-    print("load -kfile "..lFile.." -mem "..tostring(memory).." -vmode "..vmode)
+    print("kernel '"..lFile.."' -vmode "..vmode)
     print("\nBootLoader: loading "..kfile.."\n")
     os.sleep(.5)
     shell.run(lFile)
@@ -108,11 +108,5 @@ end
 loadkernel(oses[2][loados], 512, 'ccraft-generic-video')
 
 while true do os.sleep(0) end
-os.shutdown()
 
-term.setTextColor(colors.red)
-print("\nSBL: what? returned command to bootloader? loading CraftOS as default.")
-term.setTextColor(colors.white)
-
-loadkernel("/rom/programs/shell", 512, "ccraft-generic-video")
 

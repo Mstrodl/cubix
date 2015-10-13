@@ -1,63 +1,287 @@
 [0]debug: loaded
-[1]Cubix version 0.3.2 loading...
-[0][hash] debug: loaded
-[1][hash] sha256: loaded
-[2][hash] sha256('hell') test = PASS
-[3][hash] md5: loaded
-[4][hash] md5('hell') test = PASS
-[2]hash: loaded
-[0][devmanager] debug: loaded
-[1][devmanager] device_manager: loading random_dev
-[2][devmanager] device_manager: loaded random_dev
-[3][devmanager] device_manager: loading null_dev
-[4][devmanager] device_manager: loaded null_dev
-[5][devmanager] device_manager: loading zero_dev
-[6][devmanager] device_manager: loaded zero_dev
-[3]device_manager: loaded
-[4][device_manager] /dev/random created
-[5][device_manager] /dev/null created
-[6][device_manager] /dev/zero created
-[7]fs_manager: loaded
+[1]Cubix version 0.3.3 loading...
+[2][hash] sha256: loaded
+[3][hash] sha256('hell') test = PASS
+[4][hash] md5: loaded
+[5][hash] md5('hell') test = PASS
+[6]hash: loaded
+[7][devmanager] device_manager: loading random_dev
+[8][devmanager] device_manager: loaded random_dev
+[9][devmanager] device_manager: loading null_dev
+[10][devmanager] device_manager: loaded null_dev
+[11][devmanager] device_manager: loading zero_dev
+[12][devmanager] device_manager: loaded zero_dev
+[13]device_manager: loaded
+[14][device_manager] /dev/random created
+[15][device_manager] /dev/null created
+[16][device_manager] /dev/zero created
+[17]fs_manager: loaded
 [0][proc_manager] debug_manager: loaded
-[8][proc_manager] pipe: loaded
-[9]proc_manager: loaded
-[10][mfile] /proc/cpuinfo created
-[11][mfile] /proc/temperature created
-[12]tty_manager: loaded
+[18][proc_manager] pipe: loaded
+[19]proc_manager: loaded
+[20][mfile] /proc/cpuinfo created
+[21][mfile] /proc/temperature created
+[22]tty_manager: loaded
 [0][login_manager] debug: loaded
-[0][hash] debug: loaded
-[1][hash] sha256: loaded
-[2][hash] sha256('hell') test = PASS
-[3][hash] md5: loaded
-[4][hash] md5('hell') test = PASS
-[1][login_manager] hash_manager: loaded
-[13]login_manager: loaded
-[14]pipe: loaded
-[15][proc_manager] new process: /sbin/init
-[16][process] running /sbin/init
-[17][proc_manager] new process: /sbin/login
-[18][process] running /sbin/login
+[23][hash] sha256: loaded
+[24][hash] sha256('hell') test = PASS
+[25][hash] md5: loaded
+[26][hash] md5('hell') test = PASS
+[27][login_manager] hash_manager: loaded
+[28]login_manager: loaded
+[29]pipe: loaded
+[30][proc_manager] new process: /sbin/init
+[31][process] running /sbin/init
+[32][proc_manager] new process: /sbin/login
+[33][process] running /sbin/login
 [0][login_manager] debug: loaded
-[0][hash] debug: loaded
-[1][hash] sha256: loaded
-[2][hash] sha256('hell') test = PASS
-[3][hash] md5: loaded
-[4][hash] md5('hell') test = PASS
-[1][login_manager] hash_manager: loaded
-[19][proc_manager] new process: /bin/cshell
-[20][process] running /bin/cshell
+[34][hash] sha256: loaded
+[35][hash] sha256('hell') test = PASS
+[36][hash] md5: loaded
+[37][hash] md5('hell') test = PASS
+[38][login_manager] hash_manager: loaded
+[39][proc_manager] new process: /bin/cshell
+[40][process] running /bin/cshell
 [0]debug: loaded
-[21][cshell] tty_manager: loaded
-[22][wshell] pipe_manager: loaded
-[23][proc_manager] new process: bin/uname
-[24][process] running bin/uname
-[25][proc_manager] bin/uname recieved SIGKILL.
-[26][proc_manager] new process: bin/ls
-[27][process] running bin/ls
-[28][proc_manager] bin/ls recieved SIGKILL.
-[29][proc_manager] new process: bin/ls
-[30][process] running bin/ls
-[31][proc_manager] bin/ls recieved SIGKILL.
-[32][proc_manager] new process: bin/cat
-[33][process] running bin/cat
-[34][proc_manager] bin/cat recieved SIGKILL.
+[41][cshell] tty_manager: loaded
+[42][wshell] pipe_manager: loaded
+[43][proc_manager] new process: /sbin/init
+[44][process] running /sbin/init
+[45][proc_manager] new process: /sbin/login
+[46][process] running /sbin/login
+[0][login_manager] debug: loaded
+[47][hash] sha256: loaded
+[48][hash] sha256('hell') test = PASS
+[49][hash] md5: loaded
+[50][hash] md5('hell') test = PASS
+[51][login_manager] hash_manager: loaded
+[0]debug: loaded
+[1]Cubix version 0.3.3 loading...
+[2][hash] sha256: loaded
+[3][hash] sha256('hell') test = PASS
+[4][hash] md5: loaded
+[5][hash] md5('hell') test = PASS
+[6]hash: loaded
+[7][devmanager] device_manager: loading random_dev
+[8][devmanager] device_manager: loaded random_dev
+[9][devmanager] device_manager: loading null_dev
+[10][devmanager] device_manager: loaded null_dev
+[11][devmanager] device_manager: loading zero_dev
+[12][devmanager] device_manager: loaded zero_dev
+[13]device_manager: loaded
+[14][device_manager] /dev/random created
+[15][device_manager] /dev/null created
+[16][device_manager] /dev/zero created
+[17]fs_manager: loaded
+[0][proc_manager] debug_manager: loaded
+[18][proc_manager] pipe: loaded
+[19]proc_manager: loaded
+[20][mfile] /proc/cpuinfo created
+[21][mfile] /proc/temperature created
+[22]tty_manager: loaded
+[0][login_manager] debug: loaded
+[23][hash] sha256: loaded
+[24][hash] sha256('hell') test = PASS
+[25][hash] md5: loaded
+[26][hash] md5('hell') test = PASS
+[27][login_manager] hash_manager: loaded
+[28]login_manager: loaded
+[29]pipe: loaded
+[30][proc_manager] new process: /sbin/init
+[31][process] running /sbin/init
+[32][proc_manager] new process: /sbin/login
+[33][process] running /sbin/login
+[0][login_manager] debug: loaded
+[34][hash] sha256: loaded
+[35][hash] sha256('hell') test = PASS
+[36][hash] md5: loaded
+[37][hash] md5('hell') test = PASS
+[38][login_manager] hash_manager: loaded
+[39][proc_manager] new process: /bin/cshell
+[40][process] running /bin/cshell
+[0]debug: loaded
+[41][cshell] tty_manager: loaded
+[42][wshell] pipe_manager: loaded
+[43][proc_manager] new process: bin/cat
+[44][process] running bin/cat
+[45][cat] pipe: loaded
+[46][proc_manager] bin/cat recieved SIGKILL.
+[47][proc_manager] new process: /rom/programs/shell
+[48][process] running /rom/programs/shell
+[0]debug: loaded
+[1]Cubix version 0.3.3 loading...
+[2][hash] sha256: loaded
+[3][hash] sha256('hell') test = PASS
+[4][hash] md5: loaded
+[5][hash] md5('hell') test = PASS
+[6]hash: loaded
+[7][devmanager] device_manager: loading random_dev
+[8][devmanager] device_manager: loaded random_dev
+[9][devmanager] device_manager: loading null_dev
+[10][devmanager] device_manager: loaded null_dev
+[11][devmanager] device_manager: loading zero_dev
+[12][devmanager] device_manager: loaded zero_dev
+[13]device_manager: loaded
+[14][device_manager] /dev/random created
+[15][device_manager] /dev/null created
+[16][device_manager] /dev/zero created
+[17]fs_manager: loaded
+[0][proc_manager] debug_manager: loaded
+[18][proc_manager] pipe: loaded
+[19]proc_manager: loaded
+[20][mfile] /proc/cpuinfo created
+[21][mfile] /proc/temperature created
+[22]tty_manager: loaded
+[0][login_manager] debug: loaded
+[23][hash] sha256: loaded
+[24][hash] sha256('hell') test = PASS
+[25][hash] md5: loaded
+[26][hash] md5('hell') test = PASS
+[27][login_manager] hash_manager: loaded
+[28]login_manager: loaded
+[29]pipe: loaded
+[30][proc_manager] new process: /sbin/init
+[31][process] running /sbin/init
+[0]debug: loaded
+[1]Cubix version 0.3.3 loading...
+[2][hash] sha256: loaded
+[3][hash] sha256('hell') test = PASS
+[4][hash] md5: loaded
+[5][hash] md5('hell') test = PASS
+[6]hash: loaded
+[7][devmanager] device_manager: loading random_dev
+[8][devmanager] device_manager: loaded random_dev
+[9][devmanager] device_manager: loading null_dev
+[10][devmanager] device_manager: loaded null_dev
+[11][devmanager] device_manager: loading zero_dev
+[12][devmanager] device_manager: loaded zero_dev
+[13]device_manager: loaded
+[14][device_manager] /dev/random created
+[15][device_manager] /dev/null created
+[16][device_manager] /dev/zero created
+[17]fs_manager: loaded
+[0][proc_manager] debug_manager: loaded
+[18][proc_manager] pipe: loaded
+[19]proc_manager: loaded
+[20][mfile] /proc/cpuinfo created
+[21][mfile] /proc/temperature created
+[22]tty_manager: loaded
+[0][login_manager] debug: loaded
+[23][hash] sha256: loaded
+[24][hash] sha256('hell') test = PASS
+[25][hash] md5: loaded
+[26][hash] md5('hell') test = PASS
+[27][login_manager] hash_manager: loaded
+[28]login_manager: loaded
+[29]pipe: loaded
+[30][proc_manager] new process: /sbin/init
+[0]debug: loaded
+[1]Cubix version 0.3.3 loading...
+[2][hash] sha256: loaded
+[3][hash] sha256('hell') test = PASS
+[4][hash] md5: loaded
+[5][hash] md5('hell') test = PASS
+[6]hash: loaded
+[7][devmanager] device_manager: loading random_dev
+[8][devmanager] device_manager: loaded random_dev
+[9][devmanager] device_manager: loading null_dev
+[10][devmanager] device_manager: loaded null_dev
+[11][devmanager] device_manager: loading zero_dev
+[12][devmanager] device_manager: loaded zero_dev
+[13]device_manager: loaded
+[14][device_manager] /dev/random created
+[15][device_manager] /dev/null created
+[16][device_manager] /dev/zero created
+[17]fs_manager: loaded
+[0][proc_manager] debug_manager: loaded
+[18][proc_manager] pipe: loaded
+[19]proc_manager: loaded
+[20][mfile] /proc/cpuinfo created
+[21][mfile] /proc/temperature created
+[22]tty_manager: loaded
+[0][login_manager] debug: loaded
+[23][hash] sha256: loaded
+[24][hash] sha256('hell') test = PASS
+[25][hash] md5: loaded
+[26][hash] md5('hell') test = PASS
+[27][login_manager] hash_manager: loaded
+[28]login_manager: loaded
+[29]pipe: loaded
+[30][proc_manager] new process: /sbin/init
+[31][process] running /sbin/init
+[32][proc_manager] new process: /sbin/login
+[33][process] running /sbin/login
+[0][login_manager] debug: loaded
+[34][hash] sha256: loaded
+[35][hash] sha256('hell') test = PASS
+[36][hash] md5: loaded
+[37][hash] md5('hell') test = PASS
+[38][login_manager] hash_manager: loaded
+[39][proc_manager] new process: /bin/cshell
+[40][process] running /bin/cshell
+[0]debug: loaded
+[41][cshell] tty_manager: loaded
+[42][wshell] pipe_manager: loaded
+[43][proc_manager] new process: bin/ps
+[44][process] running bin/ps
+[45][proc_manager] bin/ps recieved SIGKILL.
+[46]ps: SIGKILL'd!
+[47][proc_manager] new process: bin/ls
+[48][process] running bin/ls
+[49][proc_manager] bin/ls recieved SIGKILL.
+[50][proc_manager] new process: /dev/MAKEDEV
+[51][process] running /dev/MAKEDEV
+[52][proc_manager] /dev/MAKEDEV recieved SIGKILL.
+[53][proc_manager] new process: bin/ls
+[54][process] running bin/ls
+[55][proc_manager] bin/ls recieved SIGKILL.
+[0]debug: loaded
+[1]Cubix version 0.3.3 loading...
+[2][hash] sha256: loaded
+[3][hash] sha256('hell') test = PASS
+[4][hash] md5: loaded
+[5][hash] md5('hell') test = PASS
+[6]hash: loaded
+[7][devmanager] device_manager: loading random_dev
+[8][devmanager] device_manager: loaded random_dev
+[9][devmanager] device_manager: loading null_dev
+[10][devmanager] device_manager: loaded null_dev
+[11][devmanager] device_manager: loading zero_dev
+[12][devmanager] device_manager: loaded zero_dev
+[13]device_manager: loaded
+[14][device_manager] /dev/random created
+[15][device_manager] /dev/null created
+[16][device_manager] /dev/zero created
+[17]fs_manager: loaded
+[0][proc_manager] debug_manager: loaded
+[18][proc_manager] pipe: loaded
+[19]proc_manager: loaded
+[20][mfile] /proc/cpuinfo created
+[21][mfile] /proc/temperature created
+[22]tty_manager: loaded
+[0][login_manager] debug: loaded
+[23][hash] sha256: loaded
+[24][hash] sha256('hell') test = PASS
+[25][hash] md5: loaded
+[26][hash] md5('hell') test = PASS
+[27][login_manager] hash_manager: loaded
+[28]login_manager: loaded
+[29]pipe: loaded
+[30][proc_manager] new process: /sbin/init
+[31][process] running /sbin/init
+[32][proc_manager] new process: /sbin/login
+[33][process] running /sbin/login
+[0][login_manager] debug: loaded
+[34][hash] sha256: loaded
+[35][hash] sha256('hell') test = PASS
+[36][hash] md5: loaded
+[37][hash] md5('hell') test = PASS
+[38][login_manager] hash_manager: loaded
+[39][proc_manager] new process: /bin/cshell
+[40][process] running /bin/cshell
+[0]debug: loaded
+[41][cshell] tty_manager: loaded
+[42][wshell] pipe_manager: loaded
+[43][proc_manager] new process: bin/ls
+[44][process] running bin/ls
+[45][proc_manager] bin/ls recieved SIGKILL.

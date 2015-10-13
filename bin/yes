@@ -4,6 +4,7 @@
 function main(args)
     while true do
         print("y")
+        os.sleep(0)
     end
 end
 

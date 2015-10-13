@@ -1,0 +1,17 @@
+#!/usr/bin/env lua
+--/bin/gdb: Debugger
+
+_handler = {}
+_handler.signal_handler = function (sig)
+    if sig == 'kill' then
+        --print("gdb: recieved SIGKILL")
+        return 0
+    end
+end
+
+function main(args)
+    local file = args[1]
+    --[[
+        Debug Symbols
+    ]]
+end

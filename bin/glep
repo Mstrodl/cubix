@@ -35,13 +35,14 @@ function work_files(pattern, files)
 end
 
 function work_pipe(pat, pipe)
-    local k = pipemngr.getHandle(pipe)
+    local k = pipemngr.Pipe.copyPipe(pipe)
+    pipe:flush()
     while true do
-        local line = pipemngr.readLine(k)
+        local line = k:readLine()
         if not line or line == nil then break end
-        local K = string.find(line, pat)
+        local K = line:find(pat)
         if K ~= nil then
-            print(line)
+            os.pprint(line, pipe, true)
         end
     end
 end
@@ -60,7 +61,7 @@ function main(args, pipe)
        return newtable
     end
     if pipe ~= nil then
-        print("recieved pipe")
+        --print("recieved pipe")
         local pattern = args[1]
         work_pipe(pattern, pipe)
     else

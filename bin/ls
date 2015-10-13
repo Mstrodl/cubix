@@ -11,8 +11,8 @@ end
 
 function main(args)
     local p = args[1]
-    cpth = fs.open("/tmp/current_path", 'r')
-    cpath = cpth.readAll()
+    local cpth = fs.open("/tmp/current_path", 'r')
+    local cpath = cpth.readAll()
     cpth.close()
 
     if p == nil then

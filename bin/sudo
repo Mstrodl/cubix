@@ -8,18 +8,10 @@
 -- and because of this point sudo can be created without fs_manager
 -- craziness.
 
-if os.loadAPI("/lib/debug_manager") then
-    debug = _G["debug_manager"]
-    debug.debug_write("debug: loaded", false)
-else
-    debug.debug_write = print
-    debug.debug_write("debug: not loaded")
-end
-
 _handler = {}
 _handler.signal_handler = function (sig)
     if sig == 'kill' then
-        debug.debug_write("sudo: SIGKILL'd!", false)
+        os.debug.debug_write("sudo: SIGKILL'd!", false)
         return 0
     end
 end
@@ -32,13 +24,19 @@ else
 end
 
 function main(_args)
-    write("Password: ")
-    local try_pwd = read('')
+    local cuser = fs.open("/tmp/current_user", 'r')
+    local current_user = cuser.readAll()
+    cuser.close()
 
-    if loginmngr.login('root', try_pwd) then
-    else
-        print("erroneus user or password.")
-        return 0
+    if current_user ~= 'root' then
+        write("Password: ")
+        local try_pwd = read('')
+
+        if loginmngr.login('root', try_pwd) then
+        else
+            print("erroneus user or password.")
+            return 0
+        end
     end
 
     function tail(t)

@@ -2,8 +2,8 @@
 --cubix: well, cubix!
 
 AUTHOR = "Lukas Mendes"
-BUILD_DATE = "2015-10-10"
-VERSION = "0.3.2"
+BUILD_DATE = "2015-10-13"
+VERSION = "0.3.3"
 --[[
     version: major.revision.minor
         major: linear
@@ -149,22 +149,22 @@ debug.debug_write("Cubix version "..VERSION.." loading...")
 
 if os.loadAPI("/lib/hash_manager") then
     hash = _G["hash_manager"]
-    debug.debug_write("hash: loaded")
+    os.debug.debug_write("hash: loaded")
 else
-    debug.debug_write("hash: not loaded")
+    os.debug.debug_write("hash: not loaded")
 end
 
 function register_device(d)
-    debug.debug_write("[device_manager] "..d.name.." created")
+    os.debug.debug_write("[device_manager] "..d.name.." created")
     DEVICES[d.name] = d.device
     fs.open(d.name, 'w').close()
 end
 
 if os.loadAPI("/lib/device_manager") then
     devicemngr = _G["device_manager"]
-    debug.debug_write("device_manager: loaded")
+    os.debug.debug_write("device_manager: loaded")
 else
-    debug.debug_write("device_manager: not loaded")
+    os.debug.debug_write("device_manager: not loaded")
 end
 
 register_device(devicemngr._dev_random.dev_random)
@@ -175,9 +175,9 @@ os.list_devices = DEVICES
 
 if os.loadAPI("/lib/fs_manager") then
     fs_mngr = _G["fs_manager"]
-    debug.debug_write("fs_manager: loaded")
+    os.debug.debug_write("fs_manager: loaded")
 else
-    debug.debug_write("fs_manager: not loaded")
+    os.debug.debug_write("fs_manager: not loaded")
 end
 
 function register_mfile(controller)
@@ -187,9 +187,9 @@ end
 
 if os.loadAPI("/lib/proc_manager") then
     proc_mngr = _G["proc_manager"]
-    debug.debug_write("proc_manager: loaded")
+    os.debug.debug_write("proc_manager: loaded")
 else
-    debug.debug_write("proc_manager: not loaded")
+    os.debug.debug_write("proc_manager: not loaded")
 end
 
 register_mfile(proc_mngr.cpuinfo_file)
@@ -201,9 +201,9 @@ end
 
 if os.loadAPI("/lib/tty_manager") then
     tty_mngr = _G["tty_manager"]
-    debug.debug_write("tty_manager: loaded")
+    os.debug.debug_write("tty_manager: loaded")
 else
-    debug.debug_write("tty_manager: not loaded")
+    os.debug.debug_write("tty_manager: not loaded")
 end
 
 register_tty("/dev/tty0", tty_mngr.new_tty("/dev/tty0"))
@@ -221,9 +221,9 @@ end
 
 if os.loadAPI("/lib/login_manager") then
     login_mngr = _G["login_manager"]
-    debug.debug_write("login_manager: loaded")
+    os.debug.debug_write("login_manager: loaded")
 else
-    debug.debug_write("login_manager: not loaded")
+    os.debug.debug_write("login_manager: not loaded")
 end
 
 if os.loadAPI("/lib/pipe_manager") then
@@ -235,9 +235,14 @@ end
 
 os.pipemngr = pipemngr
 
-os.pprint = function(message, pipe)
+os.pprint = function(message, pipe, double)
+    if double == nil then double = false end
+    if message == nil then message = '' end
     if pipe ~= nil then
-        os.pipemngr.write_topipe(pipe, message..'\n')
+        pipe:write(message..'\n')
+        if double then
+            print(message)
+        end
     else
         print(message)
     end
@@ -254,6 +259,6 @@ term.setCursorPos(1,1)
 os.__debug_buffer = debug.__debug_buffer
 
 os.__parent_init = os.new_process(kflag.init)
-os.run_process(os.__parent_init, {"1"})
+os.run_process(os.__parent_init)
 
 os.safe_shutdown()

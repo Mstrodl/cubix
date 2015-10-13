@@ -56,15 +56,17 @@ cpath.close()
 shell_tty = tty_mngr.new_tty("/dev/wshell_tty")
 tty_mngr.using_tty("/dev/wshell_tty")
 
+os.cshell = {}
+os.cshell.PATH = '/bin:/usr/bin'
+
 function shell_command(k)
     --TODO: add support for && (in cscript /etc/scripts/set_env.csp && ps && exit)
     --TODO: add support for &
     if k == nil or k == "" then return 0 end
     if k:find("|") then
-        print("found pipe")
         local count = 1
         local programs = os.strsplit(k, "|")
-        local npipe = pipemngr.new_empty_pipe('main')
+        local npipe = pipemngr.Pipe.new('main')
         for k,v in pairs(programs) do
             local c = os.strsplit(v, ' ')
             local program = c[1]
@@ -74,26 +76,35 @@ function shell_command(k)
                     pargs[#pargs+1] = tostring(v)
                 end
             end
-            if count > 2 then
-                print("flushed")
-                pipemngr.flush_pipe(npipe)
-            end
+
+            local found = false
             if fs.exists(program) then
+                found = true
                 os.runfile_proc(program, pargs, nil, npipe)
+
             elseif fs.exists(fs.combine(current_path, program)) then
+                found = true
                 os.runfile_proc(fs.combine(current_path, program), pargs, nil, npipe)
-            elseif fs.exists(fs.combine("/bin/", program)) then
-                os.runfile_proc(fs.combine("/bin/", program), pargs, nil, npipe)
-            elseif fs.exists(fs.combine("/sbin/", program)) then
-                if current_user == "root" then
-                    os.runfile_proc(fs.combine("/sbin/", program), pargs, nil, npipe)
-                else
-                    os.ferror("you are not root to run this program!")
-                end
-            else
-                os.ferror("Program not found")
             end
-            count = count + 1
+            
+            _path = os.strsplit(os.cshell.PATH, ':')
+            for k,v in ipairs(_path) do
+                local K = fs.combine(v..'/', program)
+                if fs.exists(K) then
+                    found = true
+                    os.runfile_proc(K, pargs, nil, npipe)
+                end
+            end
+            
+            if fs.exists(fs.combine("/sbin/", program)) then
+                if current_user == "root" then
+                    found = true
+                    os.runfile_proc(fs.combine("/sbin/", program), pargs, nil, npipe)
+                end
+            end
+            if not found then
+                os.ferror("cshell: Program not found")
+            end
         end
     else
         local c = strsplit(k, " ")
@@ -101,6 +112,13 @@ function shell_command(k)
         if program == 'echo' then
             args = strsplit(k, ';')
             print(args[2])
+            return 0
+        elseif program == 'APATH' then
+            args = strsplit(k, ' ')
+            os.cshell.PATH = os.cshell.PATH .. ':' .. args[2]
+            return 0
+        elseif program == 'PPATH' then
+            print(os.cshell.PATH)
             return 0
         end
         local args = {}
@@ -110,26 +128,42 @@ function shell_command(k)
                 args[#args+1] = v
             end
         end
+        local found = false
         if fs.exists(program) then
+            found = true
             os.runfile_proc(program, args)
+
         elseif fs.exists(fs.combine(current_path, program)) then
+            found = true
             os.runfile_proc(fs.combine(current_path, program), args)
-        elseif fs.exists(fs.combine("/bin/", program)) then
-            os.runfile_proc(fs.combine("/bin/", program), args)
-        elseif fs.exists(fs.combine("/sbin/", program)) then
-            if current_user == "root" then
-                os.runfile_proc(fs.combine("/sbin/", program), args)
-            else
-                os.ferror("you are not root to run this program!")
+        end
+
+        _path = os.strsplit(os.cshell.PATH, ':')
+        for k,v in ipairs(_path) do
+            local K = fs.combine(v..'/', program)
+            if fs.exists(K) then
+                found = true
+                os.runfile_proc(K, args)
             end
-        else
-            os.ferror("Program not found")
+        end
+
+        if fs.exists(fs.combine("/sbin/", program)) then
+            if current_user == "root" then
+                found = true
+                os.runfile_proc(fs.combine("/sbin/", program), args)
+            end
+        end
+        if not found then
+            os.ferror("cshell: Program not found")
         end
     end
 end
 
-os.cshell = {}
+
 os.cshell.__shell_command = shell_command
+os.cshell.complete = function()
+    --return fs.complete(current_path)
+end
 
 function main(args)
     local command = ""
@@ -147,7 +181,7 @@ function main(args)
             shell_char = '$ '
         end
         shell_tty.write(current_user .. ':' .. current_path .. shell_char)
-        command = read(nil, HISTORY)
+        command = read(nil, HISTORY, os.cshell.complete)
         table.insert(HISTORY, command)
         if command == "exit" then
             return 0

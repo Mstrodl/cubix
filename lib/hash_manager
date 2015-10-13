@@ -4,43 +4,38 @@
 
 hash = {}
 
-if os.loadAPI("/lib/debug_manager") then
-    debug = _G["debug_manager"]
-    debug.debug_write("[hash] debug: loaded", false)
-else
-    debug.debug_write("[hash] debug: not loaded")
-end
-
 if os.loadAPI("/lib/hash/sha256.lua") then
     sha256 = _G["sha256.lua"]
-    debug.debug_write("[hash] sha256: loaded", false)
+    os.debug.debug_write("[hash] sha256: loaded", false)
     hash.sha256 = sha256.hash_sha256
     local H = hash.sha256("hell")
     if H == "0ebdc3317b75839f643387d783535adc360ca01f33c75f7c1e7373adcd675c0b" then
-        debug.debug_write("[hash] sha256('hell') test = PASS", false)
+        os.debug.debug_write("[hash] sha256('hell') test = PASS", false)
     else
-        debug.debug_write("[hash] sha256('hell') test = NOT PASS")
-        debug.debug_write("[hash] HALTING")
+        os.debug.debug_write("[hash] sha256('hell') test = NOT PASS")
+        os.debug.debug_write("[hash] HALTING")
         os.system_halt()
     end
 else
-    debug.debug_write("[hash] sha256: not loaded")
+    os.debug.debug_write("[hash] sha256: not loaded")
+    os.system_halt()
 end
 
 if os.loadAPI("/lib/hash/md5.lua") then
     md5 = _G["md5.lua"]
-    debug.debug_write("[hash] md5: loaded", false)
+    os.debug.debug_write("[hash] md5: loaded", false)
     hash.md5 = md5.md5_sumhexa
     local H = hash.md5("hell")
     if H == "4229d691b07b13341da53f17ab9f2416" then
-        debug.debug_write("[hash] md5('hell') test = PASS", false)
+        os.debug.debug_write("[hash] md5('hell') test = PASS", false)
     else
-        debug.debug_write("[hash] md5('hell') test = NOT PASS")
-        debug.debug_write("[hash] HALTING")
+        os.debug.debug_write("[hash] md5('hell') test = NOT PASS")
+        os.debug.debug_write("[hash] HALTING")
         os.system_halt()
     end
 else
-    debug.debug_write("[hash] md5: not loaded")
+    os.debug.debug_write("[hash] md5: not loaded")
+    os.system_halt()
 end
 
 return hash

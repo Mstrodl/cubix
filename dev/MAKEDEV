@@ -15,6 +15,12 @@ function main(args)
     os.runfile("mkdir /sbin") --root binaries
     os.runfile("mkdir /boot") --boot things
     os.runfile("mkdir /etc") --system-wide configuration files and system databases
+    os.runfile("mkdir /etc/rc0.d")
+    os.runfile("mkdir /etc/rc1.d")
+    os.runfile("mkdir /etc/rc2.d")
+    os.runfile("mkdir /etc/rc3.d")
+    os.runfile("mkdir /etc/rc5.d")
+    os.runfile("mkdir /etc/rc6.d")
     os.runfile("mkdir /etc/scripts")
     os.runfile("mkdir /home") --home folder
     os.runfile("mkdir /home/deusa") --default user

@@ -17,6 +17,11 @@ function parseCommand(cmd)
     os.cshell.__shell_command(command)
 end
 
+function parseEcho(cmd)
+    local _k = string.sub(cmd, 1, #cmd)
+    print(cmd)
+end
+
 function main(args)
     local file = args[1]
     if file == nil then
@@ -45,6 +50,10 @@ function main(args)
     for k,v in pairs(fLines) do
         if string.sub(v, 0, 1) == '$' then
             parseCommand(v)
+        elseif string.sub(v, 0, 1) == '!' then
+            parseEcho(v)
+        elseif string.sub(v, 0, 1) == '#' then
+            parseRootCommand(v)
         end
     end
 end

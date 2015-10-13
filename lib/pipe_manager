@@ -4,47 +4,53 @@
 
 os.__pipes = {}
 
-function new_empty_pipe(n)
-    local cls = {}
-    cls.ptype = n
-    cls.__buffer = ''
-    return cls
+Pipe = {}
+Pipe.__index = Pipe
+function Pipe.new(ptype)
+    local inst = {}
+    setmetatable(inst, Pipe)
+    inst.ptype = ptype
+    inst.pipe_buffer = ''
+    inst.point = 1
+    return inst
 end
 
-function readLine(handle)
-    local tBuffer = os.strsplit(handle.__buffer, '\n')
-    local data = tBuffer[handle.point]
-    --print(handle.point .. ': ' .. data)
-    handle.point = handle.point + 1
+function Pipe.copyPipe(npipe)
+    local inst = {}
+    setmetatable(inst, Pipe)
+    inst.ptype = npipe.ptype
+    inst.pipe_buffer = npipe.pipe_buffer
+    inst.point = npipe.point
+    return inst
+end
+
+function Pipe:flush()
+    self.pipe_buffer = ''
+end
+
+function Pipe:write(message)
+    self.pipe_buffer = self.pipe_buffer .. message
+end
+
+function Pipe:readLine()
+    local K = os.strsplit(self.pipe_buffer, '\n')
+    local data = K[self.point]
+    self.point = self.point + 1
     return data
 end
 
-function getHandle(pipe)
-    local cls = {}
-    cls.point = 1
-    cls.__buffer = pipe.__buffer
-    return cls
-end
-
-function write_topipe(pipe, str)
-    if pipe == nil or str == nil or pipe.__buffer == nil then return 0 end
-    pipe.__buffer = pipe.__buffer .. str
-end
-
-function flush_pipe(p)
-    p.__buffer = ''
-end
+--mypipe = Pipe.new('empty')
+--mypipe:write("fuck you\npiss of shiet")
+--print(mypipe:readLine())
+--print(mypipe:readLine())
+--print(mypipe:readLine())
+--os.sleep(3)
 
 function test_pipe()
-    local t = new_empty_pipe()
-    write_topipe(t, "Hello\nWorld!\n")
-    local h = getHandle(t)
-    print(t.__buffer == h.__buffer)
-    print(readLine(h))
+    local t = Pipe.new('empty')
+    t:write("Hello\nWorld!\n")
+    local h = Pipe.copyPipe(t)
+    print(t.pipe_buffer == h.pipe_buffer)
+    print(h:readLine())
 end
 
-function new_pipe(ptype)
-    if ptype == 'main' then
-    elseif ptype == 'empty' then
-    end
-end

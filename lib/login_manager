@@ -14,9 +14,9 @@ end
 
 if os.loadAPI("/lib/hash_manager") then
     hash_mngr = _G["hash_manager"]
-    debug.debug_write("[login_manager] hash_manager: loaded", false)
+    os.debug.debug_write("[login_manager] hash_manager: loaded", false)
 else
-    debug.debug_write("[login_manager] hash_manager: not loaded")
+    os.debug.debug_write("[login_manager] hash_manager: not loaded")
 end
 
 function strsplit(inputstr, sep)
@@ -32,6 +32,7 @@ function strsplit(inputstr, sep)
 end
 
 function login(user, pwd)
+    --TODO: session tokens
     local hashed_pwd = hash_mngr.hash.sha256(pwd)
     local h2 = fs.open("/etc/shadow", 'r')
     local users = strsplit(h2.readAll(), "\n")
