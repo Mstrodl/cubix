@@ -8,6 +8,8 @@
   +/bin/init: runlevels (incomplete)
   +debug: kernel panic complete
   *fix: proc_manager: now the first PID is 1, not 2!
+  +/bin/cpkg: Cubix Packages [wip]
+  +reboot moved to /sbin
 
 0.3.1 - 0.3.2 (10-10-2015)
   *bugfix: factor makes a infinite loop when n <= 0
