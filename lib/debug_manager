@@ -17,10 +17,18 @@ function debug_write(dmessage, screen)
     if os.__kflag.nodebug == false or os.__kflag.nodebug == nil then
         if screen == nil then
             print('[' .. __debug_counter ..']' .. dmessage)
+        elseif screen == false and os.__boot_flag == true then
+            print('[' .. __debug_counter ..']' .. dmessage)
         end
         debug_write_tobuffer(dmessage..'\n')
-        os.sleep(0.01)
+        os.sleep(math.random() / 7)
     end
+end
+
+function testcase(message, correct)
+    term.set_term_color(colors.green)
+    debug_write(message)
+    term.set_term_color(colors.white)
 end
 
 function dmesg()
@@ -28,7 +36,9 @@ function dmesg()
 end
 
 function kpanic(message)
+    term.set_term_color(colors.yellow)
     debug_write("[cubix] Kernel Panic!")
+    debug_write("Proc: "..tostring(os.lib.proc.running))
     term.set_term_color(colors.red)
     debug_write(message)
     term.set_term_color(colors.white)

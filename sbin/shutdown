@@ -1,17 +1,14 @@
 #!/usr/bin/env lua
 --/sbin/reboot: wrapper to CC shutdown
 
-debug = {}
-debug.debug_write = print
+_handler = {}
+_handler.signal_handler = function (sig)
+    if sig == 'kill' then
+        print("shutdown: recieved SIGKILL")
+        return 0
+    end
+end
 
 function main(args)
-    debug.debug_write("[shutdown] turning off...")
-    debug.debug_write("deleting temporary")
-
-    os.runfile("rm /tmp")
-    os.runfile("mkdir /tmp")
-
-    debug.debug_write("[shutdown] sending HALT.")
-    os.sleep(1)
-    os.shutdown()
+    os.runfile_proc("/sbin/init" , {"0"})
 end

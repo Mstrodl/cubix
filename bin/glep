@@ -1,13 +1,6 @@
 #!/usr/bin/env lua
 --/bin/glep: port of ClamShell's glep to Cubix (http://github.com/Team-CC-Corp/ClamShell)
 
-if os.loadAPI("/lib/pipe_manager") then
-    pipemngr = _G["pipe_manager"]
-    os.debug.debug_write("[glep] pipe: loaded", false)
-else
-    os.debug.debug_write("[glep] pipe: not loaded")
-end
-
 _handler = {}
 _handler.signal_handler = function (sig)
     if sig == 'kill' then
@@ -35,7 +28,7 @@ function work_files(pattern, files)
 end
 
 function work_pipe(pat, pipe)
-    local k = pipemngr.Pipe.copyPipe(pipe)
+    local k = os.lib.pipe.Pipe.copyPipe(pipe)
     pipe:flush()
     while true do
         local line = k:readLine()

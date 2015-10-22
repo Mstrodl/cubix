@@ -10,20 +10,6 @@ else
     debug.debug_write("[proc_manager] debug_manager: not loaded")
 end
 
-if os.loadAPI("/lib/pipe_manager") then
-    pipemngr = _G["pipe_manager"]
-    os.debug.debug_write("[proc_manager] pipe: loaded", false)
-else
-    os.debug.debug_write("[proc_manager] pipe: not loaded")
-end
-
-if os.loadAPI("/lib/fs_manager") then
-    fsmngr = _G["fs_manager"]
-else
-    print("cannot load fs_manager")
-    return 0
-end
-
 function strsplit(inputstr, sep)
     if sep == nil then
         sep = "%s"
@@ -39,14 +25,10 @@ end
 os.processes = {}
 os.pid_last = 0
 
+running = 0
+
 os.signals = {}
 os.signals.SIGKILL = 0
-
-local function search(master, target) --target is a string
-    for k,v in next, master do
-        if type(v)=="table" and v[target] then return true end
-    end
-end
 
 os.call_handle = function(process, handler)
 	if process.rfile ~= nil then
@@ -63,14 +45,23 @@ end
 
 os.send_signal = function (proc, signal)
     if proc == nil then
-        print("process not encoutered")
+        os.ferror("send_signal: process not found")
     elseif signal == os.signals.SIGKILL then
         os.debug.debug_write("[proc_manager] "..proc.file.." recieved SIGKILL.", false)
-        os.processes[proc.pid] = nil --removing anything related to the process in os.processes
+        os.processes[proc.pid] = -1 --removing anything related to the process in os.processes
         for k,v in pairs(proc.childs) do
             os.terminate(v)
         end
         os.terminate(proc)
+    end
+end
+
+function __killallproc()
+    --os.viewTable(os.processes)
+    for k,v in ipairs(os.processes) do
+        if v ~= -1 then
+            os.send_signal(v, os.signals.SIGKILL)
+        end
     end
 end
 
@@ -85,6 +76,7 @@ os.run_process = function(p, args, pipe)
     --if pipe == nil then pipe = {} end
     os.debug.debug_write("[process] running "..p.file, false)
     os.processes[p.pid] = p
+    running = p.pid
     if os.loadAPI(p.file) then
         K = strsplit(p.file, '/')
         p.rfile = _G[K[#K]] --non-localized variables in _G
@@ -174,14 +166,14 @@ cpuinfo_file = {}
 cpuinfo_file.name = "/proc/cpuinfo"
 cpuinfo_file.file = {}
 cpuinfo_file.file.write = function(data)
-    print("cannot write to /proc/cpuinfo")
+    os.ferror("cannot write to /proc/cpuinfo")
 end
 
 cpuinfo_file.file.read = function(bytes)
     if bytes == nil then
         return CPUINFO()
     else
-        return CPUINFO().sub(0, bytes)
+        return string.sub(CPUINFO(), 0, bytes)
     end
 end
 
@@ -189,14 +181,34 @@ temperature_file = {}
 temperature_file.name = "/proc/temperature"
 temperature_file.file = {}
 temperature_file.file.write = function(data)
-    print("cannot write to /proc/temperature")
+    os.ferror("cannot write to /proc/temperature")
 end
 
 temperature_file.file.read = function(bytes)
     return 'computer: 30C'
 end
 
+partitions_file = {}
+partitions_file.name = "/proc/partitions"
+partitions_file.file = {}
+partitions_file.file.write = function(data)
+    os.ferror("cannot write to /proc/partitions")
+end
 
+partitions_file.file.read = function(bytes)
+    k = [[major minor  #blocks name
+8      0      1024876  hda]]
+    if bytes == nil then
+        return k
+    else
+        return string.sub(k, 0, bytes)
+    end
+end
 
+function libroutine()
+    os.internals._kernel.register_mfile(cpuinfo_file)
+    os.internals._kernel.register_mfile(temperature_file)
+    os.internals._kernel.register_mfile(partitions_file)
+end
 
 

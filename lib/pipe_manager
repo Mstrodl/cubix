@@ -39,13 +39,6 @@ function Pipe:readLine()
     return data
 end
 
---mypipe = Pipe.new('empty')
---mypipe:write("fuck you\npiss of shiet")
---print(mypipe:readLine())
---print(mypipe:readLine())
---print(mypipe:readLine())
---os.sleep(3)
-
 function test_pipe()
     local t = Pipe.new('empty')
     t:write("Hello\nWorld!\n")
@@ -53,4 +46,6 @@ function test_pipe()
     print(t.pipe_buffer == h.pipe_buffer)
     print(h:readLine())
 end
+
+function libroutine()end
 

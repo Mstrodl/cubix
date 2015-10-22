@@ -1,8 +1,8 @@
 #!/usr/bin/env lua
 --/bin/sudo: grants access to run programs in /sbin
 -- so, yes, Cubix has some security flaws, and one of these flaws is
--- to run /sbin programs using shell.run, and shellapi does not give a
--- single fuck to Cubix permissions, only /bin/wshell uses some kind of
+-- to run /sbin programs using os.runfile, and shell does not give a
+-- single fuck to Cubix permissions, only /bin/cshell uses some kind of
 -- "if you're root, i will run, if not, fuck you" strategy
 -- and this is not good because of the point described here
 -- and because of this point sudo can be created without fs_manager
@@ -16,27 +16,22 @@ _handler.signal_handler = function (sig)
     end
 end
 
-if os.loadAPI("/lib/login_manager") then
-    loginmngr = _G["login_manager"]
-else
-    print("cannot load login_manager")
-    exit()
-end
-
 function main(_args)
-    local cuser = fs.open("/tmp/current_user", 'r')
-    local current_user = cuser.readAll()
-    cuser.close()
-
-    if current_user ~= 'root' then
-        write("Password: ")
+    local current_user = os.lib.login.currentUser()
+    local current_token = os.lib.login.__CT
+    local isValid = current_token:verifyValid()
+    if not isValid then
+        write("[sudo] password for "..current_user.username..": ")
         local try_pwd = read('')
 
-        if loginmngr.login('root', try_pwd) then
+        if os.lib.login.login(current_user.username, try_pwd) then
+            current_token:use()
         else
-            print("erroneus user or password.")
+            os.ferror("Login incorrect")
             return 0
         end
+    else
+        current_token:use()
     end
 
     function tail(t)
@@ -59,15 +54,32 @@ function main(_args)
     local current_path = h.readAll()
     h.close()
 
+    local found = false
     if fs.exists(program) then
+        found = true
         os.runfile_proc(program, args)
     elseif fs.exists(fs.combine(current_path, program)) then
+        found = true
         os.runfile_proc(fs.combine(current_path, program), args)
-    elseif fs.exists(fs.combine("/bin/", program)) then
-        os.runfile_proc(fs.combine("/bin/", program), args)
-    elseif fs.exists(fs.combine("/sbin/", program)) then
+    end
+
+    local _path = os.strsplit(os.cshell.PATH, ':')
+    for k,v in ipairs(_path) do
+        local K = fs.combine(v..'/', program)
+        if fs.exists(K) then
+            found = true
+            os.runfile_proc(K, args)
+        end
+    end
+
+    if fs.exists(fs.combine("/sbin/", program)) then
+        found = true
         os.runfile_proc(fs.combine("/sbin/", program), args)
     end
+    if not found then
+        os.ferror("sudo: Program not found")
+    end
+    return 0
 end
 
 

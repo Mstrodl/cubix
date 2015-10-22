@@ -1,0 +1,23 @@
+#!/usr/bin/env lua
+--/bin/modprobe: load/reload cubix libraries
+
+_handler = {}
+_handler.signal_handler = function(sig)
+    if sig == 'kill' then
+        --print("modprobe: SIGKILL")
+        return 0
+    end
+end
+
+function usage()
+    print("use: modprobe <modulename> <modulepath>")
+end
+
+function main(args)
+    if #args ~= 2 then
+        usage()
+        return 0
+    end
+    local alias, path = args[1], args[2]
+    os.internals.loadmodule(alias, path)
+end

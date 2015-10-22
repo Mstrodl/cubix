@@ -9,28 +9,6 @@ _handler.signal_handler = function (sig)
     end
 end
 
-if os.loadAPI("/lib/debug_manager") then
-    debug = _G["debug_manager"]
-    debug.debug_write("debug: loaded", false)
-else
-    debug.debug_write = print
-    debug.debug_write("debug: not loaded")
-end
-
-if os.loadAPI("/lib/tty_manager") then
-    tty_mngr = _G["tty_manager"]
-    os.debug.debug_write("[cshell] tty_manager: loaded", false)
-else
-    os.debug.debug_write("[cshell] tty_manager: not loaded")
-end
-
-if os.loadAPI("/lib/pipe_manager") then
-    pipemngr = _G["pipe_manager"]
-    os.debug.debug_write("[wshell] pipe_manager: loaded", false)
-else
-    os.debug.debug_write("[wshell] pipe_manager: not loaded")
-end
-
 function strsplit(inputstr, sep)
     if sep == nil then
         sep = "%s"
@@ -53,8 +31,7 @@ cpath.close()
 --term.clear()
 --term.setCursorPos(1,1)
 
-shell_tty = tty_mngr.new_tty("/dev/wshell_tty")
-tty_mngr.using_tty("/dev/wshell_tty")
+cur_tty = os.lib.tty.getcurrentTTY()
 
 os.cshell = {}
 os.cshell.PATH = '/bin:/usr/bin'
@@ -66,7 +43,7 @@ function shell_command(k)
     if k:find("|") then
         local count = 1
         local programs = os.strsplit(k, "|")
-        local npipe = pipemngr.Pipe.new('main')
+        local npipe = os.lib.pipe.Pipe.new('main')
         for k,v in pairs(programs) do
             local c = os.strsplit(v, ' ')
             local program = c[1]
@@ -87,7 +64,7 @@ function shell_command(k)
                 os.runfile_proc(fs.combine(current_path, program), pargs, nil, npipe)
             end
             
-            _path = os.strsplit(os.cshell.PATH, ':')
+            local _path = os.strsplit(os.cshell.PATH, ':')
             for k,v in ipairs(_path) do
                 local K = fs.combine(v..'/', program)
                 if fs.exists(K) then
@@ -138,7 +115,7 @@ function shell_command(k)
             os.runfile_proc(fs.combine(current_path, program), args)
         end
 
-        _path = os.strsplit(os.cshell.PATH, ':')
+        local _path = os.strsplit(os.cshell.PATH, ':')
         for k,v in ipairs(_path) do
             local K = fs.combine(v..'/', program)
             if fs.exists(K) then
@@ -153,12 +130,12 @@ function shell_command(k)
                 os.runfile_proc(fs.combine("/sbin/", program), args)
             end
         end
+
         if not found then
             os.ferror("cshell: Program not found")
         end
     end
 end
-
 
 os.cshell.__shell_command = shell_command
 os.cshell.complete = function()
@@ -166,8 +143,16 @@ os.cshell.complete = function()
 end
 
 function main(args)
+    --TODO: -c
     local command = ""
     local HISTORY = {}
+    if #args > 0 then
+        local ecmd = args[1]
+        print(ecmd)
+        print(string.sub(ecmd, 1, #ecmd -1))
+        os.runfile(ecmd)
+        return 0
+    end
     while true do
         local cuser = fs.open("/tmp/current_user", 'r')
         local cpath = fs.open("/tmp/current_path", 'r')
@@ -180,7 +165,7 @@ function main(args)
         else
             shell_char = '$ '
         end
-        shell_tty.write(current_user .. ':' .. current_path .. shell_char)
+        write(current_user .. ':' .. current_path .. shell_char)
         command = read(nil, HISTORY, os.cshell.complete)
         table.insert(HISTORY, command)
         if command == "exit" then

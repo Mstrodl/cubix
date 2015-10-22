@@ -57,6 +57,12 @@ execute
 
 ]]
 
+fs.perms = {}
+fs.perms.ROOT = 1
+fs.perms.SYS = 2
+fs.perms.NORMAL = 3
+fs.perms.FOOL = 4
+
 fs.perm = function (path)
     local perm_obj = {}
     perm_obj.writeperm = true
@@ -87,7 +93,19 @@ fs.open = function (file, mode)
     return oldfs.open(file, mode)
 end
 
+permission = {}
+permission.access = fs.perms.NORMAL
 
+permission.grantAccess = function(perm)
+    return true
+end
 
+permission.default = function()
 
+end
+
+function libroutine()
+    os.deepcopy = deepcopy
+    _G["permission"] = permission
+end
 

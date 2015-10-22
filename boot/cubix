@@ -2,8 +2,8 @@
 --cubix: well, cubix!
 
 AUTHOR = "Lukas Mendes"
-BUILD_DATE = "2015-10-13"
-VERSION = "0.3.3"
+BUILD_DATE = "2015-10-21"
+VERSION = "0.3.4"
 --[[
     version: major.revision.minor
         major: linear
@@ -12,7 +12,16 @@ VERSION = "0.3.3"
         minor: number of RELEASES necessary to get to this version, not including BUILDS
 ]]
 
+--installing set_term_color
+term.set_term_color = function (c)
+    if term.isColor() then
+        term.setTextColor(c)
+    end
+end
+
 local Args = {...} --arguments to shell
+
+os.__boot_flag = true
 
 os.strsplit = function (inputstr, sep)
     if sep == nil then
@@ -38,9 +47,14 @@ for k,v in pairs(Args) do
         kflag.nodebug = true
     elseif v == 'splash' then
         kflag.splash = true
+    elseif v == 'acpi' then
+        kflag.acpi = true
     elseif string.sub(v, 0, 4) == 'init' then
         k = os.strsplit(v, '=')
         kflag.init = k[2]
+    elseif string.sub(v, 0, 4) == 'runlevel' then
+        k = os.strsplit(v, '=')
+        kflag.sRunlevel = k[2]
     end
 end
 
@@ -77,29 +91,13 @@ os.system_halt = function()
 end
 
 os.viewTable = function (t)
+    print(t)
     for k,v in pairs(t) do
         print(k..","..tostring(v))
     end
 end
 
 os.runfile = shell.run
-
-os.__clear_temporary = function()
-    shell.run("rm /tmp")
-    shell.run("mkdir /tmp")
-end
-
-os.safe_shutdown = function()
-    debug.debug_write("[safe_shutdown] turning off...")
-    debug.debug_write("[safe_shutdown] deleting /tmp")
-
-    os.__clear_temporary()
-
-    os.sleep(1)
-    debug.debug_write("[safe_shutdown] sending HALT.")
-    os.sleep(1)
-    os.shutdown()
-end
 
 os.ferror = function(message)
     term.set_term_color(colors.red)
@@ -114,16 +112,15 @@ os.safestr = function (s)
     return s
 end
 
-function strsplit(inputstr, sep)
-    if sep == nil then
-        sep = "%s"
+os.generateSalt = function(l)
+    if l < 1 then
+        return nil
     end
-    local t={} ; i=1
-    for str in string.gmatch(inputstr, "([^" .. sep .. "]+)") do
-        t[i] = str
-        i = i + 1
+    local res = ''
+    for i = 1, l do
+        res = res .. string.char(math.random(32, 126))
     end
-    return t
+    return res
 end
 
 if os.loadAPI("/lib/video_manager") then
@@ -139,101 +136,83 @@ else
 end
 
 if kflag.quiet then
-    debug = {}
     debug.debug_write = function(x)end
+    debug.testcase = function()end
+    debug.ferror = function()end
 end
 
 os.debug = debug
 
 debug.debug_write("Cubix version "..VERSION.." loading...")
 
-if os.loadAPI("/lib/hash_manager") then
-    hash = _G["hash_manager"]
-    os.debug.debug_write("hash: loaded")
+os.lib = {}
+os.internals = {}
+os.internals._kernel = {}
+
+function loadmodule(nmodule, path)
+    os.debug.debug_write('[loadmodule] loading: '..nmodule)
+    if os.loadAPI(path) then
+        _G[nmodule] = _G[fs.getName(path)]
+        if _G[nmodule].libroutine ~= nil then
+            _G[nmodule].libroutine()
+        else
+            os.ferror("[loadmodule] libroutine() not found")
+            sleep(1)
+        end
+        os.lib[nmodule] = _G[fs.getName(path)]
+        os.debug.debug_write('[loadmodule] loaded: '..nmodule)
+    else
+        os.debug.kpanic("[loadmodule] not loaded: "..nmodule)
+    end
+    --sleep(0.8)
+end
+
+os.internals.loadmodule = loadmodule
+
+--acpi module
+if kflag.acpi then
+    loadmodule("acpi", "/lib/acpi.lua")
+end
+
+--filesystem manager
+loadmodule("fs_mngr", "/lib/fs_manager")
+
+if fs.exists("/dev/ram") and kflag.acpi then
+    os.lib.acpi.acpi_hwake()
 else
-    os.debug.debug_write("hash: not loaded")
-end
 
-function register_device(d)
-    os.debug.debug_write("[device_manager] "..d.name.." created")
-    DEVICES[d.name] = d.device
-    fs.open(d.name, 'w').close()
-end
-
-if os.loadAPI("/lib/device_manager") then
-    devicemngr = _G["device_manager"]
-    os.debug.debug_write("device_manager: loaded")
-else
-    os.debug.debug_write("device_manager: not loaded")
-end
-
-register_device(devicemngr._dev_random.dev_random)
-register_device(devicemngr._dev_null.dev_null)
-register_device(devicemngr._dev_zero.dev_zero)
-
-os.list_devices = DEVICES
-
-if os.loadAPI("/lib/fs_manager") then
-    fs_mngr = _G["fs_manager"]
-    os.debug.debug_write("fs_manager: loaded")
-else
-    os.debug.debug_write("fs_manager: not loaded")
-end
-
-function register_mfile(controller)
+--process manager
+function os.internals._kernel.register_mfile(controller)
     debug.debug_write("[mfile] "..controller.name.." created")
     os.list_mfiles[controller.name] = controller.file
+    fs.open(controller.name, 'w', fs.perms.SYS).close()
 end
 
-if os.loadAPI("/lib/proc_manager") then
-    proc_mngr = _G["proc_manager"]
-    os.debug.debug_write("proc_manager: loaded")
-else
-    os.debug.debug_write("proc_manager: not loaded")
+loadmodule("proc", "/lib/proc_manager")
+
+--hash manager
+loadmodule("hash", "/lib/hash_manager")
+
+function os.internals._kernel.register_device(d)
+    os.debug.debug_write("[device_manager] "..d.name.." created")
+    DEVICES[d.name] = d.device
+    fs.open(d.name, 'w', fs.perms.SYS).close()
 end
 
-register_mfile(proc_mngr.cpuinfo_file)
-register_mfile(proc_mngr.temperature_file)
+--device manager
+loadmodule("devices", "/lib/device_manager")
+os.list_devices = DEVICES
 
-function register_tty(path, tty)
+--tty, login and pipe managers
+function os.internals._kernel.register_tty(path, tty)
+    os.debug.debug_write("[tty] new tty: "..path)
     TTYS[path] = tty
+    fs.open(path, 'w', fs.perms.SYS).close()
 end
 
-if os.loadAPI("/lib/tty_manager") then
-    tty_mngr = _G["tty_manager"]
-    os.debug.debug_write("tty_manager: loaded")
-else
-    os.debug.debug_write("tty_manager: not loaded")
-end
-
-register_tty("/dev/tty0", tty_mngr.new_tty("/dev/tty0"))
-register_tty("/dev/tty1", tty_mngr.new_tty("/dev/tty1"))
-register_tty("/dev/tty2", tty_mngr.new_tty("/dev/tty2"))
-register_tty("/dev/tty3", tty_mngr.new_tty("/dev/tty3"))
-register_tty("/dev/tty4", tty_mngr.new_tty("/dev/tty4"))
-register_tty("/dev/tty5", tty_mngr.new_tty("/dev/tty5"))
-
-term.set_term_color = function (c)
-    if term.isColor() then
-        term.setTextColor(c)
-    end
-end
-
-if os.loadAPI("/lib/login_manager") then
-    login_mngr = _G["login_manager"]
-    os.debug.debug_write("login_manager: loaded")
-else
-    os.debug.debug_write("login_manager: not loaded")
-end
-
-if os.loadAPI("/lib/pipe_manager") then
-    pipemngr = _G["pipe_manager"]
-    os.debug.debug_write("pipe: loaded", false)
-else
-    os.debug.debug_write("pipe: not loaded")
-end
-
-os.pipemngr = pipemngr
+loadmodule("tty", "/lib/tty_manager")
+loadmodule("login", "/lib/login_manager")
+loadmodule("pipe", "/lib/pipe_manager")
 
 os.pprint = function(message, pipe, double)
     if double == nil then double = false end
@@ -248,17 +227,20 @@ os.pprint = function(message, pipe, double)
     end
 end
 
---[[
-pipemngr.test_pipe()
-os.sleep(2)
-]]
-
 term.clear()
 term.setCursorPos(1,1)
 
 os.__debug_buffer = debug.__debug_buffer
 
+os.__boot_flag = false
+
+os.lib.tty.current_tty("/dev/tty0")
+
+os.lib.login.__CT:generate(3)
+
 os.__parent_init = os.new_process(kflag.init)
 os.run_process(os.__parent_init)
 
 os.safe_shutdown()
+
+end

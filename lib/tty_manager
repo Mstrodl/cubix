@@ -6,6 +6,8 @@
 --/bin/who uses it
 --/bin/users: (will) use it
 
+TTYS = {}
+--[[
 function using_tty(t)
     local h = fs.open("/tmp/current_tty", 'w')
     h.write(t)
@@ -28,4 +30,59 @@ function new_tty(tid)
 
     return new_empty_tty
 end
+]]
 
+__current_tty = ''
+
+function get_tty(id)
+    return TTYS[id]
+end
+
+function current_tty(id)
+    __current_tty = id
+    local h = fs.open("/tmp/current_tty", 'w')
+    h.write(id)
+    h.close()
+end
+
+function getcurrentTTY()
+    return TTYS[__current_tty]
+end
+
+TTY = {}
+TTY.__index = TTY
+function TTY.new(tid)
+    inst = {}
+    inst.buffer = ""
+    inst.id = tid
+    inst.using = false
+    TTYS[tid] = inst
+    return inst
+end
+
+function TTY:write(msg)
+    self.buffer = self.buffer .. msg
+    write(msg)
+end
+
+oldwrite = write
+oldprint = print
+
+function write(message)
+    local current_tty = getcurrentTTY()
+    return current_tty:write(message)
+end
+
+function libroutine()
+    os.internals._kernel.register_tty("/dev/tty0", TTY.new("/dev/tty0"))
+    os.internals._kernel.register_tty("/dev/tty1", TTY.new("/dev/tty1"))
+    os.internals._kernel.register_tty("/dev/tty2", TTY.new("/dev/tty2"))
+    os.internals._kernel.register_tty("/dev/tty3", TTY.new("/dev/tty3"))
+    os.internals._kernel.register_tty("/dev/tty4", TTY.new("/dev/tty4"))
+    os.internals._kernel.register_tty("/dev/tty5", TTY.new("/dev/tty5"))
+    os.internals._kernel.register_tty("/dev/tty6", TTY.new("/dev/tty6"))
+    os.internals._kernel.register_tty("/dev/tty7", TTY.new("/dev/tty7"))
+    os.internals._kernel.register_tty("/dev/tty8", TTY.new("/dev/tty8"))
+    os.internals._kernel.register_tty("/dev/tty9", TTY.new("/dev/tty9"))
+    os.internals._kernel.register_tty("/dev/tty10", TTY.new("/dev/tty10"))
+end

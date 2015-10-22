@@ -4,15 +4,17 @@
 _handler = {}
 _handler.signal_handler = function (sig)
     if sig == 'kill' then
-        print("init: recieved SIGKILL")
-        os.safe_shutdown()
+        os.ferror("init: recieved SIGKILL")
     end
 end
 
 local RUNLEVELFUNC = {}
 
 function runlevel_0()
-    os.safe_shutdown()
+    if permission.grantAccess(fs.perms.ROOT) then
+        os.shutdown()
+    end
+    permission.default()
 end
 
 function runlevel_1()
@@ -20,7 +22,9 @@ function runlevel_1()
     for k,v in pairs(fs.list("/etc/rc1.d/")) do
         os.runfile(fs.combine("/etc/rc1.d",v))
     end
-    os.runfile_proc("/sbin/login")
+    while true do
+        os.runfile_proc("/sbin/login")
+    end
 end
 
 function runlevel_2()
@@ -39,7 +43,15 @@ end
 
 function runlevel_6()
     --reboot
-    os.runfile_proc("/sbin/reboot")
+    if permission.grantAccess(fs.perms.ROOT) then
+        os.debug.debug_write("[init] rebooting with root permission")
+        os.runfile_proc("/sbin/reboot")
+    else
+        --rebooting without permissions
+        os.debug.debug_write("[init] rebooting withOUT root permission")
+        os.reboot()
+    end
+    permission.default()
 end
 
 RUNLEVELFUNC[0] = runlevel_0

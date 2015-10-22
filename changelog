@@ -1,3 +1,14 @@
+0.3.3 - 0.3.4 (10-14-2015)
+  +new loading mechanism for kernel, decreasing its size
+  +login now uses sha256(password + salt) instead of sha256(password)
+  +login: session tokens!
+  +ACPI management now possible(SBL loads it by default)!
+  +new: os.generateSalt
+  *bugfix: /proc/cpuinfo & /proc/temperature now support stripping
+  +new: /proc/partitions
+  +new TTY logic
+  +
+
 0.3.2 - 0.3.3 (10-13-2015)
   +new pipe logic using classes
   +starting fs_manager

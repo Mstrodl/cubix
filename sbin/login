@@ -4,16 +4,9 @@
 _handler = {}
 _handler.signal_handler = function (sig)
     if sig == 'kill' then
-        print("login: recieved SIGKILL")
+        --print("login: recieved SIGKILL")
         return 0
     end
-end
-
-if os.loadAPI("/lib/login_manager") then
-    loginmngr = _G["login_manager"]
-else
-    print("cannot load login_manager")
-    exit()
 end
 
 function main(args)
@@ -26,15 +19,15 @@ function main(args)
     if user == "^" then
         write(PC_LABEL.." login: ")
         try_user = read()
-        write("\nPassword: ")
+        write("Password: ")
         try_pwd = read("")
     else
         try_user = user
-        write("\nPassword: ")
+        write("Password: ")
         try_pwd = read("")
     end
 
-    if loginmngr.login(try_user, try_pwd) then
+    if os.lib.login.login(try_user, try_pwd) then
         local k = fs.open("/tmp/current_user", 'w') k.write(try_user) k.close()
         local k2 = fs.open("/tmp/current_path", 'w')
         if try_user ~= 'root' then
@@ -45,7 +38,7 @@ function main(args)
         k2.close()
         os.runfile_proc("/bin/cshell")
     else
-        os.ferror("login: error on user or on password.")
+        os.ferror("\nLogin incorrect")
     end
 end
 

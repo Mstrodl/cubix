@@ -4,21 +4,6 @@
 --/bin/login uses login_manager
 --/bin/whoami uses /tmp/current_user (from /bin/login), not login_manager
 
-if os.loadAPI("/lib/debug_manager") then
-    debug = _G["debug_manager"]
-    debug.debug_write("[login_manager] debug: loaded", false)
-else
-    debug.debug_write = print
-    debug.debug_write("[login_manager] debug: not loaded")
-end
-
-if os.loadAPI("/lib/hash_manager") then
-    hash_mngr = _G["hash_manager"]
-    os.debug.debug_write("[login_manager] hash_manager: loaded", false)
-else
-    os.debug.debug_write("[login_manager] hash_manager: not loaded")
-end
-
 function strsplit(inputstr, sep)
         if sep == nil then
                 sep = "%s"
@@ -31,28 +16,90 @@ function strsplit(inputstr, sep)
         return t
 end
 
-function login(user, pwd)
+__CU = {}
+__CU.username = ''
+__CU.uid = -1
+
+local __CVV = ''
+
+Token = {}
+Token.__index = Token
+function Token.new()
+    inst = {}
+    setmetatable(inst, Token)
+    inst.value = ''
+    return inst
+end
+
+function Token:generate(u, sessions)
+    self.value = u .. '::::' .. os.lib.hash.hash.sha256(os.generateSalt(100)) .. '::::' .. tostring(sessions)
+end
+
+function Token:verifyValid()
+    local K = os.strsplit(self.value, "::::")
+    if #K == 3 and tonumber(K[3]) ~= nil then
+        if tonumber(K[3]) > 0 and K[2] == __CVV then
+            return true
+        else
+            return false
+        end
+    end
+    return false
+end
+
+--compare variable of __CVV on __CT.value
+--if true, __CT is all valid
+--if not, does not login pls
+
+function Token:use()
+    local K = os.strsplit(self.value, "::::")
+    local nsession = tostring(tonumber(K[3]-1))
+    os.debug.debug_write("[token] used token, now it has "..nsession.." uses", false)
+    local new_2 = os.lib.hash.hash.sha256(os.generateSalt(100))
+    __CVV = new_2
+    local K2 = table.concat({K[1], new_2, nsession}, "::::")
+    __CT.value = K2
+end
+
+function getCurrentToken()
+    return __CT
+end
+
+__CT = Token.new()
+
+function currentUser()
+    return os.deepcopy(__CU)
+end
+
+function login(usr, pwd)
     --TODO: session tokens
-    local hashed_pwd = hash_mngr.hash.sha256(pwd)
-    local h2 = fs.open("/etc/shadow", 'r')
-    local users = strsplit(h2.readAll(), "\n")
-    local i = 0
-    for k,v in pairs(users) do
-        local udata = strsplit(users[k], '^')
-        if udata[1] == user and udata[2] == hashed_pwd then
-            h2.close()
+    if __CT:verifyValid() then
+        __CT:use()
+        return true
+    end
+    local handler = fs.open('/etc/shadow', 'r')
+    local lines = os.strsplit(handler.readAll(), '\n')
+    handler.close()
+    for k,v in ipairs(lines) do
+        local udata = os.strsplit(v, '^')
+        local hashed = os.lib.hash.hash.sha256(pwd .. udata[3])
+        if udata[1] == usr and udata[2] == hashed then
+            __CT:generate(udata[1], 3)
+            __CVV = os.strsplit(__CT.value, '::::')[2]
+            __CU.username = udata[1]
+            __CU.uid = 1
             return true
         end
     end
-    h2.close()
     return false
 end
 
 function add_new_user(u, p)
     --adding new users to /etc/shadow
     --TODO: permissions
-    local hp = hash_mngr.hash.sha256(p)
-    local user_string = u .. '^' .. hp .. '\n'
+    local _salt = os.generateSalt(15)
+    local hp = os.lib.hash.hash.sha256(p .. _salt)
+    local user_string = u .. '^' .. hp .. '^' .. _salt ..  '\n'
     local h = fs.open("/etc/shadow", 'a')
     h.write(user_string)
     h.close()
@@ -67,10 +114,14 @@ function changepwd(user, p, np)
         local fLines = strsplit(h.readAll(), '\n')
         for k,v in pairs(fLines) do
             local pair = strsplit(v, '^')
+            local _salt = os.generateSalt(15)
             if pair[1] == user then
-                pair[2] = hash_mngr.hash.sha256(np)
+                local _salt = os.generateSalt(15)
+                pair[2] = os.lib.hash.hash.sha256(np .. _salt)
+                fLines[k] = pair[1] .. '^' .. pair[2] .. '^' .. _salt .. '\n'
+            else
+                fLines[k] = fLines[k] .. '\n'
             end
-            fLines[k] = pair[1] .. '^' .. pair[2] .. '\n'
         end
         h.close()
         local h2 = fs.open("/etc/shadow", 'w')
@@ -82,5 +133,13 @@ function changepwd(user, p, np)
     else
         return false
     end
+end
+
+--installing login API
+function libroutine()
+    os.login = {}
+    os.login.login = login
+    os.login.adduser = add_new_user
+    os.login.changepwd = changepwd
 end
 
