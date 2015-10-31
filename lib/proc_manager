@@ -3,12 +3,7 @@
 --task: manage /proc, creating its special files;
 --manage processes, threads and signals to processes.
 
-if os.loadAPI("/lib/debug_manager") then
-    debug = _G["debug_manager"]
-    debug.debug_write("[proc_manager] debug_manager: loaded")
-else
-    debug.debug_write("[proc_manager] debug_manager: not loaded")
-end
+RELOADABLE = false
 
 function strsplit(inputstr, sep)
     if sep == nil then
@@ -31,21 +26,23 @@ os.signals = {}
 os.signals.SIGKILL = 0
 
 os.call_handle = function(process, handler)
-	if process.rfile ~= nil then
-		r = process.rfile
-		if r._handler then
-			r._handler.signal_handler(handler)
-		else
-			os.debug.debug_write("[proc_handler] "..process.file.." does not have a signal handler, ignoring it")
-		end
-	else
-		os.debug.debug_write("[proc_handler] "..process.file.." does not have anything to show, ignoring it", false)
-	end
+    if process.rfile ~= nil then
+        r = process.rfile
+        if r._handler then
+            r._handler.signal_handler(handler)
+        else
+            os.debug.debug_write("[proc_handler] "..process.file.." does not have a signal handler, ignoring it")
+        end
+    else
+        os.debug.debug_write("[proc_handler] "..process.file.." does not have anything to show, ignoring it", false)
+    end
 end
 
 os.send_signal = function (proc, signal)
     if proc == nil then
-        os.ferror("send_signal: process not found")
+        os.ferror("proc.send_signal: process == nil")
+    elseif proc == -1 then
+        os.ferror("proc.send_signal: process was killed")
     elseif signal == os.signals.SIGKILL then
         os.debug.debug_write("[proc_manager] "..proc.file.." recieved SIGKILL.", false)
         os.processes[proc.pid] = -1 --removing anything related to the process in os.processes
@@ -75,15 +72,17 @@ os.run_process = function(p, args, pipe)
     if args == nil then args = {} end
     --if pipe == nil then pipe = {} end
     os.debug.debug_write("[process] running "..p.file, false)
+    permission.default()
     os.processes[p.pid] = p
     running = p.pid
+    p.uid = os.lib.login.currentUser().uid
     if os.loadAPI(p.file) then
         K = strsplit(p.file, '/')
         p.rfile = _G[K[#K]] --non-localized variables in _G
         if p.rfile.main ~= nil then
             p.rfile.main(args, pipe)
         else
-            os.debug.debug_write("[process] cannot call main() function from "..p.file)
+            os.debug.debug_write("[process] cannot call main() from "..p.file)
         end
     else
         os.debug.debug_write("[process] cannot load "..p.file)
@@ -107,8 +106,18 @@ os.new_process = function(executable)
     cls.parent = nil
     cls.childs = {}
     cls.rfile = nil
+    cls.uid = -1
     os.debug.debug_write("[proc_manager] new process: "..cls.file, false)
     return cls
+end
+
+os.currentUID = function()
+    local runningproc = os.processes[running]
+    if runningproc == nil or runningproc == -1 then
+        return nil
+    else
+        return runningproc.uid
+    end
 end
 
 os.runfile_proc = function(executable, arguments, parent, pipe)

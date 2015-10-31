@@ -10,7 +10,16 @@ _handler.signal_handler = function (sig)
 end
 
 function main(args)
-    local pid = args[1]
-    p = os.processes[tonumber(pid)]
-    os.send_signal(p, os.signals.SIGKILL)
+    if #args == 1 then
+        local pid = args[1]
+        local p = os.processes[tonumber(pid)]
+        os.send_signal(p, os.signals.SIGKILL)
+    elseif #args > 1 then
+        for k,v in pairs(args) do
+            local proc = os.processes[tonumber(v)]
+            os.send_signal(proc, os.signals.SIGKILL)
+        end
+    else
+        print("usage: kill <pid1> <pid2> <pid3> ...")
+    end
 end

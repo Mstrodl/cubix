@@ -53,6 +53,11 @@ function main(args, pipe)
        end
        return newtable
     end
+    if #args == 0 then
+        print("usage: glep <pattern> <files>")
+        print("usage(pipe): glep <pattern>")
+        return 0
+    end
     if pipe ~= nil then
         --print("recieved pipe")
         local pattern = args[1]

@@ -36,10 +36,20 @@ cur_tty = os.lib.tty.getcurrentTTY()
 os.cshell = {}
 os.cshell.PATH = '/bin:/usr/bin'
 
+os.cshell.resolve = function(path)
+    if string.sub(path, 1, 1) == '/' then
+        return path
+    elseif string.sub(path, 1, 2) == './' then
+        return fs.combine(current_path, string.sub(path, 3, #path))
+    end
+    return path
+end
+
 function shell_command(k)
     --TODO: add support for && (in cscript /etc/scripts/set_env.csp && ps && exit)
     --TODO: add support for &
     if k == nil or k == "" then return 0 end
+    for _, k in pairs(os.strsplit(k, "&&")) do
     if k:find("|") then
         local count = 1
         local programs = os.strsplit(k, "|")
@@ -97,6 +107,12 @@ function shell_command(k)
         elseif program == 'PPATH' then
             print(os.cshell.PATH)
             return 0
+        elseif program == "getuid" then
+            print(os.lib.login.currentUser().uid)
+            return 0
+        elseif program == 'getperm' then
+            permission.getPerm()
+            return 0
         end
         local args = {}
         for k,v in pairs(c) do
@@ -107,12 +123,18 @@ function shell_command(k)
         end
         local found = false
         if fs.exists(program) then
-            found = true
-            os.runfile_proc(program, args)
+            _l = os.strsplit(program, '/')
+            if _l[1] ~= 'sbin' then
+                found = true
+                os.runfile_proc(program, args)
+            end
 
         elseif fs.exists(fs.combine(current_path, program)) then
-            found = true
-            os.runfile_proc(fs.combine(current_path, program), args)
+            print(current_path)
+            if current_path ~= '/sbin' or current_path ~= 'sbin' then
+                found = true
+                os.runfile_proc(fs.combine(current_path, program), args)
+            end
         end
 
         local _path = os.strsplit(os.cshell.PATH, ':')
@@ -134,6 +156,7 @@ function shell_command(k)
         if not found then
             os.ferror("cshell: Program not found")
         end
+    end
     end
 end
 

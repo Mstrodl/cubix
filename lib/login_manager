@@ -4,6 +4,8 @@
 --/bin/login uses login_manager
 --/bin/whoami uses /tmp/current_user (from /bin/login), not login_manager
 
+RELOADABLE = false
+
 function strsplit(inputstr, sep)
         if sep == nil then
                 sep = "%s"
@@ -61,6 +63,11 @@ function Token:use()
     __CT.value = K2
 end
 
+function Token:getUser()
+    local K = os.strsplit(self.value, "::::")
+    return K[1]
+end
+
 function getCurrentToken()
     return __CT
 end
@@ -71,9 +78,13 @@ function currentUser()
     return os.deepcopy(__CU)
 end
 
-function login(usr, pwd)
+local __sudo = false
+
+function login(usr, pwd, isSudo)
     --TODO: session tokens
-    if __CT:verifyValid() then
+    if isSudo == nil then isSudo = false end
+    if __CT:verifyValid() and __CT:getUser() == usr then
+        __sudo = isSudo
         __CT:use()
         return true
     end
@@ -87,11 +98,57 @@ function login(usr, pwd)
             __CT:generate(udata[1], 3)
             __CVV = os.strsplit(__CT.value, '::::')[2]
             __CU.username = udata[1]
-            __CU.uid = 1
+            if usr == 'root' then
+                __sudo = isSudo
+                os.debug.debug_write("[login] UID = 0", false)
+                __CU.uid = 0
+            else
+                os.debug.debug_write("[login] UID = 1", false)
+                __CU.uid = 1
+            end
             return true
         end
     end
     return false
+end
+
+function isInGroup(uid, gid)
+    return uid == gid
+end
+
+function front_login(program, user)
+    local current_user = currentUser()
+    if user == nil then user = current_user.username end
+    write("["..program.."] password for "..user..": ")
+    local try_pwd = read('')
+
+    if login(current_user.username, try_pwd, true) then
+        __CT:use()
+        return true
+    else
+        os.ferror("front_login: Login incorrect")
+        return false
+    end
+end
+
+local counter = 6
+
+function isSudo()
+    if __sudo then
+        if counter == 0 then
+            __sudo = false
+            return true
+        else
+            counter = counter - 1
+            return true
+        end
+    end
+    --print("nope, not __sudo")
+    return false
+end
+
+function harmless_isSudo()
+    return __sudo
 end
 
 function add_new_user(u, p)

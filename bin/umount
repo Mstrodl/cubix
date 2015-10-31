@@ -1,0 +1,26 @@
+#!/usr/bin/env lua
+--/bin/umount: umount devices
+
+_handler = {}
+_handler.signal_handler = function(sig)
+    if sig == 'kill' then
+        --print("umount: SIGKILL")
+        return 0
+    end
+end
+
+function main(args)
+    if permission.grantAccess(fs.perms.ROOT) then
+        local path = args[1]
+        local components = os.strsplit(path, '/')
+        --os.viewTable(components)
+        if components[1] == 'dev' then
+            fsmanager.umount_dev(path)
+        else 
+            fsmanager.umount_path(path)
+        end
+    else
+        os.ferror("umount: system permission is required to umount")
+        return 0
+    end
+end

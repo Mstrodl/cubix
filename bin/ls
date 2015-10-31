@@ -9,6 +9,62 @@ _handler.signal_handler = function(sig)
     end
 end
 
+
+local chars = {}
+for i = 32, 126 do chars[string.char(i)] = i end
+--[[ You can redefine this table, but this way the entries will be sorted by ASCII values.
+     So "A" (0x41) will be before "B" (0x42), but "a" (0x61) will be after "C" (0x43) ]]
+
+local function sortingComparsion(valueA, valueB)
+    --[[ This is like strcmp in C++. Not sure if the return values are
+         correct or not though. I mean, not sure if strcmp returns +1
+         or -1 if the first argument is lower.
+
+         The function itself works though... ]]
+    local strpos = 0
+    local difference = 0
+    while strpos < #valueA and strpos < #valueB and difference == 0 do
+        strpos = strpos + 1
+        if chars[string.sub(valueA, strpos, strpos)] > chars[string.sub(valueB, strpos, strpos)] then
+            difference = 1
+        elseif chars[string.sub(valueA, strpos, strpos)] < chars[string.sub(valueB, strpos, strpos)] then
+            difference = -1
+        end
+    end
+    if difference == -1 then
+        return true -- return true if we want valueA to be before valueB
+    else
+        return false -- or return false if we want valueB to be before valueA
+    end
+end
+
+
+function ls(pth)
+    local nodes = fs.list(pth)
+    local files = {}
+    local folders = {}
+    for k,v in ipairs(nodes) do
+        if fs.isDir(pth..'/'..v) then
+            table.insert(folders, v)
+        else
+            table.insert(files, v)
+        end
+    end
+    table.sort(folders, sortingComparsion)
+    table.sort(files, sortingComparsion)
+    --printing folders
+    term.set_term_color(colors.green)
+    for k,v in ipairs(folders) do
+        write(v..' ')
+    end
+    term.set_term_color(colors.white)
+    --printing files
+    for k,v in ipairs(files) do
+        write(v..' ')
+    end
+    write('\n')
+end
+
 function main(args)
     local p = args[1]
     local cpth = fs.open("/tmp/current_path", 'r')
@@ -16,11 +72,11 @@ function main(args)
     cpth.close()
 
     if p == nil then
-        os.runfile("ls "..cpath)
+        ls(cpath)
     elseif fs.exists(p) then
-        os.runfile("ls "..p)
+        ls(p)
     elseif fs.exists(fs.combine(cpath, p)) then
-        os.runfile("ls "..fs.combine(cpath, p))
+        ls(fs.combine(cpath, p))
     end
 end
 

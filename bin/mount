@@ -1,0 +1,39 @@
+#!/usr/bin/env lua
+--/bin/mount: mount devices
+
+_handler = {}
+_handler.signal_handler = function(sig)
+    if sig == 'kill' then
+        --print("mount: SIGKILL")
+        return 0
+    end
+end
+
+function main(args)
+    if permission.grantAccess(fs.perms.SYS) then
+        --running as fucking root
+        print(#args)
+        if #args == 3 then
+            local device = args[1]
+            local fs = args[3]
+            local path = args[2]
+            if fsmanager.mount(device, fs, path) then
+                print("mount: mounted "..device)
+            else
+                os.ferror("mount: error")
+            end
+        elseif #args == 0 then
+            local _mounts = fsmanager.getMounts()
+            for k,v in pairs(_mounts) do
+                print((v.dev).." on "..(k).." type "..(v.fs))
+            end
+        end
+    else
+        if #args == 0 then
+            local _mounts = fsmanager.getMounts()
+            for k,v in pairs(_mounts) do
+                print((v.dev).." on "..(k).." type "..(v.fs))
+            end
+        end
+    end
+end

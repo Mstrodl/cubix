@@ -19,21 +19,31 @@ end
 function main(_args)
     local current_user = os.lib.login.currentUser()
     local current_token = os.lib.login.__CT
-    local isValid = current_token:verifyValid()
-    if not isValid then
-        write("[sudo] password for "..current_user.username..": ")
-        local try_pwd = read('')
 
-        if os.lib.login.login(current_user.username, try_pwd) then
-            current_token:use()
-        else
-            os.ferror("Login incorrect")
+    local isValid = current_token:verifyValid()
+
+    if not isValid then
+        if not os.lib.login.front_login('sudo') then
+            os.ferror("sudo: Login incorrect")
             return 0
         end
     else
-        current_token:use()
+        if not os.lib.login.isSudo() then
+            if not os.lib.login.front_login('sudo') then
+                os.ferror("sudo: Login incorrect")
+                return 0
+            end
+        else
+            current_token:use()
+        end
     end
 
+--[[
+    if not permission.grantAccess(fs.perms.ROOT) then
+        os.ferror("permission: error getting root permission")
+        return 0
+    end
+]]
     function tail(t)
        if # t <= 1 then
           return nil
@@ -48,6 +58,7 @@ function main(_args)
     end
 
     local program = _args[1]
+    if program == nil then return 0 end
     local args = tail(_args)
 
     local h = fs.open("/tmp/current_path", 'r')

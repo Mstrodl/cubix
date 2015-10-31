@@ -1,4 +1,30 @@
-0.3.3 - 0.3.4 (10-14-2015)
+0.3.4 - 0.3.5 (10-31-2015)
+  +Cubix is now MIT licensed
+  +new (not new) security lock: when kernel is stable, "os.pullEvent = os.pullEventRaw" is applied
+  +new: /sbin/modprobe
+  +when loadmodule() loads a module that RELOADABLE = false is defined, it does not load the module
+    This helps when trying to "modprobe proc /lib/proc_manager", since this would wipe os.processes,
+    leaving no trace of init or other processes
+  *bugfix: /bin/cshell does not run /sbin/, even if you provide the path
+  +/bin/ls does not depend of os.runfile
+  -os.runfile: DEPRECATED!
+  +/bin/sudo uses permission module and front_login
+  +os.system_halt does not use os.sleep(10000...) anymore
+  !SBL: CraftOS does not boot anymore, still working on it
+  +acpi uses permission now
+  +acpi: acpi_suspend() works!
+  +debug_write(message, screen) -> debug_write(message, screen, isError)
+  +new: debug.warning(message)
+  {disclaimer here: I used quite a lot of code from UberOS to create
+  the filesystem manager to now, because of this, cubix is now MIT licensed}
+  +fs_manager: permissions in unix format, load filesystems(for now its
+  CFS, cubix file system, but there will be more), nodes and mounting devices :D
+  +/sbin/kill: now can kill multiple PIDs!
+  !sudo: because of magic, sudo still makes it way to os.processes, even
+  if killed, so, don't trust him
+
+
+0.3.3 - 0.3.4 (10-21-2015)
   +new loading mechanism for kernel, decreasing its size
   +login now uses sha256(password + salt) instead of sha256(password)
   +login: session tokens!
@@ -7,7 +33,6 @@
   *bugfix: /proc/cpuinfo & /proc/temperature now support stripping
   +new: /proc/partitions
   +new TTY logic
-  +
 
 0.3.2 - 0.3.3 (10-13-2015)
   +new pipe logic using classes

@@ -49,16 +49,18 @@ function CUI(m)
         end
         cprint("\n")
         cprint("Select an OS to load[arrow up/arrow down]")
+        local kpress = nil
         a, b= os.pullEventRaw()
         if a == "key" then
             if b==200 and n>1 then n=n-1 end
             if b==208 and n<l then n=n+1 end
-            if b==28 then break end
+            if b==28 then kpress = 'ENTER' break end
+            if b==18 then kpress = 'e' break end
         end
     end
     term.clear()
     term.setCursorPos(1,1)
-    return n
+    return {n, kpress}
 end
 
 function read_osfile()
@@ -80,17 +82,6 @@ function read_osfile()
     return {detected_oses_name, detected_oses_path}
 end
 
-term.set_term_color(colors.green)
-print("Welcome to SBL!\n")
-term.set_term_color(colors.white)
-
-os.sleep(.5)
-
-oses = read_osfile()
-table.insert(oses[1], "Load a OS manually")
-table.insert(oses[2], "lineboot")
-local loados = CUI(oses[1]) --only names
-
 function loadkernel(kfile, memory, vmode)
     --loads a .lua kernel file with its main function
     if kfile == 'lineboot' then
@@ -99,13 +90,47 @@ function loadkernel(kfile, memory, vmode)
     else
         lFile = kfile
     end
+    print("set root=(hd0,1)")
+    print("set mem="..memory)
+    print("insmod kernel")
     print("kernel '"..lFile.."' -vmode "..vmode)
-    print("\nBootLoader: loading "..kfile.."\n")
+    print("initrd -")
+    print("boot")
+    print("\nSBL: loading \""..kfile.."\"")
     os.sleep(.5)
-    shell.run(lFile)
+    local tArgs = strsplit(lFile, ' ')
+    local sCommand = tArgs[1]
+    if sCommand == '/rom/programs/shell' then
+        os.run({}, "/rom/programs/shell")
+    else
+        os.run({}, sCommand, table.unpack(tArgs, 2))
+    end
 end
 
-loadkernel(oses[2][loados], 512, 'ccraft-generic-video')
+function loadeditor()
+    return 0
+end
+
+term.set_term_color(colors.green)
+print("Welcome to SBL!\n")
+term.set_term_color(colors.white)
+os.sleep(.5)
+
+oses = read_osfile()
+table.insert(oses[1], "Load a OS manually")
+table.insert(oses[2], "lineboot")
+local user_selection = CUI(oses[1]) --only names
+selected_os = user_selection[1]
+
+--[[
+if user_selection[2] == 'ENTER' then
+    loadkernel(oses[2][selected_os], 512, 'cc-basictext')
+elseif user_selection[2] == 'e' then
+    loadeditor(oses[2][selected_os])
+end
+]]
+
+loadkernel(oses[2][selected_os], 512, 'cc-basictext')
 
 while true do os.sleep(0) end
 

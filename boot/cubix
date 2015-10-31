@@ -2,8 +2,8 @@
 --cubix: well, cubix!
 
 AUTHOR = "Lukas Mendes"
-BUILD_DATE = "2015-10-21"
-VERSION = "0.3.4"
+BUILD_DATE = "2015-10-31"
+VERSION = "0.3.5"
 --[[
     version: major.revision.minor
         major: linear
@@ -12,6 +12,15 @@ VERSION = "0.3.4"
         minor: number of RELEASES necessary to get to this version, not including BUILDS
 ]]
 
+STABLE = false
+
+if STABLE then
+    local pullEvent = os.pullEvent
+    os.pullEvent = os.pullEventRaw
+else
+    print("[cubix] KERNEL UNSTABLE!")
+end
+
 --installing set_term_color
 term.set_term_color = function (c)
     if term.isColor() then
@@ -19,7 +28,14 @@ term.set_term_color = function (c)
     end
 end
 
-local Args = {...} --arguments to shell
+os.viewTable = function (t)
+    print(t)
+    for k,v in pairs(t) do
+        print(k..","..tostring(v).." ("..type(v)..")")
+    end
+end
+
+local Args = {...} --arguments to cubix
 
 os.__boot_flag = true
 
@@ -40,7 +56,7 @@ end
 
 kflag = {}
 
-for k,v in pairs(Args) do
+for k,v in ipairs(Args) do
     if v == 'quiet' then
         kflag.quiet = true
     elseif v == 'nodebug' then
@@ -87,19 +103,39 @@ TTYS = {}
 os.list_mfiles = {}
 
 os.system_halt = function()
-    os.sleep(1000000) --yea...
+    while true do sleep(0) end
 end
 
-os.viewTable = function (t)
-    print(t)
-    for k,v in pairs(t) do
-        print(k..","..tostring(v))
+local function tokenise(...)
+    local sLine = table.concat({...}, ' ')
+    local tWords = {}
+    local bQuoted = false
+    for match in string.gmatch(sLine .. "\"", "(.-)\"") do
+        if bQuoted then
+            table.insert(tWords, match)
+        else
+            for m in string.gmatch(match, "[^ \t]+") do
+                table.insert(tWords, m)
+            end
+        end
+        bQuoted = not bQuoted
     end
+    return tWords
 end
 
-os.runfile = shell.run
+os.runfile = function(cmd)
+    local args = os.strsplit(cmd, " ")
+    local sCommand = args[1]
+    if sCommand then
+        return os.run({}, sCommand, table.unpack(args, 2))
+    end
+    return false
+end
+
+--os.runfile("/rom/programs/shell")
 
 os.ferror = function(message)
+    --TODO: stdin, stdout and stderr
     term.set_term_color(colors.red)
     print(message)
     term.set_term_color(colors.white)
@@ -149,33 +185,77 @@ os.lib = {}
 os.internals = {}
 os.internals._kernel = {}
 
+local isReloadable = {}
+
 function loadmodule(nmodule, path)
     os.debug.debug_write('[loadmodule] loading: '..nmodule)
+    if isReloadable[nmodule] ~= nil and isReloadable[nmodule] == false then
+        os.debug.debug_write("[loadmodule] cannot reload "..nmodule..", please reboot!", nil, true)
+        return 0
+    end
     if os.loadAPI(path) then
         _G[nmodule] = _G[fs.getName(path)]
         if _G[nmodule].libroutine ~= nil then
             _G[nmodule].libroutine()
         else
-            os.ferror("[loadmodule] libroutine() not found")
+            os.debug.debug_write("[loadmodule] libroutine() not found", nil, true)
             sleep(1)
         end
         os.lib[nmodule] = _G[fs.getName(path)]
+        isReloadable[nmodule] = os.lib[nmodule].RELOADABLE
         os.debug.debug_write('[loadmodule] loaded: '..nmodule)
     else
         os.debug.kpanic("[loadmodule] not loaded: "..nmodule)
     end
-    --sleep(0.8)
 end
 
 os.internals.loadmodule = loadmodule
+
+--hack
+os.lib.proc = {}
+os.lib.proc.running = 0
+os.processes = {}
+
+function make_readonly(table)
+    local temporary = {}
+    setmetatable(temporary, {
+        __index = table,
+        __newindex = function(_t, k, v)
+            local runningproc = os.processes[os.lib.proc.running]
+            if runningproc == nil then
+                os.debug.debug_write("[readonly -> proc] cubix is not running any process now!", nil, true)
+                table[k] = v
+                return 0
+            end
+            if runningproc.uid ~= 0 then
+                os.debug.debug_write("[readonly] Attempt to modify read-only table", nil, true)
+            else
+                table[k] = v
+            end
+        end,
+        __metatable = false
+    })
+    os.debug.debug_write("[readonly] new read-only table!")
+    return temporary
+end
+
+_G['make_readonly'] = make_readonly
 
 --acpi module
 if kflag.acpi then
     loadmodule("acpi", "/lib/acpi.lua")
 end
 
+--another hack
+os.lib.login = {}
+os.lib.login.currentUser = function()
+    return {uid = 2}
+end
+
 --filesystem manager
 loadmodule("fs_mngr", "/lib/fs_manager")
+
+permission.initKernelPerm()
 
 if fs.exists("/dev/ram") and kflag.acpi then
     os.lib.acpi.acpi_hwake()
@@ -230,17 +310,18 @@ end
 term.clear()
 term.setCursorPos(1,1)
 
+--finishing boot
 os.__debug_buffer = debug.__debug_buffer
-
 os.__boot_flag = false
 
+--setting tty
 os.lib.tty.current_tty("/dev/tty0")
 
-os.lib.login.__CT:generate(3)
-
+--finally, run!
 os.__parent_init = os.new_process(kflag.init)
 os.run_process(os.__parent_init)
 
-os.safe_shutdown()
+--if something goes wrong in kflag.init, just halt
+os.system_halt()
 
 end

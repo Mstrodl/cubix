@@ -1,6 +1,8 @@
 #!/usr/bin/env lua
 --filesystem manager
---task: manage filesystem permissions
+--task: manage filesystem permissions AND new filesystems
+
+--TODO: filesystem drivers(vfat, ext3, and others)
 
 function deepcopy(orig)
     local orig_type = type(orig)
@@ -18,6 +20,25 @@ function deepcopy(orig)
 end
 
 oldfs = deepcopy(fs)
+
+fsdrivers = {}
+
+function loadfs(fsname)
+    os.debug.debug_write("[loadfs] loading "..fsname)
+    local pth = '/lib/fs/'..fsname..'.lua'
+    if os.loadAPI(pth) then
+        fsdrivers[fsname] = _G[fs.getName(pth)]
+        os.debug.debug_write('[loadfs] loaded: '..fsname)
+    else
+        os.debug.kpanic("[loadfs] not loaded: "..fsname)
+    end
+end
+
+function load_filesystems(k)
+    loadfs('cfs')
+end
+
+_G["fsdrivers"] = fsdrivers
 
 --[[
 
@@ -57,6 +78,13 @@ execute
 
 ]]
 
+--yes, this was from uberOS
+
+--local nodes = {} --{ {owner, gid, perms[, linkto]} }
+nodes = {}
+
+local mounts = {} --{ {fs, dev}, ... }
+
 fs.perms = {}
 fs.perms.ROOT = 1
 fs.perms.SYS = 2
@@ -65,7 +93,10 @@ fs.perms.FOOL = 4
 
 fs.perm = function (path)
     local perm_obj = {}
+    local information = nodes[path]
     perm_obj.writeperm = true
+    --perm_obj.readperm = 
+    --perm_obj.executeperm = 
     return perm_obj
 end
 
@@ -94,18 +125,243 @@ fs.open = function (file, mode)
 end
 
 permission = {}
-permission.access = fs.perms.NORMAL
+local __using_perm = nil
+local __afterkperm = false
 
 permission.grantAccess = function(perm)
-    return true
+    local _uid = nil
+    if not os.__boot_flag then
+        if os.lib.login.isSudo() then
+            _uid = 0
+        else
+            _uid = os.lib.login.currentUser().uid
+        end
+    end
+    print("uid:" .. tostring(_uid))
+    if (perm == fs.perms.ROOT or perm == fs.perms.SYS) and (_uid == 0 or os.__boot_flag == true) then
+        return true
+    elseif perm == fs.perms.NORMAL then
+        return true
+    end
+    return false
+end
+
+permission.initKernelPerm = function()
+    if not __afterkperm then
+        __using_perm = fs.perms.SYS
+        __afterkperm = true
+    end
 end
 
 permission.default = function()
+    local _uid = os.lib.login.currentUser().uid
+    if _uid == 0 then
+        __using_perm = fs.perms.ROOT
+    elseif _uid > 0 then
+        __using_perm = fs.perms.NORMAL
+    elseif _uid == -1 then
+        __using_perm = fs.perms.FOOL
+    end
+end
 
+permission.getPerm = function()
+    print(__using_perm)
+end
+
+fsmanager = {}
+
+fsmanager.normalizePerm = function(perms)
+    local tmp = tostring(perms)
+    local arr = {}
+    for i = 1, 3 do
+        local n = tonumber(string.sub(tmp, i, i))
+        if n == 0 then arr[i] = "---" end
+        if n == 1 then arr[i] = "--x" end
+        if n == 2 then arr[i] = "-w-" end
+        if n == 3 then arr[i] = "-wx" end
+        if n == 4 then arr[i] = "r--" end
+        if n == 5 then arr[i] = "r-x" end
+        if n == 6 then arr[i] = "rw-" end
+        if n == 7 then arr[i] = "rwx" end
+    end
+    return arr
+end
+
+fsmanager.strPerm = function(perms)
+    local k = fsmanager.normalizePerm(perms)
+    return k[1] .. k[2] .. k[3]
+end
+
+fs.verifyPerm = function(path, user, mode)
+    local info = fsmanager.getInformation(path)
+    local norm = fsmanager.normalizePerm(info.perms)
+    if user == info.owner then
+        if mode == "r" then return string.sub(norm[1], 1, 1) == "r" end
+        if mode == "w" then return string.sub(norm[1], 2, 2) == "w" end
+        if mode == "x" then return string.sub(norm[1], 3, 3) == "x" end
+    elseif os.lib.login.isInGroup(user, info.gid) then
+        if mode == "r" then return string.sub(norm[2], 1, 1) == "r" end
+        if mode == "w" then return string.sub(norm[2], 2, 2) == "w" end
+        if mode == "x" then return string.sub(norm[2], 3, 3) == "x" end
+    else
+        if mode == "r" then return string.sub(norm[3], 1, 1) == "r" end
+        if mode == "w" then return string.sub(norm[3], 2, 2) == "w" end
+        if mode == "x" then return string.sub(norm[3], 3, 3) == "x" end
+    end
+end
+
+fsmanager.stripPath = function(base, full)
+    if base == full then return '/' end
+    return string.sub(full, #base + 1, #full)
+end
+
+fsmanager.loadFS = function(mountpath)
+    local x = fsdrivers[mounts[mountpath].fs].loadFS
+    if x then
+        local tmp, r = x(mountpath, mounts[mountpath].dev)
+        if not r then return false end
+        if mountpath == '/' then mountpath = '' end
+        for k,v in pairs(tmp) do
+            nodes[mountpath .. k] = v
+        end
+    end
+    return true
+end
+
+fsmanager.saveFS = function(mountpath)
+    local x = fsdrivers[fsmanager.getMount(mountpath).fs].saveFS
+    if x then
+        x(mountpath, fsmanager.getMount(mountpath).dev)
+    end
+end
+
+fsmanager.sync = function()
+    for k,v in pairs(mounts) do
+        fsmanager.saveFS(k)
+    end
+end
+
+fsmanager.deleteNode = function(node)
+    if not nodes[node] then return true end
+    if fs.verifyPerm(node, os.currentUID(), 'w') then
+    --if fs.perm(node).writeperm then
+        nodes[node] = nil
+        return true
+    else
+        os.ferror("fsmanager.deleteNode: Access Denied")
+    end
+    return false
+end
+
+fsmanager.getInformation = function(node)
+    local p = node
+    if node == '/' then
+        return {owner = 0, perms = '755', gid = 0}
+    end
+    if nodes[p] then
+        return deepcopy(nodes[p])
+    end
+    return {owner = 0, perms = '777', gid = 0}
+end
+
+fsmanager.setNode = function(node, owner, perms, linkto, gid)
+    if node == '/' then
+        nodes['/'] = {owner = 0, perms = '755', gid = 0}
+        return true
+    end
+    if not nodes[node] then
+        --create node
+        if fs.verifyPerm(node, os.currentUID(), 'w') then
+            nodes[node] = deepcopy(fsmanager.getInformation(node))
+        else
+            os.ferror("fsmanager.setNode [perm]: Access denied")
+            return false
+        end
+    end
+    owner = owner or nodes[node].owner
+    perms = perms or nodes[node].perms
+    gid = gid or nodes[node].gid
+    perms = tonumber(perms)
+    if nodes[node].owner == os.currentUID() then
+        nodes[node].owner = owner
+        nodes[node].gid = gid
+        nodes[node].perms = perms
+        nodes[node].linkto = linkto
+    else
+        os.ferror("fsmanager.setNode [uid]: Access denied")
+        return false
+    end
+end
+
+fsmanager.viewNodes = function()
+    os.viewTable(nodes)
+end
+
+fsmanager.mount = function(device, filesystem, path)
+    if not permission.grantAccess(fs.perms.SYS) then
+        os.ferror("mount: system permission is required to mount")
+        return false
+    end
+    if not fsdrivers[filesystem] then
+        os.ferror("mount: cannot mount "..device..": filesystem not loaded")
+        return false
+    end
+    if mounts[path] then
+        os.ferror("mount: filesystem already mounted")
+        return false
+    end
+    os.debug.debug_write("[mount] mounting "..device..": "..filesystem.." at "..path, false)
+    mounts[path] = {["fs"] = filesystem, ["dev"] = device}
+    local r = fsmanager.loadFS(path, device)
+    if not r then
+        mounts[path] = nil
+        os.ferror("mount: unable to mount")
+        return false
+    end
+    return true
+end
+
+fsmanager.umount_path = function(mpath)
+    if not permission.grantAccess(fs.perms.SYS) then
+        os.ferror("umount: system permission is required to umount")
+        return false
+    end
+    fsmanager.saveFS(mpath)
+    mounts[mpath] = nil
+    return true
+end
+
+fsmanager.umount_dev = function(dev)
+    if not permission.grantAccess(fs.perms.SYS) then
+        os.ferror("umount: system permission is required to umount")
+        return false
+    end
+    for k,v in pairs(mounts) do
+        if v.dev == dev then
+            fsmanager.saveFS(k)
+            mounts[k] = nil
+        end
+    end
+end
+
+fsmanager.getMount = function(mountpath)
+    return deepcopy(mounts[mountpath])
+end
+
+fsmanager.getMounts = function()
+    return deepcopy(mounts)
+end
+
+fsmanager._test = function()
+    fsmanager.setNode("/startup", 0, 755, nil, 0)
 end
 
 function libroutine()
     os.deepcopy = deepcopy
     _G["permission"] = permission
+    _G["fsmanager"] = fsmanager
+    _G['oldfs'] = oldfs
+    load_filesystems()
+    --fsmanager.mount("/dev/hdd", "cfs", "/")
 end
 

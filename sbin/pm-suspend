@@ -1,14 +1,15 @@
 #!/usr/bin/env lua
---/bin/pm-hibernate: wrapper to (acpi) hibernate
+--/bin/pm-suspend: wrapper to ACPI suspend function
 
 _handler = {}
 _handler.signal_handler = function (sig)
     if sig == 'kill' then
-        os.debug.debug_write("pm-suspend: recieved SIGKILL")
+        os.debug.debug_write("pm-suspend: recieved SIGKILL", false)
         return 0
     end
 end
 
 function main(args)
-    os.hibernate()
+    os.suspend()
+    return 0
 end

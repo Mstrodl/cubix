@@ -1,0 +1,17 @@
+#!/usr/bin/env lua
+--/bin/license: how cubix license
+
+_handler = {}
+_handler.signal_handler = function(sig)
+    if sig == 'kill' then
+        --print("license: SIGKILL")
+        return 0
+    end
+end
+
+function main(args,pipe)
+    local h = fs.open("/LICENSE", 'r')
+    print(h.readAll())
+    h.close()
+    return 0
+end
