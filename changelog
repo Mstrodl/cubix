@@ -12,16 +12,17 @@
   +os.system_halt does not use os.sleep(10000...) anymore
   !SBL: CraftOS does not boot anymore, still working on it
   +acpi uses permission now
-  +acpi: acpi_suspend() works!
+  +acpi: acpi_suspend() works (/sbin/pm-suspend)!
   +debug_write(message, screen) -> debug_write(message, screen, isError)
   +new: debug.warning(message)
   {disclaimer here: I used quite a lot of code from UberOS to create
   the filesystem manager to now, because of this, cubix is now MIT licensed}
   +fs_manager: permissions in unix format, load filesystems(for now its
-  CFS, cubix file system, but there will be more), nodes and mounting devices :D
+  CFS, cubix file system, but there will be more), nodes and mounting devices(/bin/mount and /bin/umount) :D
   +/sbin/kill: now can kill multiple PIDs!
   !sudo: because of magic, sudo still makes it way to os.processes, even
   if killed, so, don't trust him
+  +/bin/license: shows /LICENSE
 
 
 0.3.3 - 0.3.4 (10-21-2015)
