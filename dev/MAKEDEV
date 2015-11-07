@@ -10,6 +10,7 @@ _handler.signal_handler = function (sig)
 end
 
 function main(args)
+    os.runfile = shell.run
     os.runfile("mkdir /proc") --proc_manager
     os.runfile("mkdir /bin") --binaries
     os.runfile("mkdir /sbin") --root binaries
@@ -38,3 +39,5 @@ function main(args)
     os.runfile("mkdir /usr/manuals") --manuals
     print("created all / folders")
 end
+
+main()

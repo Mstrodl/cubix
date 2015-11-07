@@ -1,0 +1,3 @@
+set root=(disk)
+chainloader +1
+boot

@@ -44,22 +44,10 @@ function main(_args)
         return 0
     end
 ]]
-    function tail(t)
-       if # t <= 1 then
-          return nil
-       end
-       local newtable = {}
-       for i, v in ipairs(t) do
-          if i > 1 then
-              table.insert(newtable, v)
-          end
-       end
-       return newtable
-    end
 
     local program = _args[1]
     if program == nil then return 0 end
-    local args = tail(_args)
+    local args = os.tail(_args)
 
     local h = fs.open("/tmp/current_path", 'r')
     local current_path = h.readAll()

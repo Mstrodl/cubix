@@ -1,0 +1,47 @@
+#!/usr/bin/env lua
+--/bin/sbl-mkconfig: make systems.cfg
+
+_handler = {}
+_handler.signal_handler = function (sig)
+    if sig == 'kill' then
+        --print("sbl-mkconfig: recieved SIGKILL")
+        return 0
+    end
+end
+
+function main(args)
+    if #args == 0 then
+        print("welcome to sbl-mkconfig!")
+        print("here you can write a new systems.cfg file from scratch")
+        local entries = {}
+        while true do
+            write("OS entry: ")
+            local osentry = read()
+            if osentry == '' then break end
+            write("OS command: ")
+            local oscmd = read()
+            entries[osentry] = oscmd
+        end
+        print("writing to /boot/sblcfg/systems.cfg")
+        local sResult = ''
+        for k,v in pairs(entries) do
+            sResult = sResult .. k .. ';' .. v .. '\n'
+        end
+        local h = oldfs.open("/boot/sblcfg/systems.cfg", 'w')
+        h.write(sResult)
+        h.close()
+        print("Done!")
+    elseif #args == 1 then
+        local mode = args[1]
+        if mode == 'default' then
+            print("restoring system.cfg to recommended")
+            local sResult = 'Cubix;/boot/sblcfg/cubixboot\nCubix(quiet,nodebug);/boot/sblcfg/cubixquiet\nCubix(minimal);/boot/sblcfg/cubixminimal\nCraftOS;/boot/sblcfg/craftos\nBoot Disk;/boot/sblcfg/bootdisk'
+            local h = oldfs.open("/boot/sblcfg/systems.cfg", 'w')
+            h.write(sResult)
+            h.close()
+            print("Done!")
+        end
+    else
+        print("usage: sbl-mkconfig [mode]")
+    end
+end

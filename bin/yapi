@@ -1,0 +1,248 @@
+#!/usr/bin/env lua
+--/bin/yapi: Yet Another Package Installer (based on pacman syntax)
+
+AUTHOR = 'Lukas Mendes'
+VERSION = '0.0.1'
+
+_handler = {}
+_handler.signal_handler = function (sig)
+    if sig == 'kill' then
+        os.debug.debug_write("yapi: SIGKILL'd!", false)
+        return 0
+    end
+end
+
+function download_file(url)
+    http.request(url)
+    local req = true
+    while req do
+        local e, url, stext = os.pullEvent()
+        if e == 'http_success' then
+            local rText = stext.readAll()
+            stext.close()
+            return rText
+        elseif e == 'http_failure' then
+            req = false
+            return {false, 'http_failure'}
+        end
+    end
+end
+
+function success(msg)
+    term.set_term_color(colors.green)
+    print(msg)
+    term.set_term_color(colors.white)
+end
+
+--defining some things
+local SERVERIP = 'lkmnds.github.io'
+local SERVERDIR = '/yapi'
+
+local YAPI_MIRROR = 'lkmnds.github.io/yapi/@pkg.yap'
+
+local YAPIDIR = '/etc/yapi'
+
+function cache_file(data, filename)
+    local h = fs.open(YAPIDIR..'/cache/'..filename, 'w')
+    h.write(data)
+    h.close()
+    return 0
+end
+
+function isin(inputstr, wantstr)
+    for i = 1, #inputstr do
+        local v = string.sub(inputstr, i, i)
+        if v == wantstr then return true end
+    end
+    return false
+end
+
+yapidb = {}
+yapidb.__index = yapidb
+function yapidb.new(path)
+    local inst = {}
+    setmetatable(inst, yapidb)
+    inst.path = path
+    inst.db = ''
+    return inst
+end
+
+function yapidb:update()
+    local h = fs.open(self.path, 'r')
+    local _k = h.readAll()
+    self.db = _k
+    h.close()
+end
+
+function yapidb:search(pkgname)
+    self:update()
+    local _lines = self.db
+    local lines = os.strsplit(_lines, '\n')
+    for k,v in pairs(lines) do
+        local pkgdata = os.strsplit(v, ';')
+        if pkgdata[1] == pkgname then
+            return {true, v}
+        end
+    end
+    return {false, nil}
+end
+
+function yapidb:search_wcache(pkgname)
+    self:update()
+    if fs.exists(YAPIDIR..'/cache/'..pkgname..'.yap') then
+        local h = fs.open(YAPIDIR..'/cache/'..pkgname..'.yap', 'r')
+        local f = h.readAll()
+        h.close()
+        return f
+    else
+        local _url = self:search(pkgname)
+        local url = os.strsplit(_url[2], ';')[2]
+        local yapdata = download_file(url)
+        if type(yapdata) == 'table' then return -1 end
+        cache_file(yapdata, pkgname..'.yap')
+        return yapdata
+    end
+end
+
+--[[
+
+#devscripts.yap
+
+Name;devscripts
+Version;0.0.1
+
+Author;Lukas Mendes
+Email-Author;lkmnds@gmail.com
+
+Contributors;
+Email-Contri;
+
+Description;Developer Scripts for Cubix
+
+PathFile;lkmnds.github.io/yapi/devscripts.ctr
+
+Association;/usrbin;/usr/bin
+
+]]
+
+function parse_yap(yapf)
+    local lines = os.strsplit(yapf, '\n')
+    local yapobject = {}
+    yapobject['associations'] = {}
+    for _,v in pairs(lines) do
+        local splitted = os.strsplit(v, ';')
+        if splitted[1] == 'Name' then
+            yapobject['name'] = splitted[2]
+        elseif splitted[1] == 'Version' then
+            yapobject['version'] = splitted[2]
+        elseif splitted[1] == 'Author' then
+            yapobject['author'] = splitted[2]
+        elseif splitted[1] == 'Email-Author' then
+            yapobject['email_author'] = splitted[2]
+        elseif splitted[1] == 'Contributors' then
+            if splitted[2] == nil then
+                yapobject['contributors'] = 'none'
+            else
+                yapobject['contributors'] = splitted[2]
+            end
+        elseif splitted[1] == 'Email-Contri' then
+            yapobject['email-contri'] = splitted[2]
+        elseif splitted[1] == 'Description' then
+            yapobject['description'] = splitted[2]
+        elseif splitted[1] == 'PathFile' then
+            yapobject['pathfile'] = splitted[2]
+        elseif splitted[1] == 'Association' then
+            table.insert(yapobject['associations'], splitted[2])
+        end
+    end
+    return yapobject
+end
+
+function yapidb:install(pkgname)
+    print(" -> searching...")
+    local _s = self:search(pkgname)
+    if _s[1] == true then
+        local result = os.strsplit(_s[2], ';')
+        print(" -> getting YAP file...")
+        local yapfile = download_file(result[2])
+        if type(yapfile) == 'table' then
+            os.ferror("==> [install] "..yapfile[2])
+            return false
+        end
+        cache_file(yapfile, pkgname..'.yap')
+        local yapdata = parse_yap(yapfile)
+        return true
+    else
+        os.ferror("==> [install] yapidb: package not found")
+        return false
+    end
+end
+
+function main(args)
+    if not permission.grantAccess(fs.perms.SYS) then
+        os.ferror("yapi: not running as root")
+        return 1
+    end
+    if #args == 0 then
+        print("usage: yapi <mode> <file>")
+    else
+        print("yapi "..VERSION)
+        local option = args[1]
+        if string.sub(option, 1, 1) == '-' then
+            if string.sub(option, 2,2) == 'S' then
+                local packages = os.tail(args)
+                if packages ~= nil then
+                    for k,package in ipairs(packages) do
+                        local database = yapidb.new(YAPIDIR..'/db')
+                        database:update()
+                        print("==> [install] "..package)
+                        if database:install(package) then
+                            sucess("==> [install] "..package.." : SUCCESS")
+                        else
+                            os.ferror("==> [install] "..package.." : FAILURE")
+                        end
+                    end
+                end
+                if isin(option, 'y') then
+                    print("==> [update_db] starting from "..SERVERIP)
+                    local SPATH = 'http://'.. SERVERIP .. SERVERDIR .. '/database'
+                    if not http then
+                        os.ferror("yapi: http not enabled")
+                        return 1
+                    end
+                    local k = download_file(SPATH)
+                    local _h = fs.open(YAPIDIR..'/db', 'w')
+                    _h.write(k)
+                    _h.close()
+                    success("==> [update_db] SUCCESS")
+                end
+
+                if isin(option, 'u') then
+                    local database = yapidb.new(YAPIDIR..'/db')
+                    database:update()
+                    print("==> [updatepkg] updating packages")
+                end
+            elseif string.sub(option,2,2) == 'U' then
+                print("==> [install_yap]")
+            elseif string.sub(option,2,2) == 'L' then
+                local database = yapidb.new(YAPIDIR..'/db')
+                local pkg = args[2]
+                local _k = database:search(pkg)
+                if _k[1] == true then
+                    local _c = database:search_wcache(pkg)
+                    local yobj = parse_yap(_c)
+                    print("Name: "..yobj.name)
+                    print("Version: "..yobj.name)
+                    print("Author: "..yobj.author.." <"..yobj['email_author']..">")
+                    print("Maintainer: "..yobj.contributors)
+                    print("Description: "..yobj.description)
+                else
+                    os.ferror("[!] [search] package not found")
+                end
+            end
+        else
+            os.ferror("yapi: what?")
+        end
+    end
+end
+

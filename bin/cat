@@ -35,9 +35,9 @@ function cat(file, bytes)
         print(h.readAll())
         h.close()
     elseif fs.exists(file) and fs.isDir(file) then
-        print("cat: cannot cat into folders")
+        os.ferror("cat: cannot cat into folders")
     else
-        print("cat: file not found")
+        os.ferror("cat: file not found")
     end
 end
 

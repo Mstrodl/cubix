@@ -103,7 +103,8 @@ function main(args)
         remove_package(pkgname)
     elseif p == '-V' then
         --verify package
-    elseif p == '' then
+    elseif p == '-h' or p == '-help' then
+        print("usage: cpkg <mode> <file>")
     elseif p == '' then
     elseif p == '' then
     elseif p == '' then

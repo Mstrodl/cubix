@@ -1,0 +1,3 @@
+set root=(hdd)
+kernel /boot/cubix_minimal
+boot

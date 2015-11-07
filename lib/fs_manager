@@ -137,7 +137,7 @@ permission.grantAccess = function(perm)
             _uid = os.lib.login.currentUser().uid
         end
     end
-    print("uid:" .. tostring(_uid))
+    --print("uid:" .. tostring(_uid))
     if (perm == fs.perms.ROOT or perm == fs.perms.SYS) and (_uid == 0 or os.__boot_flag == true) then
         return true
     elseif perm == fs.perms.NORMAL then

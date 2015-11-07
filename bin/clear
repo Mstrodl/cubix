@@ -10,6 +10,7 @@ _handler.signal_handler = function (sig)
 end
 
 function main(args)
-    os.runfile("clear")
+    term.clear()
+    term.setCursorPos(1,1)
 end
 

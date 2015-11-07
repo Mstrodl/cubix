@@ -1,0 +1,2 @@
+_G['shell'] = shell
+os.loadAPI("/dev/MAKEDEV")
