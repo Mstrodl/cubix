@@ -1,9 +1,39 @@
+0.3.6 - 0.3.7 (11-16-2015)
+  +Writing a Installer(cubix_live_installer or cubixli for short)
+  +rewrited manuals for 0.3.7
+  -os.runfile (yes, this is now marked as bad)
+  +finally, /bin/cksum works(only with files)!
+  +/bin/cat works with pipes(getting from file and throwing into a pipe)
+  +rewrited [/bin/cp /bin/mkdir /bin/mv], using os.chell.resolve now
+  +os.cshell.getpwd
+  +/bin/eject works using disk.eject, not os.runfile
+  -[/bin/read /bin/sleep] is not working [proposital as I'm working on a solution]
+  +/bin/rm does not use os.runfile, using fs.delete now
+  +/bin/sh uses os.runfile_proc, not os.runfile
+  !/bin/wget: working on problems
+  !/bin/yapi: still WIP
+  +/bin/yes: rewrite based on dev_random
+  +/boot/cubix sets IS_CUBIX = true when booting
+  *bugfix: runlevel= wasnt working
+  +_prompt(message, yescmd, ncmd)
+    -Shows a prompt to the user, if he types the same as yescmd, return true
+  *bugfix_sbl: kernel module works
+  +/dev/MAKEDEV removes /tmp
+  +acpi deletes and creates /tmp, not using os.runfile
+  +Pipe:readAll()
+  +check in proc_manager if p.rfile.main ~= nil and p.rfile.main == function
+  +os.run_process sends SIGKILL to process after its execution
+  *bugfix: /sbin/adduser crashed when #args == 0
+  +/sbin/adduser uses os.lib.login
+  +/sbin/init runs scripts in /etc/rc1.d using shell.run, not os.runfile
+  +Rewrite of some manual pages
+
 0.3.5 - 0.3.6 (11-07-2015)
   *bugfix: /dev/MAKEDEV does not work more on craftOS, fixed installation
   +SBL: bootscripts!
   +Yet Another Package Installer: /bin/yapi
   +NEW: os.tail
-  !os.strsplit now warns you if inputstr ins not string
+  !os.strsplit now warns you if the type of inputstr isn't string
   +/startup now runs /boot/sbl
 
 0.3.4 - 0.3.5 (10-31-2015)
@@ -14,7 +44,7 @@
     This helps when trying to "modprobe proc /lib/proc_manager", since this would wipe os.processes,
     leaving no trace of init or other processes
   *bugfix: /bin/cshell does not run /sbin/, even if you provide the path
-  +/bin/ls does not depend of os.runfile
+  +/bin/ls does not depend of os.runfile (own algorithim now)
   -os.runfile: DEPRECATED!
   +/bin/sudo uses permission module and front_login
   +os.system_halt does not use os.sleep(10000...) anymore
@@ -29,7 +59,7 @@
   CFS, cubix file system, but there will be more), nodes and mounting devices(/bin/mount and /bin/umount) :D
   +/sbin/kill: now can kill multiple PIDs!
   !sudo: because of magic, sudo still makes it way to os.processes, even
-  if killed, so, don't trust him
+  if killed, so, don't trust it
   +/bin/license: shows /LICENSE
 
 

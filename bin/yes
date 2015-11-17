@@ -1,11 +1,21 @@
 #!/usr/bin/env lua
 --/bin/yes: outputs "y"
 
-function main(args)
+function print_y()
     while true do
-        print("y")
-        os.sleep(0)
+        io.write('y\n')
+        --os.sleep(0)
     end
 end
 
+function main(args)
+    local cy = coroutine.create(print_y)
+    coroutine.resume(cy)
+    while true do
+        local event, key = os.pullEvent( "key" )
+        if event and key then
+            break
+        end
+    end
+end
 

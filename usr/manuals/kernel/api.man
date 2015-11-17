@@ -10,12 +10,8 @@ The Cubix kernel has quite good variables that deserve to be listed, so here we 
     -halts the system execution, returns nil.
   -os.viewTable(table)
     -a simple function that shows the elements from a table, returns nil.
-  -os.safe_shutdown()
-    -shutdowns the system in a safe manner, deleting temporary files, returns nil.
   -os.central_print(s)
     -centralized text
-  -os.debug
-    -a parachute if the debug api does not work, you can use this!
   -os.ferror(s)
     -wrapper to a emulation of stderr
   -os.safestr(s)
@@ -23,8 +19,8 @@ The Cubix kernel has quite good variables that deserve to be listed, so here we 
   -os.strsplit(s, sep)
     -emulates python split
 
-  -hash.sha256(s) - SHA256 hash of a string, returns string.
-  -hash.md5(s) - MD5 hash of a string, returns string.
+  -os.lib.hash.sha256(s) - SHA256 hash of a string, returns string.
+  -os.lib.hash.md5(s) - MD5 hash of a string, returns string.
 
   -term.set_term_color(color) - a simple function to compatiblity between Computers and Advanced Computers, returns nil.
 

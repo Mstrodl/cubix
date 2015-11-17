@@ -19,11 +19,28 @@ function usage()
     print("usage: wget <url> <file>")
 end
 
-function main(args)
-    if args == nil then
-        usage()
+function download_file(url)
+    http.request(url)
+    local req = true
+    while req do
+        local e, url, stext = os.pullEvent()
+        if e == 'http_success' then
+            local rText = stext.readAll()
+            stext.close()
+            return rText
+        elseif e == 'http_failure' then
+            req = false
+            return {false, 'http_failure'}
+        end
     end
-    local url, dest = args[1], args[2]
+end
+
+function main(args)
+    if #args == 0 then
+        usage()
+        return 0
+    end
+    --[[local url, dest = args[1], args[2]
     local response = http.get(url)
     local sResponse = ''
     if response then
@@ -32,6 +49,17 @@ function main(args)
         response.close()
     else
         os.ferror("wget: failed!")
+    end
+    ]]
+
+    local url, destination = args[1], args[2]
+    local response = download_file(url)
+    if type(response) == 'string' then
+        print("wget: REQUEST OK")
+    else
+        os.ferror("wget: type(response) ~= string")
+        os.ferror("wget: "..response[2])
+        return 1
     end
 
     local _h = fs.open("/tmp/current_path", 'r')
@@ -47,9 +75,9 @@ function main(args)
         fh = fs.open(fs.combine(CPATH, dest), 'w')
     end
 
-    fh.write(sResponse)
+    fh.write(response)
     fh.close()
 
-    print("Downloaded as "..dest.. " from "..url)
+    print("wget: downloaded as "..dest.. " from "..url)
     return 0
 end

@@ -15,9 +15,9 @@ function main(args, pipe)
     for k,v in pairs(p) do
         if v ~= -1 then
             if v.parent == nil then
-                os.pprint(k.."  "..(v.file), pipe)
+                os.pprint(k.."   "..(v.file), pipe)
             else
-                os.pprint(k.."  "..(v.parent).." > " .. (v.file), pipe)
+                os.pprint(k.."   "..(v.parent).." > " .. (v.file), pipe)
             end
         end
     end

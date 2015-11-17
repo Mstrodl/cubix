@@ -32,3 +32,17 @@ function main(args)
         end
     end
 end
+
+function main(args)
+    if #args == 0 then
+        print("usage: mv <file> <destination>")
+    end
+    local from, to = args[1], args[2]
+    if fs.exists(os.cshell.resolve(from)) then
+        fs.move(os.cshell.resolve(from), os.cshell.resolve(to))
+    else
+        os.ferror("mv: input node does not exist")
+        return 1
+    end
+    return 0
+end

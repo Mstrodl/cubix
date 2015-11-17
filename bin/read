@@ -2,6 +2,6 @@
 --/bin/read
 
 function main(args)
-    return read()
+    return 0
 end
 

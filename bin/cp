@@ -9,32 +9,17 @@ _handler.signal_handler = function(sig)
     end
 end
 
-function _main(args)
-    local arg1, arg2 = args[1], args[2]
-    os.runfile("cp " .. arg1 .. ' ' .. arg2)
-end
-
 function main(args)
-    local from, to = args[1], args[2]
-    local _h = fs.open("/tmp/current_path", 'r')
-    local current_path = _h.readAll()
-    _h.close()
-    function _combine(c) return fs.combine(current_path, c) end
-    function check_slash(s) return string.sub(s, 0, 1) == '/' end
-    if from == nil or to == nil then
-        print("usage: cp file destination")
-    else
-        if fs.exists(_combine(from)) then
-            os.runfile("cp ".._combine(from).." ".._combine(to))
-        elseif check_slash(to) and not check_slash(from) then
-            os.runfile("cp ".._combine(from).." "..to)
-        elseif check_slash(from) and not check_slash(to) then
-            os.runfile("cp "..from.." ".._combine(to))
-        elseif check_slash(from) and check_slash(to) then
-            os.runfile("cp "..from.." "..to)
-        else
-            print("cp: check command syntax")
-        end
+    if #args == 0 then
+        print("usage: cp <file> <destination>")
     end
+    local from, to = args[1], args[2]
+    if fs.exists(os.cshell.resolve(from)) then
+        fs.copy(os.cshell.resolve(from), os.cshell.resolve(to))
+    else
+        os.ferror("cp: input file does not exist")
+        return 1
+    end
+    return 0
 end
 

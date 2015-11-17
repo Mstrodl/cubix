@@ -1,13 +1,17 @@
 Simple Boot Loader
 
-The objective of SBL is to create a boot loader capable of load systems in their respective folders
+SBL was made to be a GRUB-like bootloader
 
-By default SBL ships with 3 entries in systems.cfg:
+By default SBL verifies /boot/sblcfg/systems.cfg and by that loads a menu to the user, when the user selects what OS they want to load, SBL reads the bootscript related to the OS in systems.cfg.
 
-Cubix;/boot/cubix
-Cubix(minimal);/boot/cubix_minimal
-CraftOS;/rom/programs/shell
-
-It loads a Menu with there entries and when selected it loads the specified file in the entry.
-
-Since SBL is a startup script, if the OS fails to load and sends control to SBL, it gives 5 seconds of debugging and then shutdowns the computer.
+BootScript commands:
+  set <key>=<value>
+      the set command sets a key to a value, in the SBL context, we have only one special key, "root", this key sets where SBL will load the file, the 2 values "root" can have is "(hdd)" and "(disk)"
+  insmod <module>
+      loads a module, the general purpose module for all OSes is the "kernel" module
+  kernel <args>
+      it will set the SBL to load that kernel in args, example: "kernel /boot/cubix acpi" will load "/boot/cubix acpi"
+  boot
+      well, boots.
+  chainloader +1
+      this command makes SBL load the "sstartup" file in the "root" value

@@ -98,7 +98,7 @@ function read_osfile()
         local sysdat = strsplit(systems[k], ';')
         detected_oses_name[i] = sysdat[1]
         detected_oses_path[i] = sysdat[2]
-        print("from systems.cfg: "..sysdat[1]..' : '..sysdat[2])
+        print("systems.cfg: "..sysdat[1]..' : '..sysdat[2])
         i = i + 1
         os.sleep(.2)
     end
@@ -133,7 +133,7 @@ insmod kernel
             local k = strsplit(read(), ' ')
             --os.viewTable(k)
             if k[1] == 'kernel' then
-                if loadedmodules['kernel'] then
+                if loadmods['kernel'] then
                     lFile = table.concat(tail(k), ' ')
                 else
                     print("SBL: kernel not loaded")
@@ -224,28 +224,16 @@ insmod kernel
     end
 end
 
-function loadeditor()
-    return 0
-end
-
 term.set_term_color(colors.green)
 print("Welcome to SBL!\n")
 term.set_term_color(colors.white)
 os.sleep(.5)
 
 oses = read_osfile()
-table.insert(oses[1], "Load a OS manually")
+table.insert(oses[1], "SBL Command Line")
 table.insert(oses[2], "lineboot")
 local user_selection = CUI(oses[1]) --only names
 selected_os = user_selection[1]
-
---[[
-if user_selection[2] == 'ENTER' then
-    loadkernel(oses[2][selected_os], 512, 'cc-basictext')
-elseif user_selection[2] == 'e' then
-    loadeditor(oses[2][selected_os])
-end
-]]
 
 loadkernel(oses[2][selected_os], 512, 'cc-basictext')
 

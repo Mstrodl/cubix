@@ -1,3 +1,8 @@
 Debug Manager
 
 Task: manage the whole /dev
+
+/dev/null - a device that cannot be read(), but everything write() to it will be ignored
+/dev/zero - only gives zeros
+/dev/random - gives random characters
+

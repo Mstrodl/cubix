@@ -20,7 +20,7 @@ end
 function runlevel_1()
     --single-user
     for k,v in pairs(fs.list("/etc/rc1.d/")) do
-        os.runfile(fs.combine("/etc/rc1.d",v))
+        shell.run(fs.combine("/etc/rc1.d",v))
     end
     while true do
         os.runfile_proc("/sbin/login")
@@ -71,6 +71,7 @@ function main(args)
             inittab.close()
         else
             os.debug.kpanic("[init] /etc/inittab not found")
+            return 1
         end
     end
     RUNLEVELFUNC[runlevel]()

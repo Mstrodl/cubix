@@ -1,0 +1,348 @@
+#!/usr/bin/env lua
+--/sbin/cubix_live_installer: starts a enviroment where the user can install cubix
+
+VERSION = "0.0.1"
+BUILD_DATE = "2015-11-16"
+
+--[[
+    The Cubix Live Installer has the basic utilities to install cubix
+    It has these Arch Linux vibe going on so, yeah
+
+    CubixLI has everything in one script: a shell, a downloader to install cubix, setting label and so on
+]]
+
+--[[
+    How to install Cubix in CubixLI:
+        loadenv cubixli -- loads enviroment
+        deldisk -- deletes disk
+        yapstrap cubix -- downloads and installs cubix latest
+        setlabel <your label here> -- set label
+        unloadenv -- unload enviroment
+        reboot -- finally, reboot
+]]
+
+local function downloadFile( url, sFile )
+  local response = http.get( url )
+  if response then
+    local sResponse = response.readAll()
+    response.close()
+    
+    local handle = fs.open( root .. sFile, 'w' )
+    handle.write( sResponse )
+    handle.close()
+    return true
+  else
+    return false
+  end
+end
+
+tail = function(t)
+       if # t <= 1 then
+          return nil
+       end
+       local newtable = {}
+       for i, v in ipairs(t) do
+          if i > 1 then
+              table.insert(newtable, v)
+          end
+       end
+       return newtable
+end
+
+strsplit = function (inputstr, sep)
+    if sep == nil then
+        sep = "%s"
+    end
+    if inputstr == nil then
+        return ''
+    end
+    local t={} ; i=1
+    for str in string.gmatch(inputstr, "([^"..sep.."]+)") do
+        t[i] = str
+        i = i + 1
+    end
+    return t
+end
+
+function _prompt(message, yes, nope)
+    write(message..'['..yes..'/'..nope..'] ')
+    local result = read()
+    if result == yes then
+        return true
+    else
+        return false
+    end
+end
+
+term.set_term_color = function (c)
+    if term.isColor() then
+        term.setTextColor(c)
+    end
+end
+
+function ferror(msg)
+    term.set_term_color(colors.red)
+    print(msg)
+    term.set_term_color(colors.white)
+end
+
+function normal(msg)
+    term.set_term_color(colors.yellow)
+    print(msg)
+    term.set_term_color(colors.white)
+end
+
+function load_env()
+    normal("[cubixli:loadscreen]")
+    term.clear()
+    term.setCursorPos(1,1)
+    normal("[cubixli:load_disk]")
+    print("[cubixli:main->run_shell]")
+end
+
+local current_path = '/'
+local current_envir = ''
+
+--deldisk binary
+function deldisk(args)
+    if current_envir ~= 'cubixli' then
+        ferror("deldisk: cubixli env not loaded")
+        return 1
+    end
+    if _prompt("Do you want to delete your disk?", "Y", "n") then
+        for k,v in pairs(fs.list('/'))do
+            if v ~= 'rom' then
+                fs.delete(v)
+            end
+        end
+        print("deldisk: deleted all files in /")
+    else
+        return 0
+    end
+end
+
+--yapstrap binary
+function yapstrap(args)
+    if current_envir ~= 'cubixli' then
+        ferror("yapstap: cubixli env not loaded")
+        return 1
+    end
+    if #args == 0 then print("usage: yapstrap <pkg>") end
+    for k,v in pairs(args) do
+        if v == 'cubix' then
+            normal("yapstrap: task assigned: cubix latest")
+            shell.run("pastebin run W5ZkVYSi lkmnds cubix")
+            normal("yapstrap: finishing \"cubix latest\" task")
+            shell.run("FINISHINSTALL")
+            normal("yapstrap: finished")
+        end
+    end
+    return 0
+end
+
+--ls binary
+local chars = {}
+for i = 32, 126 do chars[string.char(i)] = i end
+
+local function sortingComparsion(valueA, valueB)
+    local strpos = 0
+    local difference = 0
+    while strpos < #valueA and strpos < #valueB and difference == 0 do
+        strpos = strpos + 1
+        if chars[string.sub(valueA, strpos, strpos)] > chars[string.sub(valueB, strpos, strpos)] then
+            difference = 1
+        elseif chars[string.sub(valueA, strpos, strpos)] < chars[string.sub(valueB, strpos, strpos)] then
+            difference = -1
+        end
+    end
+    if difference == -1 then
+        return true
+    else
+        return false
+    end
+end
+
+function _ls(pth)
+    local nodes = fs.list(pth)
+    local files = {}
+    local folders = {}
+    for k,v in ipairs(nodes) do
+        if fs.isDir(pth..'/'..v) then
+            table.insert(folders, v)
+        else
+            table.insert(files, v)
+        end
+    end
+    table.sort(folders, sortingComparsion)
+    table.sort(files, sortingComparsion)
+    --printing folders
+    term.set_term_color(colors.green)
+    for k,v in ipairs(folders) do
+        write(v..' ')
+    end
+    term.set_term_color(colors.white)
+    --printing files
+    for k,v in ipairs(files) do
+        write(v..' ')
+    end
+    write('\n')
+end
+
+function ls(args)
+    local p = args[1]
+    if p == nil then
+        _ls(current_path)
+    elseif fs.exists(p) then
+        _ls(p)
+    elseif fs.exists(fs.combine(current_path, p)) then
+        _ls(fs.combine(current_path, p))
+    end
+end
+
+--cd binary
+function pth_goup(p)
+    elements = strsplit(p, '/')
+    res = ''
+    for i = 1, (#elements - 1) do
+        print(res)
+        res = res .. '/' .. elements[i]
+    end
+    return res
+end
+
+function _cd(pth)
+    local CURRENT_PATH = current_path
+    if CURRENT_PATH == nil then
+        CURRENT_PATH = '/'
+    elseif pth == '.' then
+        CURRENT_PATH = CURRENT_PATH
+    elseif pth == '..' then
+        CURRENT_PATH = pth_goup(CURRENT_PATH)
+    elseif pth == '/' then
+        CURRENT_PATH = pth
+    elseif fs.exists(CURRENT_PATH .. '/' .. pth) == true then
+        CURRENT_PATH = CURRENT_PATH .. '/' .. pth
+    elseif fs.exists(pth) == true then
+        CURRENT_PATH = pth
+    elseif pth == nil then
+        CURRENT_PATH = "/home/"..current_user
+    else
+        print("cd: not found!")
+    end
+    return CURRENT_PATH
+end
+
+function cd(args)
+    local pth = args[1]
+    local npwd = _cd(pth)
+    current_path = npwd
+end
+
+--interface for rebooting
+function front_reboot(args)
+    if current_envir == 'cubixli' then
+        ferror("front_reboot: cubixli loaded, please unload")
+        return 1
+    end
+    print("[cubixli] sending RBT")
+    os.sleep(1.5)
+    os.reboot()
+end
+
+--set label
+function setlabel(args)
+    if #args == 0 then print("usage: setlabel <newlabel>") end
+    os.setComputerLabel(tostring(args[1]))
+end
+
+--version of cubixLI
+function version()
+    print("CubixLI "..VERSION.." in "..BUILD_DATE)
+end
+
+--load enviroment for cubix to start
+function loadenviroment(args)
+    if #args == 0 then return 0 end
+    print("[cubixli:loadenviroment] loading "..tostring(args[1]))
+    current_envir = tostring(args[1])
+end
+
+--unload enviroment
+function unloadenv(args)
+    current_envir = ''
+end
+
+--install help
+function insthelp()
+    print([[
+How to install Cubix in CubixLI:
+    loadenv cubixli
+    deldisk
+    yapstrap cubix
+    setlabel <your label here>
+    unloadenv
+    reboot
+]])
+    return 0
+end
+
+function runpath(args)
+    --PLEASE DONT USE THIS
+    os.run({}, args[1], unpack(tail(args)))
+end
+
+local SHELLCMD = {}
+SHELLCMD['ls'] = ls
+SHELLCMD['cd'] = cd
+SHELLCMD['yapstrap'] = yapstrap
+SHELLCMD['deldisk'] = deldisk
+SHELLCMD['setlabel'] = setlabel
+SHELLCMD['loadenv'] = loadenviroment
+SHELLCMD['unloadenv'] = unloadenv
+SHELLCMD['version'] = version
+SHELLCMD['help'] = insthelp
+SHELLCMD['reboot'] = front_reboot
+SHELLCMD['run'] = runpath
+
+function shellcmd(cmd)
+    local k = strsplit(cmd, ' ')
+    local _args = tail(k)
+    if _args == nil then _args = {} end
+    if SHELLCMD[k[1]] ~= nil then
+        SHELLCMD[k[1]](_args)
+    else
+        ferror("clish: command not found")
+    end
+end
+
+function run_shell()
+    --THIS IS NOT CSHELL!!!!11!!!ELEVEN!!
+    local command = ""
+    local shell_char = ''
+    local current_user = 'root'
+    local HISTORY = {}
+    while true do
+        shell_char = '# '
+        write(current_user .. ':' .. current_path .. shell_char)
+        command = read(nil, HISTORY)
+        table.insert(HISTORY, command)
+        if command == "exit" then
+            return 0
+        elseif command ~= nil then
+            shellcmd(command)
+        end
+    end
+    return 0
+end
+
+function main()
+    if IS_CUBIX then
+        ferror("cubixli: CubixLI only works in CraftOS(security reasons)")
+        return 0
+    end
+    load_env()
+    run_shell()
+end
+
+main()
+

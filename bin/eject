@@ -4,12 +4,13 @@
 _handler = {}
 _handler.signal_handler = function(sig)
     if sig == 'kill' then
-        --print("cat: SIGKILL")
+        --print("eject: SIGKILL")
         return 0
     end
 end
 
 function main(args)
+    if #args == 0 then return 0 end
     local side = args[1]
-    os.runfile("/rom/programs/eject "..side)
+    disk.eject(side)
 end

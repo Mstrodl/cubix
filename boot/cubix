@@ -2,10 +2,10 @@
 --cubix: well, cubix!
 
 AUTHOR = "Lukas Mendes"
-BUILD_DATE = "2015-11-02"
-VERSION = "0.3.6"
+BUILD_DATE = "2015-11-16"
+VERSION = "0.3.7"
 --[[
-    version: major.revision.minor
+    version format: major.revision.minor
         major: linear
         revision: odd: unstable
         revision: even: stable
@@ -20,6 +20,8 @@ if STABLE then
 else
     print("[cubix] KERNEL UNSTABLE!")
 end
+
+_G['IS_CUBIX'] = true
 
 --installing set_term_color
 term.set_term_color = function (c)
@@ -85,7 +87,7 @@ for k,v in ipairs(Args) do
     elseif string.sub(v, 0, 4) == 'init' then
         k = os.strsplit(v, '=')
         kflag.init = k[2]
-    elseif string.sub(v, 0, 4) == 'runlevel' then
+    elseif string.sub(v, 0, 8) == 'runlevel' then
         k = os.strsplit(v, '=')
         kflag.sRunlevel = k[2]
     end
@@ -125,33 +127,13 @@ os.system_halt = function()
     while true do sleep(0) end
 end
 
-local function tokenise(...)
-    local sLine = table.concat({...}, ' ')
-    local tWords = {}
-    local bQuoted = false
-    for match in string.gmatch(sLine .. "\"", "(.-)\"") do
-        if bQuoted then
-            table.insert(tWords, match)
-        else
-            for m in string.gmatch(match, "[^ \t]+") do
-                table.insert(tWords, m)
-            end
-        end
-        bQuoted = not bQuoted
-    end
-    return tWords
-end
+os._read = read
+os._sleep = os.sleep
 
 os.runfile = function(cmd)
-    local args = os.strsplit(cmd, " ")
-    local sCommand = args[1]
-    if sCommand then
-        return os.run({}, sCommand, table.unpack(args, 2))
-    end
-    return false
+    os.ferror("[cubix_deprecated] Sorry, os.runfile is marked as bad code and will not be in this cubix")
+    return -1
 end
-
---os.runfile("/rom/programs/shell")
 
 os.ferror = function(message)
     --TODO: stdin, stdout and stderr
@@ -177,6 +159,18 @@ os.generateSalt = function(l)
     end
     return res
 end
+
+function _prompt(message, yes, nope)
+    write(message..'['..yes..'/'..nope..'] ')
+    local result = read()
+    if result == yes then
+        return true
+    else
+        return false
+    end
+end
+
+_G['prompt'] = _prompt
 
 if os.loadAPI("/lib/video_manager") then
     print("loaded video")
@@ -293,14 +287,14 @@ loadmodule("proc", "/lib/proc_manager")
 loadmodule("hash", "/lib/hash_manager")
 
 function os.internals._kernel.register_device(d)
-    os.debug.debug_write("[device_manager] "..d.name.." created")
+    os.debug.debug_write("[dev] "..d.name.." created")
     DEVICES[d.name] = d.device
     fs.open(d.name, 'w', fs.perms.SYS).close()
 end
 
 --device manager
 loadmodule("devices", "/lib/device_manager")
-os.list_devices = DEVICES
+os.list_devices = fs_mngr.deepcopy(DEVICES)
 
 --tty, login and pipe managers
 function os.internals._kernel.register_tty(path, tty)

@@ -1,0 +1,9 @@
+ACPI Module
+
+ACPI or Advanced Configuration and Power Interface is a interface for the OS to make power commands right away, without the direct interference on the hardware.
+
+In CC, acpi works by making some cleanup tasks and killing processes before the CC (shutdown/reboot) kicks in
+
+Suspend(acpi_suspend or os.suspend): acpi just suspends the computer until a key is presses
+
+Hibernate(acpi_hibernate or os.hibernate): does not work now

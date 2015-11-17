@@ -10,6 +10,7 @@ _handler.signal_handler = function(sig)
 end
 
 function main(args)
+    --TODO: multiple args
     local cpath = fs.open("/tmp/current_path", 'r')
     local current_path = cpath.readAll()
     cpath.close()
@@ -19,6 +20,7 @@ function main(args)
     if fs.exists(f) then
         fs.delete(f)
     elseif fs.exists(fs.combine(current_path, f)) then
-        os.runfile("rm "..fs.combine(current_path, f))
+        fs.delete(fs.combine(current_path, f))
     end
 end
+

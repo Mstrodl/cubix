@@ -9,52 +9,44 @@ _handler.signal_handler = function(sig)
     end
 end
 
-if os.loadAPI("/lib/pipe_manager") then
-    pipemngr = _G["pipe_manager"]
-    os.debug.debug_write("[cat] pipe: loaded", false)
-else
-    os.debug.debug_write("[cat] pipe: not loaded")
-end
-
 function cat(file, bytes)
     local DEVICES = os.list_devices
     local MFILES = os.list_mfiles
     local cpth = fs.open("/tmp/current_path", 'r')
     local CURRENT_PATH = cpth.readAll()
     cpth.close()
+    local _result = ''
     if DEVICES[file] ~= nil then
-        print(DEVICES[file].read(bytes))
+        _result = DEVICES[file].read(bytes)
     elseif MFILES[file] ~= nil then
-        print(MFILES[file].read(bytes))
+        _result = MFILES[file].read(bytes)
     elseif fs.exists(file) and not fs.isDir(file) then
         local h = fs.open(file, 'r')
-        print(h.readAll())
+        _result = h.readAll()
         h.close()
     elseif fs.exists(fs.combine(CURRENT_PATH, file)) and not fs.isDir(file) then
         local h = fs.open(fs.combine(CURRENT_PATH, file), 'r')
-        print(h.readAll())
+        _result = h.readAll()
         h.close()
     elseif fs.exists(file) and fs.isDir(file) then
         os.ferror("cat: cannot cat into folders")
     else
         os.ferror("cat: file not found")
     end
+    return _result
 end
 
-function cat_pipe(pipe)
-    local h = pipemngr.Pipe.copyPipe(pipe)
-    while true do
-        local line = h:readLine()
-        if not line or line == nil then break end
-        os.pprint(line, pipe, true)
-    end
+function cat_pipe(file, pipe)
+    local _r = cat(file)
+    os.pprint(_r, pipe)
 end
 
 function main(args, pipe)
+    if #args == 0 then return 0 end
     if pipe == nil then
-        cat(args[1], args[2])
+        print(cat(args[1], args[2]))
     else
-        cat_pipe(pipe)
+        cat_pipe(args[1], pipe)
     end
 end
 

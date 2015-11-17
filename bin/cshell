@@ -36,13 +36,22 @@ cur_tty = os.lib.tty.getcurrentTTY()
 os.cshell = {}
 os.cshell.PATH = '/bin:/usr/bin'
 
-os.cshell.resolve = function(path)
-    if string.sub(path, 1, 1) == '/' then
-        return path
-    elseif string.sub(path, 1, 2) == './' then
-        return fs.combine(current_path, string.sub(path, 3, #path))
+os.cshell.getpwd = function()
+    local handler = fs.open("/tmp/current_path", 'r')
+    local result = handler.readAll()
+    handler.close()
+    return result
+end
+
+os.cshell.resolve = function(pth)
+    local current_path = os.cshell.getpwd()
+    function _combine(c) return fs.combine(current_path, c) end
+    function check_slash(s) return string.sub(s, 0, 1) == '/' end
+    if check_slash(pth) then
+        return pth
+    else
+        return _combine(pth)
     end
-    return path
 end
 
 function shell_command(k)

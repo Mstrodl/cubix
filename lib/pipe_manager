@@ -32,6 +32,13 @@ function Pipe:write(message)
     self.pipe_buffer = self.pipe_buffer .. message
 end
 
+function Pipe:readAll()
+    local A = os.strsplit(self.pipe_buffer, '\n')
+    local buffer = self.pipe_buffer
+    self.point = #A + 1
+    return buffer
+end
+
 function Pipe:readLine()
     local K = os.strsplit(self.pipe_buffer, '\n')
     local data = K[self.point]

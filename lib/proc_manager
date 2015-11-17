@@ -79,7 +79,7 @@ os.run_process = function(p, args, pipe)
     if os.loadAPI(p.file) then
         K = strsplit(p.file, '/')
         p.rfile = _G[K[#K]] --non-localized variables in _G
-        if p.rfile.main ~= nil then
+        if p.rfile.main ~= nil and type(p.rfile.main) == 'function' then
             p.rfile.main(args, pipe)
         else
             os.debug.debug_write("[process] cannot call main() from "..p.file)
@@ -87,6 +87,7 @@ os.run_process = function(p, args, pipe)
     else
         os.debug.debug_write("[process] cannot load "..p.file)
     end
+    os.send_signal(p, os.signals.SIGKILL)
 end
 
 os.set_child = function(prnt, proc)
@@ -129,7 +130,7 @@ os.runfile_proc = function(executable, arguments, parent, pipe)
     _process = os.new_process(executable) --creating a process
     os.set_parent(_process, _parent) --making parenting possible
     os.run_process(_process, arguments, pipe) -- running
-    os.send_signal(_process, os.signals.SIGKILL) --killing after its task is done
+    --os.send_signal(_process, os.signals.SIGKILL) --killing after its task is done
 end
 
 function test_processes()

@@ -32,4 +32,4 @@ Primary:
 
 
 Secondary:
-  -proc_manager creates /proc/cpuinfo and /proc/temperature, two fake files to simulate a real unix /proc
+  -proc_manager creates /proc/cpuinfo, /proc/temperature and /proc/partitions, fake files that simulate a real unix /proc

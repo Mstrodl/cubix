@@ -10,16 +10,10 @@ _handler.signal_handler = function(sig)
 end
 
 function main(args)
-    local d = args[1]
-    cpth = fs.open("/tmp/current_path", 'r')
-    cpath = cpth.readAll()
-    cpth.close()
-    if string.sub(d, 0, 1) == '/' then
-        os.runfile("mkdir " .. d)
-    elseif not fs.exists(fs.combine(cpath, d)) then
-        os.runfile("mkdir " .. fs.combine(cpath, d))
-    end
+    if #args == 0 then return 0 end
+    local newfolder = args[1]
+    --local current_path = os.chsell.getpwd()
+    fs.makeDir(os.cshell.resolve(newfolder))
+    return 0
 end
-
-
 

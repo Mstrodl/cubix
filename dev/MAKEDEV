@@ -25,8 +25,8 @@ function main(args)
     os.runfile("mkdir /etc/scripts")
     os.runfile("mkdir /home") --home folder
     os.runfile("mkdir /home/deusa") --default user
-    os.runfile("mkdir /lib") --libraries used by /boot/cubix and the binaries
-    os.runfile("mkdir /mnt") --mounting (coming soon)
+    os.runfile("mkdir /lib") --libraries
+    os.runfile("mkdir /mnt") --mounting
     os.runfile("mkdir /root") --home for root
     os.runfile("mkdir /usr") --user things
     os.runfile("mkdir /usr/bin")
@@ -34,10 +34,11 @@ function main(args)
     os.runfile("mkdir /usr/lib")
     os.runfile("mkdir /usr/sbin")
     os.runfile("mkdir /var") --variables
+    os.runfile("rm /tmp") --removing temporary because yes
     os.runfile("mkdir /tmp") --temporary, deleted when shutdown
     os.runfile("mkdir /media") --mounting (coming soon)
     os.runfile("mkdir /usr/manuals") --manuals
-    print("created all / folders")
+    print("MAKEDEV: created folders")
 end
 
 main()

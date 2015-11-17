@@ -1,6 +1,6 @@
 Cubix Kernel Boot Sequence
 
--> First, the SBL is loaded in startup file and reads /systems.cfg file, allowing for users to put more OSes easily, after that, SBL loads a menu and the user select what OS to load, then it will load the file specified in systems.cfg and passes control to it.
+-> First, the SBL is loaded in startup file and reads /boot/sblcfg/systems.cfg file, allowing for users to put more OSes easily, after that, SBL loads a menu and the user select what OS to load, then it will load the bootscript specified in systems.cfg and passes control to it["man sbl" for help].
 
 Then, if Cubix was selected at the menu, /boot/cubix starts to manage the system initalization:
 
@@ -8,13 +8,15 @@ Then, if Cubix was selected at the menu, /boot/cubix starts to manage the system
 
 -> Second: loads the managers, they play a important role in Cubix to do the task they are assigned for:
  -video_manager;
- -debug_manager, see "man debugmngr";
- -hash_manager, see "man kernel api";
- -device_manager: see "man devicemngr";
- -fs_manager;
- -proc_manager: see "man procmngr";
+ -debug_manager["man debugmngr"];
+ -acpi["man acpi"];
+ -fs_manager["man fsmngr"];
+ -proc_manager["man procmngr"];
+ -hash_manager["man kernel api"];
+ -device_manager["man devicemngr"];
  -tty_manager: loads support for ttys in /dev/ttyX (and no, device_manager does not work on this)
- -login_manager: it has the login() function, which verifies the user and password and compares it from the /etc/shadow file
+ -login_manager["man loginmngr"]
+ -pipe_manager["man pipe"]
 
 -> Third: Loads /sbin/login (as a process, "man procmngr" for details), the login manager, it asks for the user's username, the password and after that it loads the /bin/wshell, the cubix shell.
 

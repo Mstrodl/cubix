@@ -1,0 +1,5 @@
+Login Manager
+
+Task: Manage logins and /etc/shadow
+
+login in cubix works by the login() function in the manager, login reads /etc/shadow, as of now, cubix stores passwords in the sha256(passwd + salt) form(sha256 is defined in hash manager)

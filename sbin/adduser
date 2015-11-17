@@ -9,19 +9,16 @@ _handler.signal_handler = function(sig)
     end
 end
 
-if os.loadAPI("/lib/login_manager") then
-    login_mngr = _G["login_manager"]
-    os.debug.debug_write("[passwd] login_manager: loaded", false)
-else
-    os.debug.debug_write("[passwd] login_manager: not loaded")
-end
-
 function main(args)
+    if #args == 0 then
+        print("usage: adduser <user> <password>")
+        return 0
+    end
     local nu, np = args[1], args[2]
     if nu == 'root' then
         os.ferror("you cannot create a new root user")
     end
-    if login_mngr.add_new_user(nu, np) then
+    if os.lib.login.add_new_user(nu, np) then
         print("created "..nu)
     else
         os.ferror("adduser: error creating new user")

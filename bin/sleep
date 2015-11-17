@@ -10,6 +10,8 @@ _handler.signal_handler = function (sig)
 end
 
 function main(args)
-    local t = args[1]
-    os.sleep(tonumber(t))
+    return 0
+    --troled local t = args[1]
+    --troled os._sleep(tonumber(t))
 end
+
