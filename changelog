@@ -1,5 +1,6 @@
 0.3.6 - 0.3.7 (11-16-2015)
   +Writing a Installer(cubix_live_installer or cubixli for short)
+  -/boot/cubix_minimal does not exist anymore
   +rewrited manuals for 0.3.7
   -os.runfile (yes, this is now marked as bad)
   +finally, /bin/cksum works(only with files)!
