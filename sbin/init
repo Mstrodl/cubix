@@ -28,17 +28,78 @@ function runlevel_1()
 end
 
 function runlevel_2()
-    --multiuser withtout network service
-    os.runfile_proc("/sbin/login")
+    --multiuser(all ttys running login) withtout network service
+    --[[
+    
+    loadmodule("multiuser", "/lib/multiuser/multiuser.lua")
+    
+    ]]
+    --os.runfile_proc("/sbin/login")
 end
 
 function runlevel_3()
     --multiuser and network service
-    os.runfile_proc("/sbin/login")
+    --[[
+
+    loadmodule("multiuser", "/lib/multiuser/multiuser.lua")
+    
+    loadmodule("network", "/lib/net/network.lua")
+    os.lib.network.new_interface("loop", "loop")
+    os.lib.network.new_interface("eth0", "cable")
+    os.lib.network.new_interface("wlan0", "wireless")
+    os.lib.network.set_loop("127.0.0.1")
+    os.lib.network.register_entry("localhost", "127.0.0.1")
+    
+    ]]
+    --os.runfile_proc("/sbin/login")
 end
 
 function runlevel_5()
     --start LuaX
+    --[[
+    
+    LuaX Structure:
+
+    lx -> lxServer -> lxClient -> lxWindow
+                               -> lxMouse
+    
+    
+    --base ("hardware access")
+    loadmodule("lx", "/lib/luaX/lx.lua")
+
+    --LuaX Server (makes pixels)
+    loadmodule("lxServer", "/lib/luaX/lxServer.lua")
+
+    --LuaX Client (makes squares)
+    loadmodule("lxClient", "/lib/luaX/lxClient.lua")
+
+    --Window library
+    loadmodule("lxWindow", "/lib/luaX/lxWindow.lua")
+
+    --Mouse library
+    loadmodule("lxMouse", "/lib/luaX/lxMouse.lua")
+    
+    --loading Lua X Terminal(lxterm)
+    os.lib.lxServer.blank()
+    local lxterm_window = os.lib.lxWindow.Window("/g/lxterm")
+    os.lib.lxClient.activate_mouse()
+    os.lib.lxClient.loadWindow(lxterm_window)
+    os.lib.lxClient.mainloop()
+
+    ]]
+    --[[
+
+    loading lxterm by cshell
+    
+    # lx uid 1 perm all
+    $ lx start
+
+    lxterm loading another program by using "lx"
+    
+    # lx uid 1 perm all
+    $ lx load <path to program>
+    
+    ]]
 end
 
 function runlevel_6()
@@ -57,6 +118,8 @@ end
 RUNLEVELFUNC[0] = runlevel_0
 RUNLEVELFUNC[1] = runlevel_1
 RUNLEVELFUNC[2] = runlevel_2
+RUNLEVELFUNC[3] = runlevel_3
+RUNLEVELFUNC[5] = runlevel_5
 RUNLEVELFUNC[6] = runlevel_6
 
 function main(args)

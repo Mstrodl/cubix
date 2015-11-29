@@ -1,7 +1,0 @@
-#!/usr/bin/env lua
---/bin/read
-
-function main(args)
-    return 0
-end
-

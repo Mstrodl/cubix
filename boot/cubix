@@ -1,15 +1,17 @@
 #!/usr/bin/env lua
---cubix: well, cubix!
+--/boot/cubix: well, cubix!
 
 AUTHOR = "Lukas Mendes"
-BUILD_DATE = "2015-11-16"
-VERSION = "0.3.7"
+BUILD_DATE = "2015-11-23"
+VERSION = "0.4.0"
 --[[
     version format: major.revision.minor
         major: linear
         revision: odd: unstable
         revision: even: stable
         minor: number of RELEASES necessary to get to this version, not including BUILDS
+    0.3.8 < 0.3.9 < 0.3.10 < 0.3.11 < 0.4.0 < 0.4.1 [...]
+    {           UNSTABLE           }  {  STABLE   }
 ]]
 
 STABLE = false
@@ -18,12 +20,12 @@ if STABLE then
     local pullEvent = os.pullEvent
     os.pullEvent = os.pullEventRaw
 else
-    print("[cubix] KERNEL UNSTABLE!")
+    print("[cubix] warning, loading a unstable")
 end
 
 _G['IS_CUBIX'] = true
 
---installing set_term_color
+--frontend for compatibility
 term.set_term_color = function (c)
     if term.isColor() then
         term.setTextColor(c)

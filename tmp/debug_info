@@ -281,3 +281,489 @@
 [61]yapi: SIGKILL'd!
 [62][proc_manager] bin/sudo recieved SIGKILL.
 [63]sudo: SIGKILL'd!
+[0]debug: loaded
+[1]Cubix version 0.3.8 loading...
+[2][loadmodule] loading: acpi
+[3][loadmodule] loaded: acpi
+[4][loadmodule] loading: fs_mngr
+[5][loadfs] loading cfs
+[6][loadfs] loaded: cfs
+[7][loadmodule] loaded: fs_mngr
+[8][loadmodule] loading: proc
+[9][mfile] /proc/cpuinfo created
+[10][mfile] /proc/temperature created
+[11][mfile] /proc/partitions created
+[12][loadmodule] loaded: proc
+[13][loadmodule] loading: hash
+[14][hash] sha256: loaded
+[15][hash] sha256('hell') test = PASS
+[16][hash] md5: loaded
+[17][hash] md5('hell') test = PASS
+[18][loadmodule] loaded: hash
+[19][loadmodule] loading: devices
+[20][dmanager] loading _dev_random
+[21][dmanager] loaded _dev_random
+[22][dmanager] loading _dev_null
+[23][dmanager] loaded _dev_null
+[24][dmanager] loading _dev_zero
+[25][dmanager] loaded _dev_zero
+[26][dev] /dev/random created
+[27][dev] /dev/null created
+[28][dev] /dev/zero created
+[29][loadmodule] loaded: devices
+[30][loadmodule] loading: tty
+[31][tty] new tty: /dev/tty0
+[32][tty] new tty: /dev/tty1
+[33][tty] new tty: /dev/tty2
+[34][tty] new tty: /dev/tty3
+[35][tty] new tty: /dev/tty4
+[36][tty] new tty: /dev/tty5
+[37][tty] new tty: /dev/tty6
+[38][tty] new tty: /dev/tty7
+[39][tty] new tty: /dev/tty8
+[40][tty] new tty: /dev/tty9
+[41][tty] new tty: /dev/tty10
+[42][loadmodule] loaded: tty
+[43][loadmodule] loading: login
+[44][loadmodule] loaded: login
+[45][loadmodule] loading: pipe
+[46][loadmodule] loaded: pipe
+[47][proc_manager] new process: /sbin/init
+[48][process] running /sbin/init
+[49][proc_manager] new process: /sbin/login
+[50][process] running /sbin/login
+[0]debug: loaded
+[1]Cubix version 0.3.8 loading...
+[2][loadmodule] loading: acpi
+[3][loadmodule] loaded: acpi
+[4][loadmodule] loading: fs_mngr
+[5][loadfs] loading cfs
+[6][loadfs] loaded: cfs
+[7][loadmodule] loaded: fs_mngr
+[8][loadmodule] loading: proc
+[9][mfile] /proc/cpuinfo created
+[10][mfile] /proc/temperature created
+[11][mfile] /proc/partitions created
+[12][loadmodule] loaded: proc
+[13][loadmodule] loading: hash
+[14][hash] sha256: loaded
+[15][hash] sha256('hell') test = PASS
+[16][hash] md5: loaded
+[17][hash] md5('hell') test = PASS
+[18][loadmodule] loaded: hash
+[19][loadmodule] loading: devices
+[20][dmanager] loading _dev_random
+[21][dmanager] loaded _dev_random
+[22][dmanager] loading _dev_null
+[23][dmanager] loaded _dev_null
+[24][dmanager] loading _dev_zero
+[25][dmanager] loaded _dev_zero
+[26][dev] /dev/random created
+[27][dev] /dev/null created
+[28][dev] /dev/zero created
+[29][loadmodule] loaded: devices
+[30][loadmodule] loading: tty
+[31][tty] new tty: /dev/tty0
+[32][tty] new tty: /dev/tty1
+[33][tty] new tty: /dev/tty2
+[34][tty] new tty: /dev/tty3
+[35][tty] new tty: /dev/tty4
+[36][tty] new tty: /dev/tty5
+[37][tty] new tty: /dev/tty6
+[38][tty] new tty: /dev/tty7
+[39][tty] new tty: /dev/tty8
+[40][tty] new tty: /dev/tty9
+[41][tty] new tty: /dev/tty10
+[42][loadmodule] loaded: tty
+[43][loadmodule] loading: login
+[44][loadmodule] loaded: login
+[45][loadmodule] loading: pipe
+[46][loadmodule] loaded: pipe
+[47][proc_manager] new process: /sbin/init
+[48][process] running /sbin/init
+[49][proc_manager] new process: /sbin/login
+[50][process] running /sbin/login
+[51][login] UID = 1
+[52][proc_manager] new process: /bin/cshell
+[53][process] running /bin/cshell
+[54][proc_manager] new process: bin/ps
+[55][process] running bin/ps
+[56][proc_manager] bin/ps recieved SIGKILL.
+[57]ps: SIGKILL'd!
+[58][proc_manager] new process: bin/ps
+[59][process] running bin/ps
+[60][proc_manager] bin/ps recieved SIGKILL.
+[61]ps: SIGKILL'd!
+[62][proc_manager] new process: bin/ps
+[63][process] running bin/ps
+[64][proc_manager] bin/ps recieved SIGKILL.
+[65]ps: SIGKILL'd!
+[66][proc_manager] new process: bin/glep
+[67][process] running bin/glep
+[68][proc_manager] bin/glep recieved SIGKILL.
+[69][proc_manager] new process: bin/clear
+[70][process] running bin/clear
+[71][proc_manager] bin/clear recieved SIGKILL.
+[72][proc_manager] new process: bin/ls
+[73][process] running bin/ls
+[74][proc_manager] bin/ls recieved SIGKILL.
+[75][proc_manager] new process: bin/arch
+[76][process] running bin/arch
+[77][proc_manager] new process: /bin/uname
+[78][process] running /bin/uname
+[79][proc_manager] /bin/uname recieved SIGKILL.
+[80][proc_manager] bin/arch recieved SIGKILL.
+[81][proc_manager] new process: bin/uname
+[82][process] running bin/uname
+[83][proc_manager] bin/uname recieved SIGKILL.
+[84][proc_manager] new process: bin/cksum
+[85][process] running bin/cksum
+[86][proc_manager] bin/cksum recieved SIGKILL.
+[87][proc_manager] new process: bin/cksum
+[88][process] running bin/cksum
+[89][proc_manager] bin/cksum recieved SIGKILL.
+[90][proc_manager] new process: bin/cat
+[91][process] running bin/cat
+[92][proc_manager] bin/cat recieved SIGKILL.
+[93][proc_manager] new process: bin/cksum
+[94][process] running bin/cksum
+[95][proc_manager] bin/cksum recieved SIGKILL.
+[96][proc_manager] new process: bin/ls
+[97][process] running bin/ls
+[98][proc_manager] bin/ls recieved SIGKILL.
+[99][proc_manager] new process: bin/cat
+[100][process] running bin/cat
+[101][proc_manager] bin/cat recieved SIGKILL.
+[102][proc_manager] new process: bin/cksum
+[103][process] running bin/cksum
+[104][proc_manager] bin/cksum recieved SIGKILL.
+[105][proc_manager] new process: bin/cat
+[106][process] running bin/cat
+[107][proc_manager] bin/cat recieved SIGKILL.
+[108][proc_manager] new process: bin/cksum
+[109][process] running bin/cksum
+[110][proc_manager] bin/cksum recieved SIGKILL.
+[111][proc_manager] new process: bin/ls
+[112][process] running bin/ls
+[113][proc_manager] bin/ls recieved SIGKILL.
+[114][proc_manager] new process: bin/cpkg
+[115][process] running bin/cpkg
+[116][proc_manager] bin/cpkg recieved SIGKILL.
+[117][proc_manager] new process: bin/cpkg
+[118][process] running bin/cpkg
+[119][proc_manager] bin/cpkg recieved SIGKILL.
+[120][proc_manager] new process: bin/factor
+[121][process] running bin/factor
+[122][proc_manager] bin/factor recieved SIGKILL.
+[123][proc_manager] new process: bin/factor
+[124][process] running bin/factor
+[125][proc_manager] bin/factor recieved SIGKILL.
+[126][proc_manager] new process: bin/hwclock
+[127][process] running bin/hwclock
+[128][proc_manager] bin/hwclock recieved SIGKILL.
+[129][proc_manager] new process: bin/ls
+[130][process] running bin/ls
+[131][proc_manager] bin/ls recieved SIGKILL.
+[132][proc_manager] new process: bin/ls
+[133][process] running bin/ls
+[134][proc_manager] bin/ls recieved SIGKILL.
+[135][proc_manager] new process: bin/man
+[136][process] running bin/man
+[137][proc_manager] bin/man recieved SIGKILL.
+[138][proc_manager] new process: bin/ls
+[139][process] running bin/ls
+[140][proc_manager] bin/ls recieved SIGKILL.
+[141][proc_manager] new process: bin/man
+[142][process] running bin/man
+[143][proc_manager] bin/man recieved SIGKILL.
+[144][proc_manager] new process: bin/man
+[145][process] running bin/man
+[146][proc_manager] bin/man recieved SIGKILL.
+[147][proc_manager] new process: bin/man
+[148][process] running bin/man
+[149][proc_manager] bin/man recieved SIGKILL.
+[150][proc_manager] new process: bin/man
+[151][process] running bin/man
+[152][proc_manager] bin/man recieved SIGKILL.
+[153][proc_manager] new process: bin/man
+[154][process] running bin/man
+[155][proc_manager] bin/man recieved SIGKILL.
+[156][proc_manager] new process: bin/ls
+[157][process] running bin/ls
+[158][proc_manager] bin/ls recieved SIGKILL.
+[159][proc_manager] new process: bin/mount
+[160][process] running bin/mount
+[161][proc_manager] bin/mount recieved SIGKILL.
+[162][proc_manager] new process: bin/eject
+[163][process] running bin/eject
+[164][proc_manager] bin/eject recieved SIGKILL.
+[165][proc_manager] new process: bin/sleep
+[166][process] running bin/sleep
+[167][proc_manager] bin/sleep recieved SIGKILL.
+[0]debug: loaded
+[0]debug: loaded
+[0]debug: loaded
+[1]Cubix version 0.3.8 loading...
+[2][loadmodule] loading: acpi
+[3][loadmodule] loaded: acpi
+[4][loadmodule] loading: fs_mngr
+[5][loadfs] loading cfs
+[6][loadfs] loaded: cfs
+[7][loadmodule] loaded: fs_mngr
+[8][loadmodule] loading: proc
+[9][mfile] /proc/cpuinfo created
+[10][mfile] /proc/temperature created
+[11][mfile] /proc/partitions created
+[12][loadmodule] loaded: proc
+[13][loadmodule] loading: hash
+[14][hash] sha256: loaded
+[15][hash] sha256('hell') test = PASS
+[16][hash] md5: loaded
+[17][hash] md5('hell') test = PASS
+[18][loadmodule] loaded: hash
+[19][loadmodule] loading: devices
+[20][dmanager] loading _dev_random
+[21][dmanager] loaded _dev_random
+[22][dmanager] loading _dev_null
+[23][dmanager] loaded _dev_null
+[24][dmanager] loading _dev_zero
+[25][dmanager] loaded _dev_zero
+[26][dev] /dev/random created
+[27][dev] /dev/null created
+[28][dev] /dev/zero created
+[29][loadmodule] loaded: devices
+[30][loadmodule] loading: tty
+[31][tty] new tty: /dev/tty0
+[32][tty] new tty: /dev/tty1
+[33][tty] new tty: /dev/tty2
+[34][tty] new tty: /dev/tty3
+[35][tty] new tty: /dev/tty4
+[36][tty] new tty: /dev/tty5
+[37][tty] new tty: /dev/tty6
+[38][tty] new tty: /dev/tty7
+[39][tty] new tty: /dev/tty8
+[40][tty] new tty: /dev/tty9
+[41][tty] new tty: /dev/tty10
+[42][loadmodule] loaded: tty
+[43][loadmodule] loading: login
+[44][loadmodule] loaded: login
+[45][loadmodule] loading: pipe
+[46][loadmodule] loaded: pipe
+[47][proc_manager] new process: /sbin/init
+[48][process] running /sbin/init
+[49][proc_manager] new process: /sbin/login
+[50][process] running /sbin/login
+[51][login] UID = 1
+[52][proc_manager] new process: /bin/cshell
+[53][process] running /bin/cshell
+[54][proc_manager] new process: bin/cpkg
+[55][process] running bin/cpkg
+[56][proc_manager] bin/cpkg recieved SIGKILL.
+[57][proc_manager] new process: bin/ls
+[58][process] running bin/ls
+[59][proc_manager] bin/ls recieved SIGKILL.
+[60][proc_manager] new process: bin/read
+[61][process] running bin/read
+[62][proc_manager] bin/read recieved SIGKILL.
+[63][proc_handler] bin/read does not have a signal handler, ignoring it
+[0]debug: loaded
+[1]Cubix version 0.3.8 loading...
+[2][loadmodule] loading: acpi
+[3][loadmodule] loaded: acpi
+[4][loadmodule] loading: fs_mngr
+[5][loadfs] loading cfs
+[6][loadfs] loaded: cfs
+[7][loadmodule] loaded: fs_mngr
+[8][loadmodule] loading: proc
+[9][mfile] /proc/cpuinfo created
+[10][mfile] /proc/temperature created
+[11][mfile] /proc/partitions created
+[12][loadmodule] loaded: proc
+[13][loadmodule] loading: hash
+[14][hash] sha256: loaded
+[15][hash] sha256('hell') test = PASS
+[16][hash] md5: loaded
+[17][hash] md5('hell') test = PASS
+[18][loadmodule] loaded: hash
+[19][loadmodule] loading: devices
+[20][dmanager] loading _dev_random
+[21][dmanager] loaded _dev_random
+[22][dmanager] loading _dev_null
+[23][dmanager] loaded _dev_null
+[24][dmanager] loading _dev_zero
+[25][dmanager] loaded _dev_zero
+[26][dev] /dev/random created
+[27][dev] /dev/null created
+[28][dev] /dev/zero created
+[29][loadmodule] loaded: devices
+[30][loadmodule] loading: tty
+[31][tty] new tty: /dev/tty0
+[32][tty] new tty: /dev/tty1
+[33][tty] new tty: /dev/tty2
+[34][tty] new tty: /dev/tty3
+[35][tty] new tty: /dev/tty4
+[36][tty] new tty: /dev/tty5
+[37][tty] new tty: /dev/tty6
+[38][tty] new tty: /dev/tty7
+[39][tty] new tty: /dev/tty8
+[40][tty] new tty: /dev/tty9
+[41][tty] new tty: /dev/tty10
+[42][loadmodule] loaded: tty
+[43][loadmodule] loading: login
+[44][loadmodule] loaded: login
+[45][loadmodule] loading: pipe
+[46][loadmodule] loaded: pipe
+[47][proc_manager] new process: /sbin/init
+[48][process] running /sbin/init
+[49][proc_manager] new process: /sbin/login
+[50][process] running /sbin/login
+[51][login] UID = 1
+[52][proc_manager] new process: /bin/cshell
+[53][process] running /bin/cshell
+[54][proc_manager] new process: bin/rm
+[55][process] running bin/rm
+[56][proc_manager] bin/rm recieved SIGKILL.
+[57][proc_manager] new process: bin/rm
+[58][process] running bin/rm
+[59][proc_manager] bin/rm recieved SIGKILL.
+[60][proc_manager] new process: bin/ls
+[61][process] running bin/ls
+[62][proc_manager] bin/ls recieved SIGKILL.
+[63][proc_manager] new process: bin/ls
+[64][process] running bin/ls
+[65][proc_manager] bin/ls recieved SIGKILL.
+[66][proc_manager] new process: bin/time
+[67][process] running bin/time
+[68][proc_manager] bin/time recieved SIGKILL.
+[69][proc_manager] new process: bin/tty
+[70][process] running bin/tty
+[71][proc_manager] bin/tty recieved SIGKILL.
+[72][proc_manager] new process: bin/users
+[73][process] running bin/users
+[74][proc_manager] bin/users recieved SIGKILL.
+[75][proc_manager] new process: bin/whoami
+[76][process] running bin/whoami
+[77][proc_manager] bin/whoami recieved SIGKILL.
+[78][proc_manager] new process: bin/who
+[79][process] running bin/who
+[80][proc_manager] bin/who recieved SIGKILL.
+[81][proc_manager] new process: bin/yapi
+[82][process] running bin/yapi
+[83][proc_manager] bin/yapi recieved SIGKILL.
+[84]yapi: SIGKILL'd!
+[85][proc_manager] new process: bin/sudo
+[86][process] running bin/sudo
+[87][token] used token, now it has 2 uses
+[88][token] used token, now it has 1 uses
+[89][proc_manager] new process: bin/yapi
+[90][process] running bin/yapi
+[91][proc_manager] bin/yapi recieved SIGKILL.
+[92]yapi: SIGKILL'd!
+[93][proc_manager] bin/sudo recieved SIGKILL.
+[94]sudo: SIGKILL'd!
+[95][proc_manager] new process: bin/man
+[96][process] running bin/man
+[97][proc_manager] bin/man recieved SIGKILL.
+[98][proc_manager] new process: bin/sudo
+[99][process] running bin/sudo
+[100][token] used token, now it has 0 uses
+[101][proc_manager] new process: bin/yapi
+[102][process] running bin/yapi
+[103][proc_manager] bin/yapi recieved SIGKILL.
+[104]yapi: SIGKILL'd!
+[105][proc_manager] bin/sudo recieved SIGKILL.
+[106]sudo: SIGKILL'd!
+[107][proc_manager] new process: bin/sudo
+[108][process] running bin/sudo
+[109][login] UID = 1
+[110][token] used token, now it has 2 uses
+[111][proc_manager] new process: bin/yapi
+[112][process] running bin/yapi
+[113][proc_manager] bin/yapi recieved SIGKILL.
+[114]yapi: SIGKILL'd!
+[115][proc_manager] bin/sudo recieved SIGKILL.
+[116]sudo: SIGKILL'd!
+[117][proc_manager] new process: bin/sudo
+[118][process] running bin/sudo
+[119][token] used token, now it has 1 uses
+[120][proc_manager] new process: bin/yapi
+[121][process] running bin/yapi
+[122][proc_manager] bin/yapi recieved SIGKILL.
+[123]yapi: SIGKILL'd!
+[124][proc_manager] bin/sudo recieved SIGKILL.
+[125]sudo: SIGKILL'd!
+[126][proc_manager] new process: bin/sudo
+[127][process] running bin/sudo
+[128][token] used token, now it has 0 uses
+[129][proc_manager] new process: bin/yapi
+[130][process] running bin/yapi
+[131][proc_manager] bin/yapi recieved SIGKILL.
+[132]yapi: SIGKILL'd!
+[133][proc_manager] bin/sudo recieved SIGKILL.
+[134]sudo: SIGKILL'd!
+[135][proc_manager] new process: bin/sudo
+[136][process] running bin/sudo
+[137][login] UID = 1
+[138][token] used token, now it has 2 uses
+[139][proc_manager] new process: bin/yapi
+[140][process] running bin/yapi
+[141][proc_manager] bin/yapi recieved SIGKILL.
+[142]yapi: SIGKILL'd!
+[143][proc_manager] bin/sudo recieved SIGKILL.
+[144]sudo: SIGKILL'd!
+[145][proc_manager] new process: bin/sudo
+[146][process] running bin/sudo
+[147][token] used token, now it has 1 uses
+[148][token] used token, now it has 0 uses
+[149][proc_manager] new process: bin/yapi
+[150][process] running bin/yapi
+[151][proc_manager] bin/yapi recieved SIGKILL.
+[152]yapi: SIGKILL'd!
+[153][proc_manager] bin/sudo recieved SIGKILL.
+[154]sudo: SIGKILL'd!
+[155][proc_manager] new process: bin/sudo
+[156][process] running bin/sudo
+[157][login] UID = 1
+[158][token] used token, now it has 2 uses
+[159][proc_manager] new process: bin/yapi
+[160][process] running bin/yapi
+[161][proc_manager] bin/yapi recieved SIGKILL.
+[162]yapi: SIGKILL'd!
+[163][proc_manager] bin/sudo recieved SIGKILL.
+[164]sudo: SIGKILL'd!
+[165][proc_manager] new process: bin/sudo
+[166][process] running bin/sudo
+[167][token] used token, now it has 1 uses
+[168][token] used token, now it has 0 uses
+[169][proc_manager] new process: bin/yapi
+[170][process] running bin/yapi
+[171][proc_manager] bin/yapi recieved SIGKILL.
+[172]yapi: SIGKILL'd!
+[173][proc_manager] bin/sudo recieved SIGKILL.
+[174]sudo: SIGKILL'd!
+[175][proc_manager] new process: bin/ls
+[176][process] running bin/ls
+[177][proc_manager] bin/ls recieved SIGKILL.
+[178][proc_manager] new process: bin/ls
+[179][process] running bin/ls
+[180][proc_manager] bin/ls recieved SIGKILL.
+[181][proc_manager] new process: bin/ls
+[182][process] running bin/ls
+[183][proc_manager] bin/ls recieved SIGKILL.
+[184][proc_manager] new process: bin/rm
+[185][process] running bin/rm
+[186][proc_manager] bin/rm recieved SIGKILL.
+[187][proc_manager] new process: bin/ls
+[188][process] running bin/ls
+[189][proc_manager] bin/ls recieved SIGKILL.
+[190][proc_manager] new process: bin/rm
+[191][process] running bin/rm
+[192][proc_manager] bin/rm recieved SIGKILL.
+[193][proc_manager] new process: bin/ls
+[194][process] running bin/ls
+[195][proc_manager] bin/ls recieved SIGKILL.
+[196][proc_manager] new process: bin/ls
+[197][process] running bin/ls
+[198][proc_manager] bin/ls recieved SIGKILL.
+[199][proc_manager] new process: bin/sudo
+[200][process] running bin/sudo

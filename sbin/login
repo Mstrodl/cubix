@@ -12,7 +12,7 @@ end
 function main(args)
     local user = args[1]
     if user == nil then user = "^" end
-    local PC_LABEL = fs.open("/var/pcid", 'r').readAll()
+    local PC_LABEL = os.getComputerLabel()
     local try_user = ""
     local try_pwd = ""
 

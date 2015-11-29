@@ -1,8 +1,8 @@
 #!/usr/bin/env lua
 --/sbin/cubix_live_installer: starts a enviroment where the user can install cubix
 
-VERSION = "0.0.1"
-BUILD_DATE = "2015-11-16"
+VERSION = "0.0.2"
+BUILD_DATE = "2015-11-22"
 
 --[[
     The Cubix Live Installer has the basic utilities to install cubix
@@ -11,29 +11,8 @@ BUILD_DATE = "2015-11-16"
     CubixLI has everything in one script: a shell, a downloader to install cubix, setting label and so on
 ]]
 
---[[
-    How to install Cubix in CubixLI:
-        loadenv cubixli -- loads enviroment
-        deldisk -- deletes disk
-        yapstrap cubix -- downloads and installs cubix latest
-        setlabel <your label here> -- set label
-        unloadenv -- unload enviroment
-        reboot -- finally, reboot
-]]
-
-local function downloadFile( url, sFile )
-  local response = http.get( url )
-  if response then
-    local sResponse = response.readAll()
-    response.close()
-    
-    local handle = fs.open( root .. sFile, 'w' )
-    handle.write( sResponse )
-    handle.close()
-    return true
-  else
-    return false
-  end
+function do_halt()
+    while true do sleep(0) end
 end
 
 tail = function(t)
@@ -62,6 +41,13 @@ strsplit = function (inputstr, sep)
         i = i + 1
     end
     return t
+end
+
+viewtable = function (t)
+    print(t)
+    for k,v in pairs(t) do
+        print(k..","..tostring(v).." ("..type(v)..")")
+    end
 end
 
 function _prompt(message, yes, nope)
@@ -93,7 +79,7 @@ function normal(msg)
 end
 
 function load_env()
-    normal("[cubixli:loadscreen]")
+    normal("[cubixli:load_screen]")
     term.clear()
     term.setCursorPos(1,1)
     normal("[cubixli:load_disk]")
@@ -103,22 +89,75 @@ end
 local current_path = '/'
 local current_envir = ''
 
---deldisk binary
-function deldisk(args)
-    if current_envir ~= 'cubixli' then
-        ferror("deldisk: cubixli env not loaded")
-        return 1
-    end
-    if _prompt("Do you want to delete your disk?", "Y", "n") then
+local current_disks = {
+    hdd = {{"hdd1", "part", "/"}},
+    cubixli_ramdisk = {{"loop", "loopspecial", "./loop"}, {"emudev", "edevfs", "./dev"}}
+}
+
+local override = false
+
+function cubixli_delete_disk(args)
+    local disk = args[1]
+    if disk == 'hdd' or disk == 'hdd1' or disk == '/' then
+        normal("[cubixli:delete_disk] wiping hdd as \"normalfs\"")
         for k,v in pairs(fs.list('/'))do
             if v ~= 'rom' then
                 fs.delete(v)
             end
         end
-        print("deldisk: deleted all files in /")
+    elseif disk == 'cubixli_ramdisk' or disk == 'loop' or disk == 'emudev' then
+        if not override then
+            ferror("cubixli_delete_disk: sorry, you can't format "..disk)
+            return 1
+        else
+            ferror("SAY WHAT??")
+            ferror("[CRITICAL] cubixli cant do anything now(due to a monster or a wipeout on cubixli partitions, needs manual reboot now.)")
+            do_halt()
+        end
+    else
+        ferror("cubixli_delete_disk: pls say what disk")
+        return 1
+    end
+    return 0
+end
+
+_G['cubixli_delete_disk'] = cubixli_delete_disk
+
+function cubixli_call(func, args)
+    if current_envir ~= 'cubixli' then
+        ferror("cubixli_call: cubixli env not loaded")
+        return false
+    end
+    normal("[cubix:"..func.."]")
+    local result = _G['cubixli_'..func](args)
+    if result == 0 then return true end
+    return false
+end
+
+--deldisk binary
+function deldisk(args)
+    if #args == 0 then print("usage: deldisk <disk>") return 0 end
+    if _prompt("Do you want to delete your disk?", "Y", "n") then
+        if cubixli_call("delete_disk", args) then
+            print("deldisk: deleted all files in /")
+        else
+            ferror("deldisk: error calling delete_disk")
+        end
     else
         return 0
     end
+end
+
+--lsblk binary
+function lsblk()
+    for k,vl in pairs(current_disks) do
+        write(k..':\n')
+        for _, v in pairs(vl) do
+            write("  "..v[1].." type "..v[2].." mounted in "..v[3]..'\n')
+        end
+    end
+    write('\n')
+    return 0
 end
 
 --yapstrap binary
@@ -127,14 +166,14 @@ function yapstrap(args)
         ferror("yapstap: cubixli env not loaded")
         return 1
     end
-    if #args == 0 then print("usage: yapstrap <pkg>") end
+    if #args == 0 then print("usage: yapstrap <task>") return 0 end
     for k,v in pairs(args) do
         if v == 'cubix' then
-            normal("yapstrap: task assigned: cubix latest")
+            normal("yapstrap: task assigned: "..v)
             shell.run("pastebin run W5ZkVYSi lkmnds cubix")
-            normal("yapstrap: finishing \"cubix latest\" task")
+            normal("yapstrap: finishing "..v.." task")
             shell.run("FINISHINSTALL")
-            normal("yapstrap: finished")
+            normal("yapstrap: finished "..v.." task")
         end
     end
     return 0
@@ -238,20 +277,47 @@ function cd(args)
     current_path = npwd
 end
 
+--"cat"ing
+function cat(args)
+    if #args == 0 then print("usage: cat <absolute path>") return 0 end
+    local file = args[1]
+    if fs.exists(file) then
+        local f = fs.open(file, 'r')
+        local data = f.readAll()
+        f.close()
+        print(data)
+        return 0
+    else
+        ferror("cat: file not found")
+        return 1
+    end
+end
+
 --interface for rebooting
 function front_reboot(args)
     if current_envir == 'cubixli' then
-        ferror("front_reboot: cubixli loaded, please unload")
+        ferror("front_reboot: cannot reboot with cubixli enviroment loaded, please use unloadenv")
         return 1
     end
-    print("[cubixli] sending RBT")
+    print("[cubixli:front_reboot] sending RBT")
     os.sleep(1.5)
     os.reboot()
 end
 
+--interface for "shutdowning"
+function front_shutdown(args)
+    if current_envir == 'cubixli' then
+        ferror("front_shutdown: cannot reboot with cubixli enviroment loaded, please use unloadenv")
+        return 1
+    end
+    print("[cubixli:front_shutdown] sending HALT")
+    os.sleep(1.5)
+    os.shutdown()
+end
+
 --set label
 function setlabel(args)
-    if #args == 0 then print("usage: setlabel <newlabel>") end
+    if #args == 0 then print("usage: setlabel <newlabel>") return 0 end
     os.setComputerLabel(tostring(args[1]))
 end
 
@@ -263,13 +329,28 @@ end
 --load enviroment for cubix to start
 function loadenviroment(args)
     if #args == 0 then return 0 end
-    print("[cubixli:loadenviroment] loading "..tostring(args[1]))
+    normal("[cubixli:loadenviroment] loading "..tostring(args[1]))
     current_envir = tostring(args[1])
 end
 
 --unload enviroment
-function unloadenv(args)
+function unloadenv()
+    normal("[cubixli:unloadenv] unloading current enviroment ")
     current_envir = ''
+end
+
+--sethostname binary
+function sethostname(args)
+    if current_envir ~= 'cubixli' then
+        ferror("sethostname: cubxli enviroment not loaded")
+        return 1
+    end
+    local nhostname = tostring(args[1])
+    normal("[cubixli:sethostname] setting hostname to "..nhostname)
+    local hostname_handler = fs.open("/etc/hostname", 'w')
+    hostname_handler.write(nhostname)
+    hostname_handler.close()
+    return 0
 end
 
 --install help
@@ -277,9 +358,11 @@ function insthelp()
     print([[
 How to install Cubix in CubixLI:
     loadenv cubixli
-    deldisk
+    lsblk
+    deldisk hdd
     yapstrap cubix
     setlabel <your label here>
+    sethostname <your hostname here>
     unloadenv
     reboot
 ]])
@@ -289,6 +372,15 @@ end
 function runpath(args)
     --PLEASE DONT USE THIS
     os.run({}, args[1], unpack(tail(args)))
+end
+
+function override_shell()
+    write("command to run with override=true:")
+    local cmd = read()
+    override = true
+    shellcmd(cmd)
+    override = false
+    return 0
 end
 
 local SHELLCMD = {}
@@ -302,7 +394,22 @@ SHELLCMD['unloadenv'] = unloadenv
 SHELLCMD['version'] = version
 SHELLCMD['help'] = insthelp
 SHELLCMD['reboot'] = front_reboot
+SHELLCMD['shutdown'] = front_shutdown
 SHELLCMD['run'] = runpath
+SHELLCMD['lsblk'] = lsblk
+SHELLCMD['sethostname'] = sethostname
+SHELLCMD['cat'] = cat
+SHELLCMD['override'] = override_shell
+
+function list_cmds(args)
+    print("Available commands:")
+    for k,v in pairs(SHELLCMD) do 
+        write(k..' ')
+    end
+    write('\n')
+end
+
+SHELLCMD['cmds'] = list_cmds
 
 function shellcmd(cmd)
     local k = strsplit(cmd, ' ')
@@ -318,11 +425,10 @@ end
 function run_shell()
     --THIS IS NOT CSHELL!!!!11!!!ELEVEN!!
     local command = ""
-    local shell_char = ''
+    local shell_char = '# '
     local current_user = 'root'
     local HISTORY = {}
     while true do
-        shell_char = '# '
         write(current_user .. ':' .. current_path .. shell_char)
         command = read(nil, HISTORY)
         table.insert(HISTORY, command)
@@ -336,8 +442,8 @@ function run_shell()
 end
 
 function main()
-    if IS_CUBIX then
-        ferror("cubixli: CubixLI only works in CraftOS(security reasons)")
+    if _G["IS_CUBIX"] then
+        ferror("cubixli: in cubix, cubixli must run as root")
         return 0
     end
     load_env()

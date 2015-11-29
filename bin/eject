@@ -10,7 +10,7 @@ _handler.signal_handler = function(sig)
 end
 
 function main(args)
-    if #args == 0 then return 0 end
+    if #args == 0 then print("usage: eject <side> ") return 0 end
     local side = args[1]
     disk.eject(side)
 end
