@@ -2,7 +2,7 @@
 --/sbin/cubix_live_installer: starts a enviroment where the user can install cubix
 
 VERSION = "0.0.2"
-BUILD_DATE = "2015-11-22"
+BUILD_DATE = "2015-11-28"
 
 --[[
     The Cubix Live Installer has the basic utilities to install cubix

@@ -1,5 +1,12 @@
-0.3.7 - 0.4.0 (11-16-2015)
-  ![/bin/sleep /bin/read] bugs everything
+0.3.7 - 0.4.0 (11-28-2015)
+  +Finally, a stable version(still has its bugs but yeah)
+  ![/bin/sleep /bin/read] bugs everything, deleted for now
+  +cubixli has some workarounds to deldisk
+    this includes deleting the partitions cubixli created
+    (leading to a halt)
+  +cubixli: lsblk, cat, shutdown, sethostname
+  +cubixli: "override", when the override flag is activated, all the commands that are not allowed are done
+  +/sbin/init: runlevels 3 and 5 being made
 
 0.3.6 - 0.3.7 (11-16-2015)
   +Writing a Installer(cubix_live_installer or cubixli for short)
