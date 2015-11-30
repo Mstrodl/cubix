@@ -5,6 +5,9 @@ _handler = {}
 _handler.signal_handler = function (sig)
     if sig == 'kill' then
         os.ferror("init: recieved SIGKILL")
+        if permission.grantAccess(fs.perms.ROOT) then
+            os.shutdown()
+        end
     end
 end
 
@@ -64,13 +67,13 @@ function runlevel_5()
                                -> lxMouse
     
     
-    --base ("hardware access")
+    --base ("hardware access // pixels", "double buffering" are things that lx can do)
     loadmodule("lx", "/lib/luaX/lx.lua")
 
-    --LuaX Server (makes pixels)
+    --LuaX Server (makes squares)
     loadmodule("lxServer", "/lib/luaX/lxServer.lua")
 
-    --LuaX Client (makes squares)
+    --LuaX Client (manager)
     loadmodule("lxClient", "/lib/luaX/lxClient.lua")
 
     --Window library
@@ -100,6 +103,16 @@ function runlevel_5()
     $ lx load <path to program>
     
     ]]
+    os.internals.loadmodule("lx", "/lib/luaX/lx.lua")
+    --os.lib.lx.initialize()
+    os.internals.loadmodule("lxServer", "/lib/luaX/lxServer.lua")
+    os.internals.loadmodule("lxClient", "/lib/luaX/lxClient.lua")
+    os.internals.loadmodule("lxWindow", "/lib/luaX/lxWindow.lua")
+    os.lib.lx.blank()
+    local lxterm = os.lib.lxWindow.Window.new("/g/lxterm/lxterm.lxw")
+    os.lib.lxClient.loadWindow(lxterm)
+    --os.lib.lxClient.mainloop()
+    sleep(2)
 end
 
 function runlevel_6()

@@ -1,0 +1,70 @@
+--/bin/lx
+--manages luaX in userspace
+
+--# lx uid 1 perm all
+
+--$ lx start
+
+--[[
+uses of lx
+
+# lx uid 1 perm all
+# lx uid 1 perm normal
+# lx uid 1 perm load
+# lx uid 1 perm kill
+
+$ lx start
+$ lx load <lxw file>
+
+$ lx load /g/lxterm/lxterm.lxw
+
+]]
+
+_handler = {}
+_handler.signal_handler = function (sig)
+    if sig == 'kill' then
+        os.debug.debug_write("lx frontend: ded", false)
+        return 0
+    end
+end
+
+function set_permission(uid, perm)
+    if permission.grantAccess(fs.perms.SYS) then
+        print("o men")
+    else
+        os.ferror("set_permission: cannot set permissions without root")
+    end
+end
+
+function main(args)
+    if os.lib.lx then
+        print("lx ".._LUAX_VERSION)
+    else
+        print("lx frontend (backend not loaded)")
+    end
+    if args[1] == 'daemon' then
+        print("lx: starting as daemon")
+        os.viewLoadedMods()
+    elseif args[1] == 'uid' then
+        if args[3] == 'perm' then
+            set_permission(args[2], args[4])
+        end
+    elseif args[1] == 'start' then
+        if os.lib.lx then
+            if prompt("luaX backend already started, want to restart?", 'Y', 'n') then
+                print("restart")
+            end
+        else
+            os.internals.loadmodule("lx", "/lib/luaX/lx.lua")
+            os.internals.loadmodule("lxServer", "/lib/luaX/lxServer.lua")
+            os.internals.loadmodule("lxClient", "/lib/luaX/lxClient.lua")
+            os.internals.loadmodule("lxWindow", "/lib/luaX/lxWindow.lua")
+            local lxterm = os.lib.lxWindow.Window.new("/g/lxterm/lxterm.lxw")
+            os.lib.lx.blank()
+            os.viewTable(lxterm)
+            os.lib.lxClient.loadWindow(lxterm)
+            --os.lib.lxClient.mainloop()
+            sleep(2)
+        end
+    end
+end

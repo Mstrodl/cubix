@@ -2,7 +2,7 @@
 --/boot/cubix: well, cubix!
 
 AUTHOR = "Lukas Mendes"
-BUILD_DATE = "2015-11-28"
+BUILD_DATE = "2015-11-30"
 
 --  version format: major.revision.minor
 --      major: linear

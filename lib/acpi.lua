@@ -72,7 +72,7 @@ local function acpi_hibernate()
 end
 
 function acpi_hwake()
-    os.debug.debug_write("[WAKING FROM HIBERNATION]")
+    os.debug.debug_write("[acpi_hibernate] waking")
     fs.delete("/dev/ram")
     --local ramimg = fs.open("/dev/ram", 'r')
     --ramimg.close()

@@ -767,3 +767,113 @@
 [198][proc_manager] bin/ls recieved SIGKILL.
 [199][proc_manager] new process: bin/sudo
 [200][process] running bin/sudo
+[0]debug: loaded
+[1]Cubix version 0.4.0 loading...
+[2][loadmodule] loading: acpi
+[3][loadmodule] loaded: acpi
+[4][loadmodule] loading: fs_mngr
+[5][loadfs] loading cfs
+[6][loadfs] loaded: cfs
+[7][loadmodule] loaded: fs_mngr
+[8][loadmodule] loading: proc
+[9][mfile] /proc/cpuinfo created
+[10][mfile] /proc/temperature created
+[11][mfile] /proc/partitions created
+[12][loadmodule] loaded: proc
+[13][loadmodule] loading: hash
+[14][hash] sha256: loaded
+[15][hash] sha256('hell') test = PASS
+[16][hash] md5: loaded
+[17][hash] md5('hell') test = PASS
+[18][loadmodule] loaded: hash
+[19][loadmodule] loading: devices
+[20][dmanager] loading _dev_random
+[21][dmanager] loaded _dev_random
+[22][dmanager] loading _dev_null
+[23][dmanager] loaded _dev_null
+[24][dmanager] loading _dev_zero
+[25][dmanager] loaded _dev_zero
+[26][dev] /dev/random created
+[27][dev] /dev/null created
+[28][dev] /dev/zero created
+[29][loadmodule] loaded: devices
+[30][loadmodule] loading: tty
+[31][tty] new tty: /dev/tty0
+[32][tty] new tty: /dev/tty1
+[33][tty] new tty: /dev/tty2
+[34][tty] new tty: /dev/tty3
+[35][tty] new tty: /dev/tty4
+[36][tty] new tty: /dev/tty5
+[37][tty] new tty: /dev/tty6
+[38][tty] new tty: /dev/tty7
+[39][tty] new tty: /dev/tty8
+[40][tty] new tty: /dev/tty9
+[41][tty] new tty: /dev/tty10
+[42][loadmodule] loaded: tty
+[43][loadmodule] loading: login
+[44][loadmodule] loaded: login
+[45][loadmodule] loading: pipe
+[46][loadmodule] loaded: pipe
+[47][proc_manager] new process: /sbin/init
+[48][process] running /sbin/init
+[49][loadmodule] loading: lx
+[50][loadmodule] loaded: lx
+[51][loadmodule] loading: lxServer
+[52][loadmodule] loaded: lxServer
+[53][loadmodule] loading: lxClient
+[54][loadmodule] loaded: lxClient
+[55][loadmodule] loading: lxWindow
+[56][loadmodule] loaded: lxWindow
+[57][proc_manager] new process: /sbin/login
+[58][process] running /sbin/login
+[0]debug: loaded
+[1]Cubix version 0.5.0 loading...
+[2][loadmodule] loading: acpi
+[3][loadmodule] loaded: acpi
+[4][loadmodule] loading: fs_mngr
+[5][loadfs] loading cfs
+[6][loadfs] loaded: cfs
+[7][loadmodule] loaded: fs_mngr
+[8][loadmodule] loading: proc
+[9][mfile] /proc/cpuinfo created
+[10][mfile] /proc/temperature created
+[11][mfile] /proc/partitions created
+[12][loadmodule] loaded: proc
+[13][loadmodule] loading: hash
+[14][hash] sha256: loaded
+[15][hash] sha256('hell') test = PASS
+[16][hash] md5: loaded
+[17][hash] md5('hell') test = PASS
+[18][loadmodule] loaded: hash
+[19][loadmodule] loading: devices
+[20][dmanager] loading _dev_random
+[21][dmanager] loaded _dev_random
+[22][dmanager] loading _dev_null
+[23][dmanager] loaded _dev_null
+[24][dmanager] loading _dev_zero
+[25][dmanager] loaded _dev_zero
+[26][dev] /dev/random created
+[27][dev] /dev/null created
+[28][dev] /dev/zero created
+[29][loadmodule] loaded: devices
+[30][loadmodule] loading: tty
+[31][tty] new tty: /dev/tty0
+[32][tty] new tty: /dev/tty1
+[33][tty] new tty: /dev/tty2
+[34][tty] new tty: /dev/tty3
+[35][tty] new tty: /dev/tty4
+[36][tty] new tty: /dev/tty5
+[37][tty] new tty: /dev/tty6
+[38][tty] new tty: /dev/tty7
+[39][tty] new tty: /dev/tty8
+[40][tty] new tty: /dev/tty9
+[41][tty] new tty: /dev/tty10
+[42][loadmodule] loaded: tty
+[43][loadmodule] loading: login
+[44][loadmodule] loaded: login
+[45][loadmodule] loading: pipe
+[46][loadmodule] loaded: pipe
+[47][proc_manager] new process: /sbin/init
+[48][process] running /sbin/init
+[49][proc_manager] new process: /sbin/login
+[50][process] running /sbin/login

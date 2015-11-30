@@ -1,0 +1,5 @@
+set root=(hdd)
+load_video
+insmod kernel
+kernel /boot/cubix acpi runlevel=5
+boot
