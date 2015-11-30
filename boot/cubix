@@ -336,7 +336,11 @@ os.lib.tty.current_tty("/dev/tty0")
 
 --finally, run!
 os.__parent_init = os.new_process(kflag.init)
-os.run_process(os.__parent_init)
+if kflag.sRunlevel ~= nil then
+    os.run_process(os.__parent_init, {kflag.sRunlevel})
+else
+    os.run_process(os.__parent_init)
+end
 
 --if something goes wrong in kflag.init, just halt
 os.system_halt()
