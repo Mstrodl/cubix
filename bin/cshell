@@ -176,6 +176,12 @@ end
 
 function main(args)
     --TODO: -c
+    if fs.exists("/tmp/install_lock") then
+        term.set_term_color(colors.green)
+        print("Hey, it seems that you installed cubix recently, do you know you can create a new user using 'sudo adduser' in the shell, ok?(remember that the default password is 123)")
+        term.set_term_color(colors.white)
+        fs.delete("/tmp/install_lock")
+    end
     local command = ""
     local HISTORY = {}
     if #args > 0 then

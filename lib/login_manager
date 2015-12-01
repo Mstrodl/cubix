@@ -160,7 +160,7 @@ function add_new_user(u, p)
     local h = fs.open("/etc/shadow", 'a')
     h.write(user_string)
     h.close()
-    os.runfile("mkdir /home/"..u)
+    fs.makeDir("/home/"..u)
     return true
 end
 

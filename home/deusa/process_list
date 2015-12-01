@@ -1,5 +1,0 @@
-PID  PROCESS
-2  /sbin/init
-3  /sbin/init > /sbin/login
-4  /sbin/init > /bin/cshell
-11  /sbin/init > bin/ps

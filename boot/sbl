@@ -1,8 +1,5 @@
 #!/usr/bin/env lua
-
--- 200 up
--- 208 down
--- 28 enter
+--Simple Boot Loader
 
 term.clear()
 term.setCursorPos(1,1)
@@ -62,7 +59,7 @@ function CUI(m)
     while true do
         term.clear()
         term.setCursorPos(1,2)
-	    cprint("-- SBL (Simple BootLoader) --")
+	    cprint("-- SBL (Simple Boot Loader) --")
         cprint("\n")
         for i=1, l, 1 do
             if i==n then
@@ -115,7 +112,7 @@ availablemods['kernel'] = true
 
 local loadmods = {}
 
-function loadkernel(kfile, memory, vmode)
+function loadkernel(kfile, memory)
     --loads a .lua kernel file with its main function
     --TODO lineboot: parse commands, like set, to boot from hdd and from disk!
     --TODO lineboot: actually make SBL more GRUB-like
@@ -131,7 +128,6 @@ insmod kernel
         while true do
             write("SBL:> ")
             local k = strsplit(read(), ' ')
-            --os.viewTable(k)
             if k[1] == 'kernel' then
                 if loadmods['kernel'] then
                     lFile = table.concat(tail(k), ' ')
@@ -235,7 +231,7 @@ table.insert(oses[2], "lineboot")
 local user_selection = CUI(oses[1]) --only names
 selected_os = user_selection[1]
 
-loadkernel(oses[2][selected_os], 512, 'cc-basictext')
+loadkernel(oses[2][selected_os], 512)
 
 _halt()
 

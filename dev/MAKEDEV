@@ -24,7 +24,7 @@ function main(args)
     os.runfile("mkdir /etc/rc6.d")
     os.runfile("mkdir /etc/scripts")
     os.runfile("mkdir /home") --home folder
-    os.runfile("mkdir /home/deusa") --default user
+    os.runfile("mkdir /home/cubix") --default user
     os.runfile("mkdir /lib") --libraries
     os.runfile("mkdir /mnt") --mounting
     os.runfile("mkdir /root") --home for root

@@ -8,6 +8,7 @@ local _shutdown = os.shutdown
 local _reboot = os.reboot
 
 local __clear_temp = function()
+    os.debug.debug_write("[__clear_temp]")
     fs.delete("/tmp")
     fs.makeDir("/tmp")
 end
