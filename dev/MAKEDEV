@@ -1,5 +1,5 @@
 #!/usr/bin/env lua
---/dev/MAKEDEV: create the basics of unix folder structure in /
+--/dev/MAKEDEV: create unix folder structure in /
 
 _handler = {}
 _handler.signal_handler = function (sig)
@@ -35,8 +35,8 @@ function main(args)
     os.runfile("mkdir /usr/sbin")
     os.runfile("mkdir /var") --variables
     os.runfile("rm /tmp") --removing temporary because yes
-    os.runfile("mkdir /tmp") --temporary, deleted when shutdown
-    os.runfile("mkdir /media") --mounting (coming soon)
+    os.runfile("mkdir /tmp") --temporary, deleted when shutdown/reboot
+    os.runfile("mkdir /media") --mounting
     os.runfile("mkdir /usr/manuals") --manuals
     print("MAKEDEV: created folders")
 end

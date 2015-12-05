@@ -1,14 +1,15 @@
 #!/usr/bin/env lua
 --/sbin/cubix_live_installer: starts a enviroment where the user can install cubix
 
+AUTHOR = "Lukas Mendes"
 VERSION = "0.0.2"
-BUILD_DATE = "2015-12-01"
+BUILD_DATE = "2015-12-05"
 
 --[[
     The Cubix Live Installer has the basic utilities to install cubix
     It has these Arch Linux vibe going on so, yeah
 
-    CubixLI has everything in one script: a shell, a downloader to install cubix, setting label and so on
+    CubixLI has everything in one script: a shell, a downloader to install cubix, setting label, hostname and so on
 ]]
 
 --[[
@@ -104,7 +105,7 @@ local override = false
 function cubixli_delete_disk(args)
     local disk = args[1]
     if disk == 'hdd' or disk == 'hdd1' or disk == '/' then
-        normal("[cubixli:delete_disk] wiping hdd as \"normalfs\"")
+        normal("[cubixli:delete_disk] wiping hdd")
         for k,v in pairs(fs.list('/'))do
             if v ~= 'rom' then
                 fs.delete(v)
@@ -116,7 +117,7 @@ function cubixli_delete_disk(args)
             return 1
         else
             ferror("SAY WHAT??")
-            ferror("[CRITICAL] cubixli cant do anything now(due to a monster or a wipeout on cubixli partitions, needs manual reboot now.)")
+            ferror("[CRITICAL] cubixli can't do anything now(due to a monster or a wipeout on cubixli partitions, needs manual reboot now.)")
             do_halt()
         end
     else
