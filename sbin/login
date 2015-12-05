@@ -28,8 +28,12 @@ function main(args)
     end
 
     if os.lib.login.login(try_user, try_pwd) then
-        local k = fs.open("/tmp/current_user", 'w') k.write(try_user) k.close()
+        local k = fs.open("/tmp/current_user", 'w')
+        if not k then os.debug.kpanic("cannot open /tmp/current_user") end
+        k.write(try_user)
+        k.close()
         local k2 = fs.open("/tmp/current_path", 'w')
+        if not k2 then os.debug.kpanic("cannot open /tmp/current_path") end
         if try_user ~= 'root' then
             k2.write("/home/"..try_user)
         else

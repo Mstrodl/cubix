@@ -68,10 +68,14 @@ os.terminate = function (p)
     --os.sleep(1)
 end
 
+os.getrunning = function()
+    return running
+end
+
 os.run_process = function(p, args, pipe)
     if args == nil then args = {} end
     --if pipe == nil then pipe = {} end
-    os.debug.debug_write("[process] running "..p.file, false)
+    os.debug.debug_write("[process] running "..p.file.." pid="..tostring(p.pid), false)
     permission.default()
     os.processes[p.pid] = p
     running = p.pid

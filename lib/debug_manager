@@ -7,7 +7,7 @@ __debug_counter = 0
 
 function debug_write_tobuffer(dmessage)
     __debug_buffer = __debug_buffer .. '[' .. __debug_counter ..']' .. dmessage
-    local dfile = fs.open("/tmp/debug_info", 'a')
+    local dfile = fs.open("/tmp/syslog", 'a')
     dfile.write('[' .. __debug_counter ..']' .. dmessage)
     dfile.close()
     __debug_counter = __debug_counter + 1
@@ -46,15 +46,51 @@ function dmesg()
 end
 
 function kpanic(message)
-    term.set_term_color(colors.yellow)
-    debug_write("[cubix] Kernel Panic!")
-    if not os.lib.proc then --early kernel
-        debug_write("Proc: /boot/cubix")
-	else
-        debug_write("Proc: "..tostring(os.lib.proc.running))
-	end
-    term.set_term_color(colors.red)
-    debug_write(message)
-    term.set_term_color(colors.white)
-    os.system_halt()
+    if _G['LX_SERVER_LOADED'] == nil or _G['LX_SERVER_LOADED'] == false then
+        term.set_term_color(colors.yellow)
+        debug_write("[cubix] Kernel Panic!")
+        if not os.lib.proc then --early kernel
+            debug_write("Proc: /boot/cubix")
+        else
+            debug_write("Proc: "..tostring(os.getrunning()))
+        end
+        term.set_term_color(colors.red)
+        debug_write(message)
+        term.set_term_color(colors.white)
+        os.system_halt()
+    else
+        os.lib.lxServer.write_solidRect(3,3,25,7,colors.red)
+        os.lib.lxServer.write_rectangle(3,3,25,7,colors.black)
+        local kpanic_title = 'Kernel Panic!'
+        for i=1, #kpanic_title do
+            os.lib.lx.write_letter(string.sub(kpanic_title,i,i), 9+i, 3, colors.red, colors.white)
+        end
+
+        local process_line = ''
+        if not os.lib.proc then --how are you in early boot?
+            process_line = "proc: /boot/cubix"
+        else
+            process_line = "pid: "..tostring(os.getrunning())
+        end
+
+        for i=1, #process_line do
+            os.lib.lx.write_letter(string.sub(process_line,i,i), 4+i, 5, colors.red, colors.white)
+        end
+
+        local procname = ''
+        if not os.lib.proc then --how are you in early boot(seriously, how)?
+            process_line = "name: /boot/cubix"
+        else
+            process_line = "pname: "..tostring(os.processes[os.getrunning()].file)
+        end
+
+        for i=1, #process_line do
+            os.lib.lx.write_letter(string.sub(process_line,i,i), 4+i, 6, colors.red, colors.white)
+        end
+
+        for i=1, #message do
+            os.lib.lx.write_letter(string.sub(message,i,i), 4+i, 7, colors.red, colors.white)
+        end
+        os.system_halt()
+    end
 end

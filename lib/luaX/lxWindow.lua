@@ -61,7 +61,9 @@ function main_run(file, window)
 end
 
 function Window:load_itself()
+    os.debug.debug_write("[lxWindow] load lxw: "..self.lxwFile, false)
     local lxwdata = parse_lxw(self.lxwFile)
+    os.debug.debug_write("[lxWindow] load window: "..lxwdata['name'], false)
     --os.viewTable(lxwdata)
     main_run(lxwdata['mainfile'], self)
 end

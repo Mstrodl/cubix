@@ -10,6 +10,7 @@ local windows = {}
 local focused = nil
 
 function loadWindow(window)
+    windows[window.lxwFile] = window
     window:load_itself()
 end
 

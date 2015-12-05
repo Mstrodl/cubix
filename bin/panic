@@ -1,0 +1,15 @@
+#!/usr/bin/env lua
+--/bin/panic: panics the kernel
+
+_handler = {}
+_handler.signal_handler = function (sig)
+    if sig == 'kill' then
+        --print("panic: recieved SIGKILL(?????)")
+        return 0
+    end
+end
+
+function main()
+    os.debug.kpanic('panic')
+end
+

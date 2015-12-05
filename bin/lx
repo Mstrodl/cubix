@@ -1,5 +1,5 @@
---/bin/lx
---manages luaX in userspace
+#!/usr/bin/env lua
+--/bin/lx: manages luaX in userspace
 
 --# lx uid 1 perm all
 
@@ -28,12 +28,16 @@ _handler.signal_handler = function (sig)
     end
 end
 
-function set_permission(uid, perm)
-    if permission.grantAccess(fs.perms.SYS) then
-        print("o men")
-    else
-        os.ferror("set_permission: cannot set permissions without root")
-    end
+function lx_start_default()
+    os.debug.debug_write("[lx] starting")
+    os.internals.loadmodule("lx", "/lib/luaX/lx.lua")
+    os.internals.loadmodule("lxServer", "/lib/luaX/lxServer.lua")
+    os.internals.loadmodule("lxClient", "/lib/luaX/lxClient.lua")
+    os.internals.loadmodule("lxWindow", "/lib/luaX/lxWindow.lua")
+    local lxterm = os.lib.lxWindow.Window.new("/g/lxterm/lxterm.lxw")
+    os.lib.lx.blank()
+    os.lib.lxClient.loadWindow(lxterm)
+    sleep(2)
 end
 
 function main(args)
@@ -45,26 +49,36 @@ function main(args)
     if args[1] == 'daemon' then
         print("lx: starting as daemon")
         os.viewLoadedMods()
-    elseif args[1] == 'uid' then
-        if args[3] == 'perm' then
-            set_permission(args[2], args[4])
+    elseif args[1] == 'load' then
+        --load windows here
+        if os.lib.lxServer and os.lib.lxClient and os.lib.lxWindow then
+            local lwindow = os.lib.lxWindow.Window.new(args[2])
+            os.lib.lxClient.loadWindow(lwindow)
+        else
+            os.ferror("lx: cannot load windows without lxServer, lxClient and lxWindow loaded")
+            return 1
         end
     elseif args[1] == 'start' then
+        if os.lib.login.currentUser().uid == 0 then
+            os.ferror("lx: cannot start luaX while root")
+            return 0
+        end
         if os.lib.lx then
-            if prompt("luaX backend already started, want to restart?", 'Y', 'n') then
-                print("restart")
+            if prompt("luaX backend already started, want to restart?\n", 'Y', 'n') then
+                os.debug.debug_write("[lx] restarting")
+                lx_start_default()
             end
         else
-            os.internals.loadmodule("lx", "/lib/luaX/lx.lua")
-            os.internals.loadmodule("lxServer", "/lib/luaX/lxServer.lua")
-            os.internals.loadmodule("lxClient", "/lib/luaX/lxClient.lua")
-            os.internals.loadmodule("lxWindow", "/lib/luaX/lxWindow.lua")
-            local lxterm = os.lib.lxWindow.Window.new("/g/lxterm/lxterm.lxw")
-            os.lib.lx.blank()
-            os.viewTable(lxterm)
-            os.lib.lxClient.loadWindow(lxterm)
-            --os.lib.lxClient.mainloop()
-            sleep(2)
+            lx_start_default()
         end
+    elseif args[1] == 'status' or args[1] == nil then
+        if os.lib.lx then
+            write("lx status: "..(os.lib.lx.get_status())..'\n')
+        else
+            write("lx backend not running\n")
+        end
+    elseif args[1] == 'stop' then
+        os.debug.debug_write("[lx] stopping")
+        --os.lib.lx.stop_all()
     end
 end

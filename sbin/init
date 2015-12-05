@@ -90,29 +90,18 @@ function runlevel_5()
     os.lib.lxClient.mainloop()
 
     ]]
-    --[[
-
-    loading lxterm by cshell
-    
-    # lx uid 1 perm all
-    $ lx start
-
-    lxterm loading another program by using "lx"
-    
-    # lx uid 1 perm all
-    $ lx load <path to program>
-    
-    ]]
     os.internals.loadmodule("lx", "/lib/luaX/lx.lua")
     --os.lib.lx.initialize()
     os.internals.loadmodule("lxServer", "/lib/luaX/lxServer.lua")
     os.internals.loadmodule("lxClient", "/lib/luaX/lxClient.lua")
     os.internals.loadmodule("lxWindow", "/lib/luaX/lxWindow.lua")
     os.lib.lx.blank()
+    --os.lib.lx.demo()
+    --os.lib.lxServer.sv_demo()
     local lxterm = os.lib.lxWindow.Window.new("/g/lxterm/lxterm.lxw")
     os.lib.lxClient.loadWindow(lxterm)
     --os.lib.lxClient.mainloop()
-    sleep(2)
+    os.system_halt()
 end
 
 function runlevel_6()
