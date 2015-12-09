@@ -38,7 +38,7 @@ function parse_lxw(path)
     local lxwdata = {}
     local data = os.strsplit(_data, '\n')
     for k,v in pairs(data) do
-        if string.sub(v, 1, 1) ~= '#' then
+        if string.sub(v, 1, 1) ~= '#' then --comments
             --comparisons here
             local splitted_line = os.strsplit(v, ':')
             if splitted_line[1] == 'name' then
@@ -57,6 +57,7 @@ end
 
 function main_run(file, window)
     --run a file with determined _ENV
+    --it seems that i can not do this so i've put the window object into args
     os.run({}, file, {window})
 end
 
@@ -64,7 +65,6 @@ function Window:load_itself()
     os.debug.debug_write("[lxWindow] load lxw: "..self.lxwFile, false)
     local lxwdata = parse_lxw(self.lxwFile)
     os.debug.debug_write("[lxWindow] load window: "..lxwdata['name'], false)
-    --os.viewTable(lxwdata)
     main_run(lxwdata['mainfile'], self)
 end
 

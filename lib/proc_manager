@@ -24,6 +24,23 @@ running = 0
 
 os.signals = {}
 os.signals.SIGKILL = 0
+os.signals.SIGINT = 2
+os.signals.SIGQUIT = 3
+os.signals.SIGILL = 4 --illegal instruction
+os.signals.SIGFPE = 8
+os.signals.SIGTERM = 15 --termination
+
+os.sys_signal = function (signal)
+    --this just translates the recieved signal to a printable string
+    local signal_str = ''
+    if signal == os.signals.SIGILL then
+        signal_str = 'Illegal instruction'
+    elseif signal == os.signals.SIGFPE then
+        signal_str = 'Floating Point Exception'
+    end
+    ferror(signal_str)
+    return 0
+end
 
 os.call_handle = function(process, handler)
     if process.rfile ~= nil then
@@ -224,5 +241,3 @@ function libroutine()
     os.internals._kernel.register_mfile(temperature_file)
     os.internals._kernel.register_mfile(partitions_file)
 end
-
-

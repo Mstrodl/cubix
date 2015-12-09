@@ -14,7 +14,12 @@ function loadWindow(window)
     window:load_itself()
 end
 
+function unloadWindow(window)
+    windows[window.lxwFile] = nil
+    window = nil
+    --???
+end
+
 function libroutine()
     _G['LX_CLIENT_LOADED'] = true
 end
-

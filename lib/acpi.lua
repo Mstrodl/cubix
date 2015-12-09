@@ -8,7 +8,7 @@ local _shutdown = os.shutdown
 local _reboot = os.reboot
 
 local __clear_temp = function()
-    os.debug.debug_write("[__clear_temp]")
+    os.debug.debug_write("[acpi] cleaning temporary")
     fs.delete("/tmp")
     fs.makeDir("/tmp")
 end
@@ -65,6 +65,7 @@ local function acpi_hibernate()
         So, to hibernate we need to write the RAM into a file, and then
         in boot, read that file...
     ]]
+    --after that, black magic happens (again)
     os.debug.debug_write("[acpi_hibernate] starting hibernation")
     local ramimg = fs.open("/dev/ram", 'w')
     ramimg.close()
@@ -86,4 +87,3 @@ function libroutine()
     os.suspend = acpi_suspend
     os.hibernate = acpi_hibernate
 end
-

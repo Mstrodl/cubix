@@ -1,9 +1,9 @@
 #!/usr/bin/env lua
---/sbin/cubix_live_installer: starts a enviroment where the user can install cubix
+--cubix_live_installer(cubixli): starts a enviroment where the user can install cubix
 
 AUTHOR = "Lukas Mendes"
 VERSION = "0.0.2"
-BUILD_DATE = "2015-12-05"
+BUILD_DATE = "2015-12-08"
 
 --[[
     The Cubix Live Installer has the basic utilities to install cubix
@@ -383,7 +383,7 @@ function runpath(args)
 end
 
 function override_shell()
-    write("command to run with override=true:")
+    write("command to run with override=true: ")
     local cmd = read()
     override = true
     shellcmd(cmd)
@@ -411,7 +411,7 @@ SHELLCMD['override'] = override_shell
 
 function list_cmds(args)
     print("Available commands:")
-    for k,v in pairs(SHELLCMD) do 
+    for k,v in pairs(SHELLCMD) do
         write(k..' ')
     end
     write('\n')
@@ -459,4 +459,3 @@ function main()
 end
 
 main()
-

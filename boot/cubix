@@ -2,7 +2,7 @@
 --/boot/cubix: well, cubix!
 
 AUTHOR = "Lukas Mendes"
-BUILD_DATE = "2015-12-05"
+BUILD_DATE = "2015-12-08"
 
 --  version format: major.revision.minor
 --      major: linear
@@ -146,6 +146,8 @@ os.ferror = function(message)
     term.set_term_color(colors.white)
 end
 
+_G['ferror'] = os.ferror
+
 os.safestr = function (s)
     if string.byte(s) > 191 then
         return '@'..string.byte(s)
@@ -185,7 +187,9 @@ if os.loadAPI("/lib/debug_manager") then
     debug.debug_write("debug: loaded")
 else
     debug.debug_write = print
+    term.set_term_color(colors.red)
     debug.debug_write("debug: not loaded")
+    term.set_term_color(colors.white)
 end
 
 if kflag.quiet then
@@ -216,7 +220,7 @@ function loadmodule(nmodule, path)
             _G[nmodule].libroutine()
         else
             os.debug.debug_write("[loadmodule] libroutine() not found", nil, true)
-            sleep(1)
+            sleep(.3)
         end
         os.lib[nmodule] = _G[fs.getName(path)]
         isReloadable[nmodule] = os.lib[nmodule].RELOADABLE
@@ -298,7 +302,33 @@ end
 
 --device manager
 loadmodule("devices", "/lib/device_manager")
+
+--external devices
+function from_extdev(name_dev, path_dev, type_dev)
+    --path_dev -> /dev/
+    --name -> only a id
+    --type_dev -> device drivers(something.lua)
+end
+
+EXTDEVICES = {}
+function os.internals._kernel.new_device(typedev, name, pth)
+    os.debug.debug_write("[extdev] "..name.." ("..typedev..") -> "..pth.." detected")
+    EXTDEVICES[name] = {devtype=typedev, path=pth}
+    os.internals._kernel.register_device({name=pth, device=from_extdev(name,pth,typedev)})
+end
+
+--default devices
+os.internals._kernel.new_device("kbd", "cckbd", "/dev/stdin")
+os.internals._kernel.new_device("term", "ccterm", "/dev/stdout")
+os.internals._kernel.new_device("err", "ccterm-err", "/dev/stderr")
+
 os.list_devices = fs_mngr.deepcopy(DEVICES)
+
+local perilist = peripheral.getNames()
+os.debug.debug_write("[peripheral] begin detection")
+for i = 1, #perilist do
+    os.internals._kernel.new_device("peripheral", tostring(peripheral.getType(perilist[i])))
+end
 
 --tty, login and pipe managers
 function os.internals._kernel.register_tty(path, tty)

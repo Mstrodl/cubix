@@ -10,26 +10,23 @@
 devices = {}
 
 function loadDevice(name, path)
-    os.debug.debug_write("[dmanager] loading "..name)
+    os.debug.debug_write("[devman] loading "..name)
     if os.loadAPI(path) then
         _G[name] = _G[fs.getName(path)]
-        os.debug.debug_write("[dmanager] loaded "..name)
+        os.debug.debug_write("[devman] loaded "..name)
     else
-        os.debug.kpanic("[dmanager] not loaded "..name)
+        os.debug.kpanic("[devman] not loaded "..name)
     end
 end
 
 loadDevice("_dev_random", "/lib/devices/random_device.lua")
 loadDevice("_dev_null", "/lib/devices/null_device.lua")
 loadDevice("_dev_zero", "/lib/devices/zero_device.lua")
-
-fs.mount = function()
-    --TODO: this
-end
+loadDevice("_dev_full", "/lib/devices/full_device.lua")
 
 function libroutine()
     os.internals._kernel.register_device(_dev_random.dev_random)
     os.internals._kernel.register_device(_dev_null.dev_null)
     os.internals._kernel.register_device(_dev_zero.dev_zero)
+    os.internals._kernel.register_device(_dev_full.dev_full)
 end
-
