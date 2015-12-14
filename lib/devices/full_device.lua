@@ -4,7 +4,7 @@
 dev_full = {}
 dev_full.name = '/dev/full'
 dev_full.device = {}
-dev_full.device.read = function (bytes)
+dev_full.device.device_read = function (bytes)
     if bytes == nil then
         return 0
     else
@@ -17,7 +17,7 @@ dev_full.device.read = function (bytes)
     return 0
 end
 
-dev_full.device.devwrite = function(s)
+dev_full.device.device_write = function(s)
     ferror("devwrite: disk full")
     os.sys_signal(os.signals.SIGILL)
     return 1

@@ -6,7 +6,11 @@ _handler.signal_handler = function (sig)
     if sig == 'kill' then
         os.ferror("init: recieved SIGKILL")
         if permission.grantAccess(fs.perms.ROOT) then
-            os.shutdown()
+            if CUBIX_SHUTDOWNING or CUBIX_REBOOTING then
+                return 0
+            else
+                os.shutdown()
+            end
         end
     end
 end
@@ -33,9 +37,9 @@ end
 function runlevel_2()
     --multiuser(all ttys running login) withtout network service
     --[[
-    
+
     loadmodule("multiuser", "/lib/multiuser/multiuser.lua")
-    
+
     ]]
     --os.runfile_proc("/sbin/login")
 end
@@ -45,14 +49,14 @@ function runlevel_3()
     --[[
 
     loadmodule("multiuser", "/lib/multiuser/multiuser.lua")
-    
+
     loadmodule("network", "/lib/net/network.lua")
     os.lib.network.new_interface("loop", "loop")
     os.lib.network.new_interface("eth0", "cable")
     os.lib.network.new_interface("wlan0", "wireless")
     os.lib.network.set_loop("127.0.0.1")
     os.lib.network.register_entry("localhost", "127.0.0.1")
-    
+
     ]]
     --os.runfile_proc("/sbin/login")
 end
@@ -60,34 +64,11 @@ end
 function runlevel_5()
     --start LuaX
     --[[
-    
+
     LuaX Structure:
 
     lx -> lxServer -> lxClient -> lxWindow
                                -> lxMouse
-    
-    
-    --base ("hardware access // pixels", "double buffering" are things that lx can do)
-    loadmodule("lx", "/lib/luaX/lx.lua")
-
-    --LuaX Server (makes squares)
-    loadmodule("lxServer", "/lib/luaX/lxServer.lua")
-
-    --LuaX Client (manager)
-    loadmodule("lxClient", "/lib/luaX/lxClient.lua")
-
-    --Window library
-    loadmodule("lxWindow", "/lib/luaX/lxWindow.lua")
-
-    --Mouse library
-    loadmodule("lxMouse", "/lib/luaX/lxMouse.lua")
-    
-    --loading Lua X Terminal(lxterm)
-    os.lib.lxServer.blank()
-    local lxterm_window = os.lib.lxWindow.Window("/g/lxterm")
-    os.lib.lxClient.activate_mouse()
-    os.lib.lxClient.loadWindow(lxterm_window)
-    os.lib.lxClient.mainloop()
 
     ]]
     os.internals.loadmodule("lx", "/lib/luaX/lx.lua")
@@ -96,11 +77,12 @@ function runlevel_5()
     os.internals.loadmodule("lxClient", "/lib/luaX/lxClient.lua")
     os.internals.loadmodule("lxWindow", "/lib/luaX/lxWindow.lua")
     os.lib.lx.blank()
+
     --os.lib.lx.demo()
     --os.lib.lxServer.sv_demo()
+
     local lxterm = os.lib.lxWindow.Window.new("/g/lxterm/lxterm.lxw")
     os.lib.lxClient.loadWindow(lxterm)
-    --os.lib.lxClient.mainloop()
     os.system_halt()
 end
 
@@ -142,4 +124,3 @@ function main(args)
     RUNLEVELFUNC[runlevel]()
     return 0
 end
-

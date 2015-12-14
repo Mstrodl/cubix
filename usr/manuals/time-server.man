@@ -1,0 +1,7 @@
+On the subject of Time Servers
+
+Time servers in cubix have to follow a simple syntax, when made a GET request to them, without any arguments, they need to return this:
+{day,month,year,hours,minutes,seconds,}
+
+getTime_fmt unserialises the data and it will get the current time, applying timezone calculations as it does so.
+strtime(timezone1, timezone2) is the default method to get hours, minutes and seconds, all in a string

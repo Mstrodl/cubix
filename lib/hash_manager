@@ -11,9 +11,9 @@ function libroutine()
         hash.sha256 = sha256.hash_sha256
         local H = hash.sha256("hell")
         if H == "0ebdc3317b75839f643387d783535adc360ca01f33c75f7c1e7373adcd675c0b" then
-            os.debug.testcase("[hash] sha256('hell') test = PASS")
+            os.debug.testcase("[hash] sha256('michigan') test = PASS")
         else
-            os.debug.kpanic("[hash] sha256('hell') test = NOT PASS")
+            os.debug.kpanic("[hash] sha256('michigan') test = NOT PASS")
         end
     else
         os.debug.kpanic("[hash] sha256: not loaded")
@@ -25,9 +25,9 @@ function libroutine()
         hash.md5 = md5.md5_sumhexa
         local H = hash.md5("hell")
         if H == "4229d691b07b13341da53f17ab9f2416" then
-            os.debug.testcase("[hash] md5('hell') test = PASS")
+            os.debug.testcase("[hash] md5('michigan') test = PASS")
         else
-            os.debug.kpanic("[hash] md5('hell') test = NOT PASS")
+            os.debug.kpanic("[hash] md5('michigan') test = NOT PASS")
         end
     else
         os.debug.kpanic("[hash] md5: not loaded")

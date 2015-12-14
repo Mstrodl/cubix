@@ -1,17 +1,8 @@
 #!/usr/bin/env lua
 --/bin/lx: manages luaX in userspace
 
---# lx uid 1 perm all
-
---$ lx start
-
 --[[
 uses of lx
-
-# lx uid 1 perm all
-# lx uid 1 perm normal
-# lx uid 1 perm load
-# lx uid 1 perm kill
 
 $ lx start
 $ lx load <lxw file>
@@ -40,6 +31,15 @@ function lx_start_default()
     sleep(2)
 end
 
+function lx_stop_default()
+    return 0
+end
+
+function usage()
+    print("lx <argument> <...>")
+    print("available arguments: load start status stop")
+end
+
 function main(args)
     if os.lib.lx then
         print("lx ".._LUAX_VERSION)
@@ -49,6 +49,8 @@ function main(args)
     if args[1] == 'daemon' then
         print("lx: starting as daemon")
         os.viewLoadedMods()
+    elseif args[1] == 'help' then
+        usage()
     elseif args[1] == 'load' then
         --load windows here
         if os.lib.lxServer and os.lib.lxClient and os.lib.lxWindow then
@@ -66,6 +68,7 @@ function main(args)
         if os.lib.lx then
             if prompt("luaX backend already started, want to restart?\n", 'Y', 'n') then
                 os.debug.debug_write("[lx] restarting")
+                lx_stop_default()
                 lx_start_default()
             end
         else
@@ -79,6 +82,6 @@ function main(args)
         end
     elseif args[1] == 'stop' then
         os.debug.debug_write("[lx] stopping")
-        --os.lib.lx.stop_all()
+        lx_stop_default()
     end
 end

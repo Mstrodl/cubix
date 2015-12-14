@@ -2,7 +2,7 @@
 --/boot/cubix: well, cubix!
 
 AUTHOR = "Lukas Mendes"
-BUILD_DATE = "2015-12-08"
+BUILD_DATE = "2015-12-13"
 
 --  version format: major.revision.minor
 --      major: linear
@@ -42,17 +42,17 @@ os.viewTable = function (t)
 end
 
 os.tail = function(t)
-       if # t <= 1 then
-          return nil
-       end
-       local newtable = {}
-       for i, v in ipairs(t) do
-          if i > 1 then
-              table.insert(newtable, v)
-          end
-       end
-       return newtable
+    if # t <= 1 then
+        return nil
     end
+    local newtable = {}
+    for i, v in ipairs(t) do
+        if i > 1 then
+            table.insert(newtable, v)
+        end
+    end
+    return newtable
+end
 
 local Args = {...} --arguments to cubix
 
@@ -105,7 +105,7 @@ os.__kflag = kflag
 
 local pcid = fs.open("/var/pcid", 'w')
 local _label = os.getComputerLabel()
-if _label == nil then _label = 'cubix-pc' end
+if _label == nil then _label = 'generic' end
 pcid.write(_label)
 pcid.close()
 
@@ -141,6 +141,9 @@ end
 
 os.ferror = function(message)
     --TODO: stdin, stdout and stderr
+    --[[
+    device_write("/dev/stderr", message)
+    ]]
     term.set_term_color(colors.red)
     print(message)
     term.set_term_color(colors.white)
@@ -230,6 +233,24 @@ function loadmodule(nmodule, path)
     end
 end
 
+function loadmodule_ret(path)
+    os.debug.debug_write('[loadmodule:ret] loading: '..path)
+    local ret = {}
+    if os.loadAPI(path) then
+        ret = _G[fs.getName(path)]
+        if ret.libroutine ~= nil then
+            ret.libroutine()
+        else
+            os.debug.debug_write("[loadmodule:ret] libroutine() not found", nil, true)
+            sleep(.3)
+        end
+        os.debug.debug_write('[loadmodule:ret] loaded: '..path)
+        return ret
+    else
+        ferror("[loadmodule:ret] not loaded: "..path)
+    end
+end
+
 os.internals.loadmodule = loadmodule
 
 --hack
@@ -278,7 +299,7 @@ loadmodule("fs_mngr", "/lib/fs_manager")
 
 permission.initKernelPerm()
 
-if fs.exists("/dev/ram") and kflag.acpi then
+if fs.exists("/dev/ram") and os.lib.acpi then
     os.lib.acpi.acpi_hwake()
 else
 
@@ -308,6 +329,10 @@ function from_extdev(name_dev, path_dev, type_dev)
     --path_dev -> /dev/
     --name -> only a id
     --type_dev -> device drivers(something.lua)
+    --returns a table with the device methods(read, devwrite)
+    local devmod = loadmodule_ret("/lib/devices/"..type_dev..".lua")
+    devmod.setup(name_dev, path_dev)
+    return devmod
 end
 
 EXTDEVICES = {}
@@ -323,6 +348,24 @@ os.internals._kernel.new_device("term", "ccterm", "/dev/stdout")
 os.internals._kernel.new_device("err", "ccterm-err", "/dev/stderr")
 
 os.list_devices = fs_mngr.deepcopy(DEVICES)
+function dev_write(path, data)
+    return os.list_devices[path].device_write(data)
+end
+_G['dev_write'] = dev_write
+
+function dev_read(path, bytes)
+    local result = os.list_devices[path].device_read(bytes)
+    print(type(result))
+    return result
+end
+_G['dev_read'] = dev_read
+
+function os.list_dev()
+    for k,v in pairs(os.list_devices) do
+        write(k..' ')
+    end
+    write('\n')
+end
 
 local perilist = peripheral.getNames()
 os.debug.debug_write("[peripheral] begin detection")
@@ -340,6 +383,7 @@ end
 loadmodule("tty", "/lib/tty_manager")
 loadmodule("login", "/lib/login_manager")
 loadmodule("pipe", "/lib/pipe_manager")
+loadmodule("time", "/lib/time")
 
 os.pprint = function(message, pipe, double)
     if double == nil then double = false end

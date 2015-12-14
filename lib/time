@@ -1,0 +1,82 @@
+#!/usr/bin/env lua
+--time: manages time calls
+
+local fallback1 = "http://luca.spdns.eu/time.php"
+local fallback2 = 'http://www.timeapi.org/utc/now?format=%7B%25d%2C%25m%2C%25Y%2C%25d%2C%25I%2C%25M%7D'
+
+local servers = {}
+
+local function readServers()
+    local ts_file = fs.open("/etc/time-servers", 'r')
+    local ts_data = ts_file.readAll()
+    ts_file.close()
+    servers = {}
+    local data = os.strsplit(ts_data, '\n')
+    for k,v in ipairs(data) do
+        table.insert(servers, v)
+    end
+    table.insert(servers, fallback1)
+    table.insert(servers, fallback2)
+end
+
+local function getTimeData()
+    local res = ''
+    for k,v in pairs(servers) do
+        os.debug.debug_write("[time] getting time data from "..v, false)
+        local s = http.get(v)
+        if s ~= nil then
+            local d = s.readAll()
+            s.close()
+            if d ~= nil then
+                return d
+            else
+                ferror("getTimeData: d == nil")
+            end
+        else
+            ferror("getTimeData: s == nil")
+        end
+    end
+    return nil
+end
+
+function getTime_fmt(_tZoneH, _tZoneM)
+    readServers()
+    local tZoneH = _tZoneH or 0
+    local tZoneM = _tZoneM or 0
+    local d = getTimeData()
+    if d == nil then
+        ferror("getTime_fmt: getTimeData returned nil")
+        return 0
+    end
+    local t = textutils.unserialise(d)
+    local gh = t[4]
+    local gm = t[5]
+    local s = t[6]
+    local m = gm + tZoneM
+    local h = gh + tZoneH + math.floor(m/60)
+    local m = m%60
+    h = h%24
+    return {h,m,s}
+end
+
+function localtime(tz1, tz2)
+    local k = getTime_fmt(tz1, tz2)
+    return {hours=k[1], minutes=k[2], seconds=k[3]}
+end
+
+function asctime(tm)
+    local h,m,s = tm.hours, tm.minutes, tm.seconds
+    local formatted = string.format("%2d:%2d:%2d",h,m,s):gsub(" ","0")
+    return formatted
+end
+
+function strtime(tz1, tz2)
+    return asctime(localtime(tz1,tz2))
+end
+
+function libroutine()
+    os.debug.debug_write("[time] testing time")
+    os.debug.debug_write("[time] GMT -3: "..asctime(localtime(-3,0)))
+    os.debug.debug_write("[time] Greenwich: "..strtime())
+    sleep(1)
+end

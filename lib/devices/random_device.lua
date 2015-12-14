@@ -20,11 +20,11 @@ dev_random = {}
 dev_random.device = {}
 dev_random.name = '/dev/random'
 
-dev_random.device.devwrite = function (message)
+dev_random.device.device_write = function (message)
     print("cannot write to /dev/random")
 end
 
-dev_random.device.read = function (bytes)
+dev_random.device.device_read = function (bytes)
     local crand = {}
     math.randomseed(os.clock())
     if bytes == nil then

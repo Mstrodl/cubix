@@ -18,7 +18,7 @@ function main(args)
             write("OS entry: ")
             local osentry = read()
             if osentry == '' then break end
-            write("OS command: ")
+            write("OS script: ")
             local oscmd = read()
             entries[osentry] = oscmd
         end
@@ -34,11 +34,12 @@ function main(args)
     elseif #args == 1 then
         local mode = args[1]
         if mode == 'default' then
-            print("restoring system.cfg to recommended")
-            local sResult = 'Cubix;/boot/sblcfg/cubixboot\nCubix(quiet,nodebug);/boot/sblcfg/cubixquiet\nCubix(minimal);/boot/sblcfg/cubixminimal\nCraftOS;/boot/sblcfg/craftos\nBoot Disk;/boot/sblcfg/bootdisk'
-            local h = oldfs.open("/boot/sblcfg/systems.cfg", 'w')
-            h.write(sResult)
-            h.close()
+            print("sbl: restoring system.cfg to default.cfg")
+            local default = fs.open("/boot/sblcfg/default.cfg", 'r')
+            local systems = fs.open("/boot/sblcfg/systems.cfg", 'w')
+            systems.write(default.readAll())
+            default.close()
+            systems.close()
             print("Done!")
         end
     else

@@ -2,12 +2,11 @@
 --device manager
 --task: create devices in /dev
 
---device.name = string
---device.device = table
---device.device.read = function
---device.device.devwrite = function
-
-devices = {}
+--devices:
+--  device.name = string
+--  device.device = table
+--  device.device.read = function
+--  device.device.devwrite = function
 
 function loadDevice(name, path)
     os.debug.debug_write("[devman] loading "..name)

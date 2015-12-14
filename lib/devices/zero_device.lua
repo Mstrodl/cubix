@@ -11,7 +11,7 @@ end
 dev_zero = {}
 dev_zero.name = '/dev/zero'
 dev_zero.device = {}
-dev_zero.device.read = function (bytes)
+dev_zero.device.device_read = function (bytes)
     if bytes == nil then
         return 0
     else
@@ -24,7 +24,7 @@ dev_zero.device.read = function (bytes)
     return 0
 end
 
-dev_zero.device.devwrite = function(s)
+dev_zero.device.device_write = function(s)
+    os.sys_signal(os.signals.SIGILL)
     return 0
 end
-

@@ -3,18 +3,15 @@
 
 AUTHOR = "Lukas Mendes"
 VERSION = "0.0.2"
-BUILD_DATE = "2015-12-08"
+BUILD_DATE = "2015-12-13"
 
 --[[
     The Cubix Live Installer has the basic utilities to install cubix
     It has these Arch Linux vibe going on so, yeah
 
     CubixLI has everything in one script: a shell, a downloader to install cubix, setting label, hostname and so on
-]]
 
---[[
-    TODOs:
-        -some kind of chroot
+    pastebin: B1t3L4Uw
 ]]
 
 function do_halt()
@@ -169,16 +166,19 @@ end
 --yapstrap binary
 function yapstrap(args)
     if current_envir ~= 'cubixli' then
-        ferror("yapstap: cubixli env not loaded")
+        ferror("yapstrap: cubixli env not loaded")
         return 1
     end
     if #args == 0 then print("usage: yapstrap <task>") return 0 end
     for k,v in pairs(args) do
         if v == 'cubix' then
-            normal("yapstrap: task assigned: "..v)
+            normal("yapstrap: new task: "..v)
             shell.run("pastebin run W5ZkVYSi lkmnds cubix")
             normal("yapstrap: finishing "..v.." task")
             shell.run("FINISHINSTALL")
+            local handler = fs.open("/tmp/install_lock", 'w')
+            handler.close()
+            normal("crated /tmp/install_lock")
             normal("yapstrap: finished "..v.." task")
         end
     end
@@ -342,15 +342,13 @@ end
 --unload enviroment
 function unloadenv()
     normal("[cubixli:unloadenv] unloading current enviroment ")
-    local handler = fs.open("/tmp/install_lock", 'w')
-    handler.close()
     current_envir = ''
 end
 
 --sethostname binary
 function sethostname(args)
     if current_envir ~= 'cubixli' then
-        ferror("sethostname: cubxli enviroment not loaded")
+        ferror("sethostname: cubixli enviroment not loaded")
         return 1
     end
     local nhostname = tostring(args[1])
@@ -359,6 +357,23 @@ function sethostname(args)
     hostname_handler.write(nhostname)
     hostname_handler.close()
     return 0
+end
+
+function sbl_bcfg(args)
+    local default = fs.open("/boot/sblcfg/default.cfg", 'r')
+    local systems = fs.open("/boot/sblcfg/systems.cfg", 'w')
+    systems.write(default.readAll())
+    default.close()
+    systems.close()
+    print("sbl-bcfg: systems.cfg restored to default.cfg")
+end
+
+function timesetup(args)
+    local timeservers = fs.open("/etc/time-servers", 'w')
+    for k,v in ipairs(args) do
+        timeservers.write(v..'\n')
+    end
+    timeserver.close()
 end
 
 --install help
@@ -371,6 +386,8 @@ Installing cubix:
     yapstrap cubix
     setlabel <your label here>
     sethostname <your hostname here>
+    timesetup <server 1> <server 2> ...
+    sbl-bcfg
     unloadenv
     reboot
 ]])
@@ -408,6 +425,8 @@ SHELLCMD['lsblk'] = lsblk
 SHELLCMD['sethostname'] = sethostname
 SHELLCMD['cat'] = cat
 SHELLCMD['override'] = override_shell
+SHELLCMD['sbl-bcfg'] = sbl_bcfg
+SHELLCMD['timesetup'] = timesetup
 
 function list_cmds(args)
     print("Available commands:")
