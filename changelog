@@ -1,5 +1,49 @@
-0.4.0 - 0.5.1 (12-03-2015)
-  +luaX (wip)
+0.4.0 - 0.5.1 (12-21-2015)
+  tl;dr you should use this now
+
+  Major changes:
+    +yapi works! (more details in commit 596ce81)
+    +luaX, a graphical interface to cubix!
+
+  General changes(cubixli and cubix):
+    *bugfix: running runlevel as a kernel option
+    */tmp/debug_info is now /tmp/syslog
+    +os.ferror is in _G too(as only ferror)
+    +external device support(stdin, stdout and stderr almost finished)
+    +new device: /dev/full
+    +added more signals in os.signals
+    +loadmodule_ret: returns the module _G, instead of putting it on os.lib
+    +device_write and device_read are the default interface to devices now.
+    +/sbin/sbl-mkconfig: 'default' mode now generates system.cfg based of default.cfg, not in a hardcoded way anymore
+    +dev_available(path): simply returns true if the device exists, false if its not
+
+  Libraries:
+    +proc:
+        +os.getrunning() returns the running PID of the system
+        +generate_pfolder(process, procfolder) generates a /proc/<pid> folder, with the executable and the status of the process
+    +os.debug.kpanic: when lx is loaded, shows a beautiful panic message
+    +login: kpanic when opening /tmp/current_user or /tmp/current_path gives an error
+    +acpi:
+        +clears /proc/<pid> folders when __clear_temp is called
+        +sets CUBIX_TURNINGOFF to true when acpi_shutdown is called
+        +sets CUBIX_REBOOTING to true when acpi_reboot is called
+          +because of that, init will not cause a reboot to be a shutdown
+
+  Added programs:
+    +/bin/panic: just calls kpanic
+    +/bin/curtime: shows current time(GMT 0)
+    +/bin/hashrate: just a utility.
+
+  CubixLI:
+    +yapstrap creates /tmp/install_lock, not unloadenv
+    +sbl_bcfg: restores systems.cfg to default configurations(just in case if the cubix repo provides a broken systems.cfg or a different one from the recommended)
+    +timesetup: writes servers to /etc/time-servers
+    +genfstab: coming in another commit, but it is there
+
+  Manuals:
+    +CMFL, Cubix Manual Formatting Language.
+        yapi manual is written in cmfl, you should see it
+
 
 0.3.7 - 0.4.0 (11-28-2015)
   +Finally, a stable version(still has its bugs but yeah)

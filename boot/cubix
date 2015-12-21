@@ -2,7 +2,7 @@
 --/boot/cubix: well, cubix!
 
 AUTHOR = "Lukas Mendes"
-BUILD_DATE = "2015-12-19"
+BUILD_DATE = "2015-12-21"
 
 --  version format: major.revision.minor
 --      major: linear
@@ -12,8 +12,8 @@ BUILD_DATE = "2015-12-19"
 --  0.3.8 < 0.3.9 < 0.3.10 < 0.3.11 < 0.4.0 < 0.4.1 [...]
 --  {           UNSTABLE           }  {  STABLE   }
 VERSION_MAJOR = 0
-VERSION_REV   = 4
-VERSION_MINOR = 0
+VERSION_REV   = 5
+VERSION_MINOR = 1
 VERSION = VERSION_MAJOR.."."..VERSION_REV.."."..VERSION_MINOR
 --
 STABLE = ((VERSION_REV % 2) == 0)

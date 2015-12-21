@@ -16,6 +16,7 @@ setlabel <computer label>
 sethostname <computer hostname>
 timesetup <server 1> <server 2> ...
 sbl-bcfg
+genfstab
 unloadenv
 reboot
 ```

@@ -2,8 +2,8 @@
 --cubix_live_installer(cubixli): starts a enviroment where the user can install cubix
 
 AUTHOR = "Lukas Mendes"
-VERSION = "0.0.3"
-BUILD_DATE = "2015-12-19"
+VERSION = "0.0.4"
+BUILD_DATE = "2015-12-21"
 
 --[[
     The Cubix Live Installer has the basic utilities to install cubix
