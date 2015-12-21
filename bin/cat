@@ -17,7 +17,7 @@ function cat(file, bytes)
     cpth.close()
     local _result = ''
     if DEVICES[file] ~= nil then
-        _result = DEVICES[file].read(bytes)
+        _result = DEVICES[file].device_read(bytes)
     elseif MFILES[file] ~= nil then
         _result = MFILES[file].read(bytes)
     elseif fs.exists(file) and not fs.isDir(file) then
@@ -49,4 +49,3 @@ function main(args, pipe)
         cat_pipe(args[1], pipe)
     end
 end
-

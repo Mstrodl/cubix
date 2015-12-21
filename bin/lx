@@ -54,7 +54,7 @@ function main(args)
     elseif args[1] == 'load' then
         --load windows here
         if os.lib.lxServer and os.lib.lxClient and os.lib.lxWindow then
-            local lwindow = os.lib.lxWindow.Window.new(args[2])
+            local lwindow = os.lib.lxWindow.Window.new(os.cshell.resolve(args[2]))
             os.lib.lxClient.loadWindow(lwindow)
         else
             os.ferror("lx: cannot load windows without lxServer, lxClient and lxWindow loaded")
@@ -63,7 +63,7 @@ function main(args)
     elseif args[1] == 'start' then
         if os.lib.login.currentUser().uid == 0 then
             os.ferror("lx: cannot start luaX while root")
-            return 0
+            return 1
         end
         if os.lib.lx then
             if prompt("luaX backend already started, want to restart?\n", 'Y', 'n') then

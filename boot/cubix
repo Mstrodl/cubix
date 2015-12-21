@@ -2,7 +2,7 @@
 --/boot/cubix: well, cubix!
 
 AUTHOR = "Lukas Mendes"
-BUILD_DATE = "2015-12-13"
+BUILD_DATE = "2015-12-19"
 
 --  version format: major.revision.minor
 --      major: linear
@@ -359,6 +359,12 @@ function dev_read(path, bytes)
     return result
 end
 _G['dev_read'] = dev_read
+
+function dev_available(path)
+    local av = os.list_devices[path] ~= nil
+    return av
+end
+_G['dev_available'] = dev_available
 
 function os.list_dev()
     for k,v in pairs(os.list_devices) do

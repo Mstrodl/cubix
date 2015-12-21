@@ -169,6 +169,7 @@ function changepwd(user, p, np)
         --change pwd
         local h = fs.open("/etc/shadow", 'r')
         local fLines = strsplit(h.readAll(), '\n')
+        h.close()
         for k,v in pairs(fLines) do
             local pair = strsplit(v, '^')
             local _salt = os.generateSalt(15)
@@ -180,7 +181,6 @@ function changepwd(user, p, np)
                 fLines[k] = fLines[k] .. '\n'
             end
         end
-        h.close()
         local h2 = fs.open("/etc/shadow", 'w')
         for k,v in pairs(fLines) do
             h2.write(v)
@@ -199,4 +199,3 @@ function libroutine()
     os.login.adduser = add_new_user
     os.login.changepwd = changepwd
 end
-

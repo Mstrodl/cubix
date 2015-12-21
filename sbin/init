@@ -4,9 +4,9 @@
 _handler = {}
 _handler.signal_handler = function (sig)
     if sig == 'kill' then
-        os.ferror("init: recieved SIGKILL")
+        os.ferror("init: SIGKILL")
         if permission.grantAccess(fs.perms.ROOT) then
-            if CUBIX_SHUTDOWNING or CUBIX_REBOOTING then
+            if CUBIX_TURNINGOFF or CUBIX_REBOOTING then
                 return 0
             else
                 os.shutdown()

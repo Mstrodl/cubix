@@ -1,0 +1,30 @@
+!cmfl!
+
+.name
+yapi - Yet Another Package Installer
+
+.cmd
+yapi <MODE> [...]
+
+.desc
+yapi - The default package management system in cubix.
+
+.listop MODE
+    -S <pkg1 pkg2 ...>
+        installs packages
+    -Sy <pkg1 pkg2 ...>
+        install the package and updates yapi database after
+    -Su <pkg1 pkg2 ...>
+        installs the package and updates all installed packages compared to the actual database
+    -Syu <pkg1 pkg2 ...>
+        installs <package>, updates the database, and updates the installed packages, this is considered as a full system update.
+    -U <file>
+        installs <file> as a YAP file
+    -Q <package>
+        queries the database to show a package
+    -R <package>
+        removes a package
+    -Qe
+        shows all installed packages and their builds
+
+.e

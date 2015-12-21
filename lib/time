@@ -78,5 +78,4 @@ function libroutine()
     os.debug.debug_write("[time] testing time")
     os.debug.debug_write("[time] GMT -3: "..asctime(localtime(-3,0)))
     os.debug.debug_write("[time] Greenwich: "..strtime())
-    sleep(1)
 end

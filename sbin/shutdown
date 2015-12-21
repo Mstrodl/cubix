@@ -10,5 +10,5 @@ _handler.signal_handler = function (sig)
 end
 
 function main(args)
-    os.runfile_proc("/sbin/init" , {"0"})
+    os.shutdown()
 end

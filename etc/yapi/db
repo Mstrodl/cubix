@@ -1,3 +1,2 @@
-devscripts;lkmnds.github.io/yapi/devscripts.yap
-sbl;lkmnds.github.io/yapi/sbl-latest.yap
-base;lkmnds.github.io/yapi/cubix-base.yap
+devscripts;http://lkmnds.github.io/yapi/devscripts.yap
+sbl;http://lkmnds.github.io/yapi/sbl-latest.yap

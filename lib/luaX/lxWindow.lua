@@ -33,6 +33,10 @@ main:lxterm.lua
 
 function parse_lxw(path)
     local handler = fs.open(path, 'r')
+    if handler == nil then
+        lxError("lxWindow", "File not found")
+        return false
+    end
     local _data = handler.readAll()
     handler.close()
     local lxwdata = {}
@@ -64,8 +68,13 @@ end
 function Window:load_itself()
     os.debug.debug_write("[lxWindow] load lxw: "..self.lxwFile, false)
     local lxwdata = parse_lxw(self.lxwFile)
-    os.debug.debug_write("[lxWindow] load window: "..lxwdata['name'], false)
-    main_run(lxwdata['mainfile'], self)
+    if lxwdata == false then
+        lxError("lxWindow", "cannot load window")
+        return 1
+    else
+        os.debug.debug_write("[lxWindow] load window: "..lxwdata['name'], false)
+        main_run(lxwdata['mainfile'], self)
+    end
 end
 
 --[[

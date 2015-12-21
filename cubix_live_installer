@@ -2,8 +2,8 @@
 --cubix_live_installer(cubixli): starts a enviroment where the user can install cubix
 
 AUTHOR = "Lukas Mendes"
-VERSION = "0.0.2"
-BUILD_DATE = "2015-12-13"
+VERSION = "0.0.3"
+BUILD_DATE = "2015-12-19"
 
 --[[
     The Cubix Live Installer has the basic utilities to install cubix
@@ -93,8 +93,14 @@ local current_path = '/'
 local current_envir = ''
 
 local current_disks = {
-    hdd = {{"hdd1", "part", "/"}},
-    cubixli_ramdisk = {{"loop", "loopspecial", "./loop"}, {"emudev", "edevfs", "./dev"}}
+    hdd = {
+        {"hdd1", "part", "/"}
+    },
+
+    cubixli_ramdisk = {
+        {"loop", "loopspecial", "./loop"},
+        {"emudev", "edevfs", "./dev"}
+    }
 }
 
 local override = false
@@ -373,7 +379,7 @@ function timesetup(args)
     for k,v in ipairs(args) do
         timeservers.write(v..'\n')
     end
-    timeserver.close()
+    timeservers.close()
 end
 
 --install help
@@ -384,6 +390,7 @@ Installing cubix:
     lsblk
     deldisk hdd
     yapstrap cubix
+    genfstab /etc/fstab
     setlabel <your label here>
     sethostname <your hostname here>
     timesetup <server 1> <server 2> ...
@@ -408,6 +415,14 @@ function override_shell()
     return 0
 end
 
+function genfstab(args)
+    local file = args[1]
+    local fh = fs.open(file, 'w')
+    fh.write("/dev/hdd;/;cfs;;1;1\n")
+    fh.close()
+    print("genfstab: generated fstab in "..file)
+end
+
 local SHELLCMD = {}
 SHELLCMD['ls'] = ls
 SHELLCMD['cd'] = cd
@@ -427,6 +442,7 @@ SHELLCMD['cat'] = cat
 SHELLCMD['override'] = override_shell
 SHELLCMD['sbl-bcfg'] = sbl_bcfg
 SHELLCMD['timesetup'] = timesetup
+SHELLCMD['genfstab'] = genfstab
 
 function list_cmds(args)
     print("Available commands:")

@@ -11,6 +11,41 @@ end
 
 MANPATH = "/usr/manuals"
 
+function parse_cmfl(path)
+    local h = fs.open(path, 'r')
+    if h == nil then
+        os.ferror("parse_cmfl: file not found")
+        return 1
+    end
+    local file = h.readAll()
+    h.close()
+    local lines = os.strsplit(file, '\n')
+    local new_lines = {}
+    for k,v in ipairs(lines) do
+        if v == '.name' then
+            new_lines[#new_lines+1] = lines[k+1]..'\n'
+        elseif v == '.cmd' then
+            new_lines[#new_lines+1] = "Usage:"
+            new_lines[#new_lines+1] = '\t'..lines[k+1]..'\n'
+        elseif v == '.desc' then
+            new_lines[#new_lines+1] = "Description:"
+            new_lines[#new_lines+1] = '\t'..lines[k+1]..'\n'
+        elseif os.strsplit(v, ' ')[1] == '.listop' then
+            new_lines[#new_lines+1] = "Option "..os.strsplit(v, ' ')[2]
+            local i = 1
+            while lines[k+i] ~= '.e' do
+                new_lines[#new_lines+1] = lines[k+i]
+                i = i + 1
+            end
+        end
+    end
+    local w,h = term.getSize()
+    local nLines = 0
+    for k,v in ipairs(new_lines) do
+        nLines = nLines + textutils.pagedPrint(v, (h-3) - nLines)
+    end
+end
+
 function main(args)
     local topic, page = {0,0}
     if #args == 1 then
@@ -26,13 +61,11 @@ function main(args)
     if topic == 'manuals' then
         pages = fs.list(MANPATH)
         for k,v in pairs(pages) do
-            if fs.isDir(fs.combine(MANPATH, v)) then
-                write(v .. " ")
-            else
-                write(string.sub(v, 0, #v - 4) .. " ")
+            if not fs.isDir(fs.combine(MANPATH, v)) then
+                pages[k] = string.sub(v, 0, #v - 4)
             end
         end
-        write('\n')
+        textutils.tabulate(pages)
         return 0
     end
     if page == nil then
@@ -46,16 +79,23 @@ function main(args)
     end
     local w,h = term.getSize()
     if file then
+        --actual reading of the file
         term.clear()
         term.setCursorPos(1,1)
         os.central_print(p)
         local sLine = file:read()
-        local nLines = 0
-        while sLine do
-            nLines = nLines + textutils.pagedPrint(sLine, (h-3) - nLines)
-            sLine = file:read()
+        if sLine == '!cmfl!' then --Cubix Manuals Formatting Language
+            os.debug.debug_write("[man] cmfl file!", false)
+            file:close()
+            parse_cmfl(fs.combine(MANPATH, p))
+        else
+            local nLines = 0
+            while sLine do
+                nLines = nLines + textutils.pagedPrint(sLine, (h-3) - nLines)
+                sLine = file:read()
+            end
+    	    file:close()
         end
-	    file:close()
     elseif fs.isDir(fs.combine(MANPATH, topic)) then
         --print available pages in topic
         print('Pages in the topic "'..topic..'":\n')
@@ -69,4 +109,3 @@ function main(args)
     end
     return 0
 end
-

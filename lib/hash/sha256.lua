@@ -1,10 +1,10 @@
---  
+--
 --  Adaptation of the Secure Hashing Algorithm (SHA-244/256)
 --  Found Here: http://lua-users.org/wiki/SecureHashAlgorithm
---  
+--
 --  Using an adapted version of the bit library
 --  Found Here: https://bitbucket.org/Boolsheet/bslf/src/1ee664885805/bit.lua
---  
+--
 
 local MOD = 2^32
 local MODM = MOD-1
@@ -81,7 +81,7 @@ local function rshift(x, disp)
 end
 
 local function lshift(a, disp)
-	if disp < 0 then return rshift(a,-disp) end 
+	if disp < 0 then return rshift(a,-disp) end
 	return (a * 2 ^ disp) % 2 ^ 32
 end
 
@@ -182,7 +182,7 @@ local function digestblock(msg, i, H)
 	H[8] = band(H[8] + h)
 end
 
-function _sha256(msg)
+function _sha256(msg) --returns string
 	msg = preproc(msg, #msg)
 	local H = initH256({})
 	for i = 1, #msg, 64 do digestblock(msg, i, H) end
@@ -191,4 +191,3 @@ function _sha256(msg)
 end
 
 hash_sha256 = _sha256
-

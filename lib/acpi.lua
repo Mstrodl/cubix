@@ -12,7 +12,7 @@ local __clear_temp = function()
     fs.delete("/tmp")
     for _,v in ipairs(fs.list("/proc")) do
         local k = os.strsplit(v, '/')
-        os.debug.debug_write(k[#k]..";"..tostring(fs.isDir("/proc/"..v)), false)
+        --os.debug.debug_write(k[#k]..";"..tostring(fs.isDir("/proc/"..v)), false)
         if tonumber(k[#k]) ~= nil and fs.isDir("/proc/"..v) then
             fs.delete("/proc/"..v)
         end
@@ -23,13 +23,12 @@ end
 local function acpi_shutdown()
     if permission.grantAccess(fs.perms.SYS) then
         os.debug.debug_write("[shutdown] shutting down for system halt")
-        _G['CUBIX_SHUTDOWNING'] = true
+        _G['CUBIX_TURNINGOFF'] = true
         os.debug.debug_write("[shutdown] sending SIGKILL to all processes")
         if not os.__boot_flag then --still without proper userspace
             os.lib.proc.__killallproc()
         end
         os.sleep(1)
-        os.debug.debug_write("[shutdown] deleting temporary")
         __clear_temp()
         os.debug.debug_write("[shutdown] sending HALT.")
         os.sleep(.5)
@@ -49,6 +48,7 @@ local function acpi_reboot()
             os.lib.proc.__killallproc()
         end
         os.sleep(1)
+        __clear_temp()
         os.debug.debug_write("[reboot] sending RBT.")
         os.sleep(.5)
         _reboot()

@@ -14,6 +14,8 @@ deldisk hdd
 yapstrap cubix
 setlabel <computer label>
 sethostname <computer hostname>
+timesetup <server 1> <server 2> ...
+sbl-bcfg
 unloadenv
 reboot
 ```
@@ -27,4 +29,3 @@ reboot
  * Own bootloader(SBL)
  * MIT License
  * Package management(yapi, WIP)
-

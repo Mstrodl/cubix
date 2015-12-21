@@ -118,12 +118,6 @@ function loadkernel(kfile, memory)
     --TODO lineboot: actually make SBL more GRUB-like
     local sbl_env = {}
     local lFile = ''
---[[
-set video=splashbsc
-set mode=bsc
-load_video
-insmod kernel
-]]
     if kfile == 'lineboot' then
         while true do
             write("SBL:> ")
@@ -234,4 +228,3 @@ selected_os = user_selection[1]
 loadkernel(oses[2][selected_os], 512)
 
 _halt()
-

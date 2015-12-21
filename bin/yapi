@@ -1,8 +1,8 @@
 #!/usr/bin/env lua
---/bin/yapi: Yet Another Package Installer (based on pacman syntax)
+--/bin/yapi: Yet Another Package Installer (wieh a pacman syntax-like)
 
 AUTHOR = 'Lukas Mendes'
-VERSION = '0.0.1'
+VERSION = '0.1.0'
 
 _handler = {}
 _handler.signal_handler = function (sig)
@@ -15,7 +15,6 @@ end
 --defining some things
 local SERVERIP = 'lkmnds.github.io'
 local SERVERDIR = '/yapi'
-local YAPI_MIRROR = 'lkmnds.github.io/yapi/@pkg.yap'
 local YAPIDIR = '/etc/yapi'
 
 function download_file(url)
@@ -103,36 +102,32 @@ function yapidb:search_wcache(pkgname)
     end
 end
 
---[[
-
-#devscripts.yap
-
-Name;devscripts
-Version;0.0.1
-
-Author;Lukas Mendes
-Email-Author;lkmnds@gmail.com
-
-Contributors;
-Email-Contri;
-
-Description;Developer Scripts for Cubix
-
-PathFile;lkmnds.github.io/yapi/devscripts.ctr
-
-Association;/usrbin;/usr/bin
-
-]]
-
+--parsing yap files
 function parse_yap(yapf)
     local lines = os.strsplit(yapf, '\n')
     local yapobject = {}
-    yapobject['associations'] = {}
+    yapobject['folders'] = {}
+    yapobject['files'] = {}
     if type(lines) ~= 'table' then
-        os.ferror("parse_yap: type(lines) ~= table")
+        os.ferror("[!] [parse_yap] type(lines) ~= table")
         return 1
     end
+    local isFile = false
+    local rFile = ''
     for _,v in pairs(lines) do
+        if isFile then
+            local d = v
+            if d ~= 'EndFile;' then
+                if yapobject['files'][rFile] == nil then
+                    yapobject['files'][rFile] = d .. '\n'
+                else
+                    yapobject['files'][rFile] = yapobject['files'][rFile] .. d .. '\n'
+                end
+            else
+                isFile = false
+                rFile = ''
+            end
+        end
         local splitted = os.strsplit(v, ';')
         if splitted[1] == 'Name' then
             yapobject['name'] = splitted[2]
@@ -156,39 +151,14 @@ function parse_yap(yapf)
             yapobject['description'] = splitted[2]
         elseif splitted[1] == 'PathFile' then
             yapobject['pathfile'] = splitted[2]
-        elseif splitted[1] == 'Association' then
-            table.insert(yapobject['associations'], splitted[2])
+        elseif splitted[1] == 'Folder' then
+            table.insert(yapobject['folders'], splitted[2])
+        elseif splitted[1] == 'File' then
+            isFile = true
+            rFile = splitted[2]
         end
     end
     return yapobject
-end
-
-function yapidb:registerpkg(yapdata)
-    local h = fs.open(YAPIDIR..'/installedpkg', 'r')
-    local fLines = os.strsplit(h.readAll(), '\n')
-    h.close()
-    for k,v in pairs(fLines) do
-        local pair = os.strsplit(v, ';')
-        if pair[1] == yapdata['name'] then
-            pair[2] = yapdata['build']
-            fLines[k] = pair[1] .. pair[2] .. '\n'
-        else
-            fLines[k] = fLines[k] .. '\n'
-        end
-    end
-    h.close()
-    local h2 = fs.open(YAPIDIR..'/installedpkg', 'w')
-    for k,v in pairs(fLines) do
-        h2.write(v)
-    end
-    h2.close()
-end
-
-function yapidb:register_newpkg(yapdata)
-    local pkgstr = yapdata['name'] .. ';' .. yapdata['build'] .. '\n'
-    local h = fs.open(YAPIDIR..'/installedpkg', 'a')
-    h.write(pkgstr)
-    h.close()
 end
 
 function yapidb:installed_pkgs()
@@ -203,15 +173,69 @@ function yapidb:updatepkgs()
     self:update()
     for k,v in pairs(self:installed_pkgs()) do
         local pair = os.strsplit(v, ';')
-        local w = self:search_wcache(pair[1])
-        local yd = parse_yap(w)
-        if tonumber(pair[2]) < tonumber(w['build']) then
-            print(" -> found new build of "..pair[1].." ["..pair[2].."->"..w.."] ")
-            self:install(pair[1])
+        local w = self:search(pair[1])
+        local yd = {}
+        if w[1] == false then
+            os.ferror("[!] [updatepkgs] search error")
+            return false
+        end
+        local url = os.strsplit(w[2], ';')[2]
+        local rawdata = download_file(url)
+        if type(rawdata) == 'table' then
+            os.ferror("[!] [install] type(rawdata) == table : "..yapfile[2])
+            return false
+        end
+        local yd = parse_yap(rawdata)
+        if tonumber(pair[2]) < tonumber(yd['build']) then
+            print(" -> new build of "..pair[1].." ["..pair[2].."->"..yd['build'].."] ")
+            self:install(pair[1]) --install latest
         else
-            print("ok ne")
+            print(" -> [updatepkgs] "..yd['name']..": OK")
         end
     end
+end
+
+function yapidb:register_pkg(yapdata)
+    print("==> [register_pkg] "..yapdata['name'])
+    local _h = fs.open(YAPIDIR..'/installedpkg', 'r')
+    local _tLines = _h.readAll()
+    _h.close()
+    local pkg_found = false
+    local tLines = os.strsplit(_tLines, '\n')
+    for k,v in ipairs(tLines) do
+        local pair = os.strsplit(v, ';')
+        if pair[1] == yapdata['name'] then
+            pkg_found = true
+            tLines[k] = yapdata['name']..';'..yapdata['build']
+        else
+            tLines[k] = tLines[k] .. '\n'
+        end
+    end
+    if not pkg_found then
+        tLines[#tLines+1] = yapdata['name']..';'..yapdata['build'] .. '\n'
+    end
+
+    print(" -> writing to file")
+    local h2 = fs.open(YAPIDIR..'/installedpkg', 'w')
+    for k,v in pairs(tLines) do
+        h2.write(v)
+    end
+    h2.close()
+end
+
+function yapidb:install_yap(yapdata)
+    print("==> [install_yap] "..yapdata['name'])
+    for k,v in pairs(yapdata['folders']) do
+        print(" -> folder:"..v)
+        fs.makeDir(v)
+    end
+    for k,v in pairs(yapdata['files']) do
+        print(" -> file:"..k)
+        local h = fs.open(k, 'w')
+        h.write(v)
+        h.close()
+    end
+    return true
 end
 
 function yapidb:install(pkgname)
@@ -219,7 +243,11 @@ function yapidb:install(pkgname)
     local _s = self:search(pkgname)
     if _s[1] == true then
         local result = os.strsplit(_s[2], ';')
-        print(" -> getting YAP file...")
+        if not prompt("Do you want to install "..pkgname.."?", "Y", "n") then
+            os.ferror("==> [install] aborted")
+            return false
+        end
+        print(" -> getting YAP file... ("..result[2]..")")
         local yapfile = download_file(result[2])
         if type(yapfile) == 'table' then
             os.ferror("==> [install] "..yapfile[2])
@@ -228,14 +256,53 @@ function yapidb:install(pkgname)
         cache_file(yapfile, pkgname..'.yap')
         local yapdata = parse_yap(yapfile)
         self:register_pkg(yapdata)
-        --[[
-        self:installfromyap(yapdata)
-        ]]
+        self:install_yap(yapdata)
         return true
     else
         os.ferror("==> [install] yapidb: package not found")
         return false
     end
+end
+
+function yapidb:remove(pkgname)
+    --1st: read cached yapdata
+    --2nd: remove all files made by yapdata['files']
+    --3rd: remove entry in YAPIDIR..'/installedpkg'
+    local yfile = self:search_wcache(pkgname)
+    local ydata = parse_yap(yfile)
+    --2nd part
+    print(" ==> [remove] "..ydata['name'])
+    for k,v in pairs(ydata['files']) do
+        print(" -> removing "..k)
+        fs.delete(k)
+    end
+    for k,v in pairs(ydata['folders']) do
+        print(" -> removing folder "..v)
+        fs.delete(v)
+    end
+    --3rd part
+    print("==> [remove_entry] "..ydata['name'])
+    local _h = fs.open(YAPIDIR..'/installedpkg', 'r')
+    local _tLines = _h.readAll()
+    _h.close()
+    local pkg_found = false
+    local tLines = os.strsplit(_tLines, '\n')
+    for k,v in ipairs(tLines) do
+        local pair = os.strsplit(v, ';')
+        if pair[1] == ydata['name'] then
+            tLines[k] = '\n'
+        else
+            tLines[k] = tLines[k] .. '\n'
+        end
+    end
+
+    print(" -> writing empty entry in installedpkg")
+    local h2 = fs.open(YAPIDIR..'/installedpkg', 'w')
+    for k,v in pairs(tLines) do
+        h2.write(v)
+    end
+    h2.close()
+    return true
 end
 
 function main(args)
@@ -244,7 +311,7 @@ function main(args)
         return 1
     end
     if #args == 0 then
-        print("usage: yapi <mode> <file>")
+        print("usage: yapi <mode> ...")
     else
         print("yapi "..VERSION)
         local option = args[1]
@@ -257,7 +324,7 @@ function main(args)
                         database:update()
                         print("==> [install] "..package)
                         if database:install(package) then
-                            sucess("==> [install] "..package.." : SUCCESS")
+                            success("==> [install] "..package.." : SUCCESS")
                         else
                             os.ferror("==> [install] "..package.." : FAILURE")
                             return 1
@@ -265,7 +332,7 @@ function main(args)
                     end
                 end
                 if isin(option, 'y') then
-                    print("==> [update_db] starting from "..SERVERIP)
+                    print("==> [update_db] "..SERVERIP)
                     local SPATH = 'http://'.. SERVERIP .. SERVERDIR .. '/database'
                     if not http then
                         os.ferror("yapi: http not enabled")
@@ -280,36 +347,82 @@ function main(args)
 
                 if isin(option, 'u') then
                     local database = yapidb.new(YAPIDIR..'/db')
-                    --database:updatepkgs()
-                    --what?
-                    print("==> [updatepkg] updating packages")
+                    print("==> [updatepkgs] updating packages")
                     database:updatepkgs()
                 end
             elseif string.sub(option,2,2) == 'U' then
-                print("==> [install_yap]")
-            elseif string.sub(option,2,2) == 'L' then
+                local yfile = os.cshell.resolve(args[2])
+                print("==> [install_yap] "..yfile)
+                local h = fs.open(yfile, 'r')
+                local _data = h.readAll()
+                h.close()
+                local ydata = parse_yap(_data)
+                local database = yapidb.new(YAPIDIR..'/db')
+                if database:install_yap(ydata) then
+                    success("==> [install_yap] "..ydata['name'])
+                else
+                    os.ferror("[!] [install_yap] "..ydata['name'])
+                end
+            elseif string.sub(option,2,2) == 'Q' then
                 local database = yapidb.new(YAPIDIR..'/db')
                 local pkg = args[2]
                 local _k = database:search(pkg)
-                if _k[1] == true then
-                    local _c = database:search_wcache(pkg)
-                    local yobj = parse_yap(_c)
-                    if type(yobj) ~= 'table' then
-                        os.ferror("[listpkg] error")
-                        return 1
+                if pkg then
+                    if _k[1] == true then
+                        local _c = database:search_wcache(pkg)
+                        local yobj = parse_yap(_c)
+                        if type(yobj) ~= 'table' then
+                            os.ferror("[!] [list -> parse_yap] error (yobj ~= table)")
+                            return 1
+                        end
+                        print("Name: "..yobj.name)
+                        print("Version: "..yobj.version..' (build:'..yobj.build..')')
+                        print("Author: "..yobj.author.." <"..yobj['email_author']..">")
+                        print("Maintainer: "..yobj.contributors)
+                        print("Description: "..yobj.description)
+                    else
+                        os.ferror("[!] [search] package not found")
                     end
-                    print("Name: "..yobj.name)
-                    print("Version: "..yobj.version..' (build:'..yobj.build..')')
-                    print("Author: "..yobj.author.." <"..yobj['email_author']..">")
-                    print("Maintainer: "..yobj.contributors)
-                    print("Description: "..yobj.description)
-                else
-                    os.ferror("[!] [search] package not found")
+                end
+                if isin(option, 'e') then
+                    local database = yapidb.new(YAPIDIR..'/db')
+                    database:update()
+                    print("Installed packages: ")
+                    local ipkg = database:installed_pkgs()
+                    for _,ntv in ipairs(ipkg) do
+                        local v = os.strsplit(ntv, ';')
+                        write(v[1] .. ' build ' .. v[2] .. '\n')
+                    end
+                end
+            elseif string.sub(option,2,2) == 'R' then
+                local packages = os.tail(args)
+                if packages ~= nil then
+                    for k,package in ipairs(packages) do
+                        local database = yapidb.new(YAPIDIR..'/db')
+                        database:update()
+                        print("==> [remove] "..package)
+                        if database:remove(package) then
+                            success("==> [remove] "..package.." : SUCCESS")
+                        else
+                            os.ferror("==> [remove] "..package.." : FAILURE")
+                            return 1
+                        end
+                    end
+                end
+            elseif string.sub(option,2,2) == 'Q' then
+                if isin(option, 'e') then
+                    local database = yapidb.new(YAPIDIR..'/db')
+                    database:update()
+                    print("Installed packages: ")
+                    local ipkg = database:installed_pkgs()
+                    for _,ntv in ipairs(ipkg) do
+                        local v = os.strsplit(ntv, ';')
+                        write(v[1] .. ' build ' .. v[2] .. '\n')
+                    end
                 end
             end
         else
-            os.ferror("yapi: what?")
+            os.ferror("yapi: sorry, see \"man yapi\" for details")
         end
     end
 end
-

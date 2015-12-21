@@ -31,7 +31,7 @@ cpath.close()
 --term.clear()
 --term.setCursorPos(1,1)
 
-cur_tty = os.lib.tty.getcurrentTTY()
+--cur_tty = os.lib.tty.getcurrentTTY()
 
 os.cshell = {}
 os.cshell.PATH = '/bin:/usr/bin'
@@ -45,8 +45,8 @@ end
 
 os.cshell.resolve = function(pth)
     local current_path = os.cshell.getpwd()
-    function _combine(c) return fs.combine(current_path, c) end
-    function check_slash(s) return string.sub(s, 0, 1) == '/' end
+    function _combine(c) return current_path .. '/' .. c end
+    function check_slash(s) return string.sub(s, 1, 1) == '/' end
     if check_slash(pth) then
         return pth
     else
@@ -55,8 +55,7 @@ os.cshell.resolve = function(pth)
 end
 
 function shell_command(k)
-    --TODO: add support for && (in cscript /etc/scripts/set_env.csp && ps && exit)
-    --TODO: add support for &
+    --TODO: add support for & (multitasking)
     if k == nil or k == "" then return 0 end
     for _, k in pairs(os.strsplit(k, "&&")) do
     if k:find("|") then
@@ -82,7 +81,7 @@ function shell_command(k)
                 found = true
                 os.runfile_proc(fs.combine(current_path, program), pargs, nil, npipe)
             end
-            
+
             local _path = os.strsplit(os.cshell.PATH, ':')
             for k,v in ipairs(_path) do
                 local K = fs.combine(v..'/', program)
@@ -91,7 +90,7 @@ function shell_command(k)
                     os.runfile_proc(K, pargs, nil, npipe)
                 end
             end
-            
+
             if fs.exists(fs.combine("/sbin/", program)) then
                 if current_user == "root" then
                     found = true
@@ -138,7 +137,7 @@ function shell_command(k)
                 os.runfile_proc(program, args)
             end
 
-        elseif fs.exists(fs.combine(current_path, program)) then
+        elseif not found and fs.exists(fs.combine(current_path, program)) then
             print(current_path)
             if current_path ~= '/sbin' or current_path ~= 'sbin' then
                 found = true
@@ -149,13 +148,13 @@ function shell_command(k)
         local _path = os.strsplit(os.cshell.PATH, ':')
         for k,v in ipairs(_path) do
             local K = fs.combine(v..'/', program)
-            if fs.exists(K) then
+            if not found and fs.exists(K) then
                 found = true
                 os.runfile_proc(K, args)
             end
         end
 
-        if fs.exists(fs.combine("/sbin/", program)) then
+        if not found and fs.exists(fs.combine("/sbin/", program)) then
             if current_user == "root" then
                 found = true
                 os.runfile_proc(fs.combine("/sbin/", program), args)

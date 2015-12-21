@@ -69,7 +69,15 @@ function write_solidRect(locX, locY, lenX, lenY, colorSR)
 end
 
 function lxError(lx_type, emsg)
-    os.ferror(lx_type..': '..emsg)
+    local message = lx_type..': '..emsg..'\n'
+    local lxerrh = fs.open("/tmp/lxlog", 'a')
+    lxerrh.write(message)
+    lxerrh.close()
+    if dev_available("/dev/stderr") then
+        dev_write("/dev/stderr", message)
+    else
+        os.ferror(message)
+    end
 end
 
 function demo_printMark()
@@ -97,7 +105,7 @@ function sv_demo()
     demo_printMark()
 
     write_rectangle(5, 5, 10, 5, colors.red)
-    
+
     os.sleep(1)
     os.lib.lx.blank()
     demo_printMark()
@@ -123,4 +131,3 @@ function libroutine()
     _G['LX_SERVER_LOADED'] = true
     _G['lxError'] = lxError
 end
-
