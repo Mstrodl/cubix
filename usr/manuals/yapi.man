@@ -12,19 +12,27 @@ yapi - The default package management system in cubix.
 .listop MODE
     -S <pkg1 pkg2 ...>
         installs packages
-    -Sy <pkg1 pkg2 ...>
-        install the package and updates yapi database after
-    -Su <pkg1 pkg2 ...>
-        installs the package and updates all installed packages compared to the actual database
-    -Syu <pkg1 pkg2 ...>
-        installs <package>, updates the database, and updates the installed packages, this is considered as a full system update.
     -U <file>
         installs <file> as a YAP file
     -Q <package>
-        queries the database to show a package
-    -R <package>
-        removes a package
-    -Qe
+        queries the database to show details of a package
+    -R <pkg1 pkg2 ...>
+        removes packages
+.e
+
+.m
+Options applied to -S(in order they're applied)
+    c
+        clears yapi cache
+    y
+        updates yapi database
+    u
+        updates all installed packages
+.e
+
+.m
+Options applied to -Q
+    e
         shows all installed packages and their builds
 
 .e

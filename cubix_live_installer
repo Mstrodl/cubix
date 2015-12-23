@@ -3,7 +3,7 @@
 
 AUTHOR = "Lukas Mendes"
 VERSION = "0.0.4"
-BUILD_DATE = "2015-12-21"
+BUILD_DATE = "2015-12-23"
 
 --[[
     The Cubix Live Installer has the basic utilities to install cubix

@@ -28,11 +28,6 @@ current_path = cpath.readAll()
 cuser.close()
 cpath.close()
 
---term.clear()
---term.setCursorPos(1,1)
-
---cur_tty = os.lib.tty.getcurrentTTY()
-
 os.cshell = {}
 os.cshell.PATH = '/bin:/usr/bin'
 

@@ -15,7 +15,7 @@ end
 --defining some things
 local SERVERIP = 'lkmnds.github.io'
 local SERVERDIR = '/yapi'
-local YAPIDIR = '/etc/yapi'
+local YAPIDIR = '/var/yapi'
 
 function download_file(url)
     http.request(url)
@@ -52,6 +52,12 @@ function isin(inputstr, wantstr)
         if v == wantstr then return true end
     end
     return false
+end
+
+function create_default_struct()
+    fs.makeDir(YAPIDIR.."/cache")
+    fs.open(YAPIDIR..'/db', 'a').close()
+    fs.open(YAPIDIR..'/installedpkg', 'a').close()
 end
 
 --Yapi Database
@@ -139,18 +145,8 @@ function parse_yap(yapf)
             yapobject['author'] = splitted[2]
         elseif splitted[1] == 'Email-Author' then
             yapobject['email_author'] = splitted[2]
-        elseif splitted[1] == 'Contributors' then
-            if splitted[2] == nil then
-                yapobject['contributors'] = 'none'
-            else
-                yapobject['contributors'] = splitted[2]
-            end
-        elseif splitted[1] == 'Email-Contri' then
-            yapobject['email-contri'] = splitted[2]
         elseif splitted[1] == 'Description' then
             yapobject['description'] = splitted[2]
-        elseif splitted[1] == 'PathFile' then
-            yapobject['pathfile'] = splitted[2]
         elseif splitted[1] == 'Folder' then
             table.insert(yapobject['folders'], splitted[2])
         elseif splitted[1] == 'File' then
@@ -167,6 +163,15 @@ function yapidb:installed_pkgs()
     handler.close()
     local lines = os.strsplit(file, '\n')
     return lines
+end
+
+function yapidb:is_installed(namepkg)
+    local installed = self:installed_pkgs()
+    for k,v in ipairs(installed) do
+        local splitted = os.strsplit(v, ';')
+        if splitted[1] == namepkg then return true end
+    end
+    return false
 end
 
 function yapidb:updatepkgs()
@@ -268,6 +273,10 @@ function yapidb:remove(pkgname)
     --1st: read cached yapdata
     --2nd: remove all files made by yapdata['files']
     --3rd: remove entry in YAPIDIR..'/installedpkg'
+    if not self:is_installed(pkgname) then
+        os.ferror(" -> package not installed")
+        return false
+    end
     local yfile = self:search_wcache(pkgname)
     local ydata = parse_yap(yfile)
     --2nd part
@@ -305,11 +314,17 @@ function yapidb:remove(pkgname)
     return true
 end
 
+function yapidb:clear_cache()
+    fs.delete(YAPIDIR..'/cache')
+    fs.makeDir(YAPIDIR..'/cache')
+end
+
 function main(args)
     if not permission.grantAccess(fs.perms.SYS) then
         os.ferror("yapi: not running as root")
         return 1
     end
+    create_default_struct()
     if #args == 0 then
         print("usage: yapi <mode> ...")
     else
@@ -331,6 +346,13 @@ function main(args)
                         end
                     end
                 end
+
+                if isin(option, 'c') then
+                    local database = yapidb.new(YAPIDIR..'/db')
+                    print("==> [clear_cache]")
+                    database:clear_cache()
+                end
+
                 if isin(option, 'y') then
                     print("==> [update_db] "..SERVERIP)
                     local SPATH = 'http://'.. SERVERIP .. SERVERDIR .. '/database'
@@ -348,7 +370,9 @@ function main(args)
                 if isin(option, 'u') then
                     local database = yapidb.new(YAPIDIR..'/db')
                     print("==> [updatepkgs] updating packages")
-                    database:updatepkgs()
+                    if prompt("Do you want to do a full system upgrade?", "Y", "n") then
+                        database:updatepkgs()
+                    end
                 end
             elseif string.sub(option,2,2) == 'U' then
                 local yfile = os.cshell.resolve(args[2])
@@ -378,7 +402,6 @@ function main(args)
                         print("Name: "..yobj.name)
                         print("Version: "..yobj.version..' (build:'..yobj.build..')')
                         print("Author: "..yobj.author.." <"..yobj['email_author']..">")
-                        print("Maintainer: "..yobj.contributors)
                         print("Description: "..yobj.description)
                     else
                         os.ferror("[!] [search] package not found")
@@ -397,6 +420,10 @@ function main(args)
             elseif string.sub(option,2,2) == 'R' then
                 local packages = os.tail(args)
                 if packages ~= nil then
+                    if not prompt("Do you want to remove the selected packages?", "Y", "n") then
+                        os.ferror("[remove] aborted")
+                        return 0
+                    end
                     for k,package in ipairs(packages) do
                         local database = yapidb.new(YAPIDIR..'/db')
                         database:update()
@@ -407,17 +434,6 @@ function main(args)
                             os.ferror("==> [remove] "..package.." : FAILURE")
                             return 1
                         end
-                    end
-                end
-            elseif string.sub(option,2,2) == 'Q' then
-                if isin(option, 'e') then
-                    local database = yapidb.new(YAPIDIR..'/db')
-                    database:update()
-                    print("Installed packages: ")
-                    local ipkg = database:installed_pkgs()
-                    for _,ntv in ipairs(ipkg) do
-                        local v = os.strsplit(ntv, ';')
-                        write(v[1] .. ' build ' .. v[2] .. '\n')
                     end
                 end
             end

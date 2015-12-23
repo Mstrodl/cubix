@@ -13,7 +13,7 @@
     +new device: /dev/full
     +added more signals in os.signals
     +loadmodule_ret: returns the module _G, instead of putting it on os.lib
-    +device_write and device_read are the default interface to devices now.
+    +device_write and device_read are the default interfaces to devices now.
     +/sbin/sbl-mkconfig: 'default' mode now generates system.cfg based of default.cfg, not in a hardcoded way anymore
     +dev_available(path): simply returns true if the device exists, false if its not
 
@@ -27,7 +27,7 @@
         +clears /proc/<pid> folders when __clear_temp is called
         +sets CUBIX_TURNINGOFF to true when acpi_shutdown is called
         +sets CUBIX_REBOOTING to true when acpi_reboot is called
-          +because of that, init will not cause a reboot to be a shutdown
+          +because of that, init won't cause a reboot to be a shutdown
 
   Added programs:
     +/bin/panic: just calls kpanic

@@ -37,6 +37,13 @@ function parse_cmfl(path)
                 new_lines[#new_lines+1] = lines[k+i]
                 i = i + 1
             end
+        elseif v == '.m' then
+            new_lines[#new_lines+1] = lines[k+1]
+            local i = 2
+            while lines[k+i] ~= '.e' do
+                new_lines[#new_lines+1] = lines[k+i]
+                i = i + 1
+            end
         end
     end
     local w,h = term.getSize()

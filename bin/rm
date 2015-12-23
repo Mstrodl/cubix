@@ -21,6 +21,7 @@ function main(args)
         fs.delete(f)
     elseif fs.exists(fs.combine(current_path, f)) then
         fs.delete(fs.combine(current_path, f))
+    else
+        os.ferror("rm: node not found")
     end
 end
-
