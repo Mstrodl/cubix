@@ -9,6 +9,8 @@ $ lx load <lxw file>
 
 $ lx load /g/lxterm/lxterm.lxw
 
+$ lx demo
+
 ]]
 
 _handler = {}
@@ -79,6 +81,17 @@ function main(args)
             write("lx status: "..(os.lib.lx.get_status())..'\n')
         else
             write("lx backend not running\n")
+        end
+    elseif args[1] == 'demo' then
+        if os.lib.lx then
+            os.lib.lx.blank()
+            os.lib.lx.demo()
+            os.lib.lxServer.sv_demo()
+            os.lib.lx.blank()
+            local lxterm = os.lib.lxWindow.Window.new("/g/lxterm/lxterm.lxw")
+            os.lib.lxClient.loadWindow(lxterm)
+        else
+            ferror("lx: lx backend not running\n")
         end
     elseif args[1] == 'stop' then
         os.debug.debug_write("[lx] stopping")

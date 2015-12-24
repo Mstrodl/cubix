@@ -2,7 +2,7 @@
 --time: manages time calls
 
 local fallback2 = "http://luca.spdns.eu/time.php"
-local fallback1 = 'http://www.timeapi.org/utc/now?format=%7B%25d%2C%25m%2C%25Y%2C%25d%2C%25I%2C%25M%7D'
+local fallback1 = 'http://www.timeapi.org/utc/now?format=%7B%25d%2C%25m%2C%25Y%2C%25H%2C%25M%2C%25S%7D'
 
 local servers = {}
 

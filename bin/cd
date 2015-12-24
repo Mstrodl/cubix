@@ -36,6 +36,8 @@ end
 function cd(pth)
     if CURRENT_PATH == nil then
         CURRENT_PATH = '/'
+    elseif pth == nil then
+        CURRENT_PATH = CURRENT_PATH
     elseif pth == '.' then
         CURRENT_PATH = CURRENT_PATH
     elseif pth == '..' then
@@ -71,6 +73,3 @@ function main(args)
     _cpath.write(CURRENT_PATH)
     _cpath.close()
 end
-
-
-

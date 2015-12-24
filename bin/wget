@@ -5,7 +5,6 @@
 _handler = {}
 _handler.signal_handler = function (sig)
     if sig == 'kill' then
-        --print("wget: recieved SIGKILL")
         return 0
     end
 end
@@ -19,7 +18,8 @@ function usage()
     print("usage: wget <url> <file>")
 end
 
-function download_file(url)
+function download_file_http(url)
+    print("[http] "..url)
     http.request(url)
     local req = true
     while req do
@@ -35,49 +35,42 @@ function download_file(url)
     end
 end
 
+function download_pastebin(pastebin_id)
+    return download_file_http('http://pastebin.com/raw/'..pastebin_id)
+end
+
+function download_file(url)
+    if string.sub(url, 1,7) == 'http://' then
+        return download_file_http(url)
+    elseif string.sub(url, 1,9) == 'pastebin:' then
+        return download_pastebin(string.sub(url, 10, #url))
+    end
+end
+
 function main(args)
-    if #args == 0 then
+    if #args ~= 2 then
         usage()
         return 0
     end
-    --[[local url, dest = args[1], args[2]
-    local response = http.get(url)
-    local sResponse = ''
-    if response then
-        print("wget: GET success")
-        sResponse = response.readAll()
-        response.close()
-    else
-        os.ferror("wget: failed!")
-    end
-    ]]
-
     local url, destination = args[1], args[2]
     local response = download_file(url)
     if type(response) == 'string' then
-        print("wget: REQUEST OK")
+        print("wget: response ok")
+    elseif type(response) == 'table' and response[1] == false then
+        ferror("wget: response == table")
+        ferror("wget: "..response[2])
+        return 1
     else
-        os.ferror("wget: type(response) ~= string")
-        os.ferror("wget: "..response[2])
+        ferror("wget: ???")
         return 1
     end
+    local p = os.cshell.resolve(destination)
+    local h = fs.open(p, 'w')
+    h.write(response)
+    h.close()
+    print("wget: saved as "..p)
+end
 
-    local _h = fs.open("/tmp/current_path", 'r')
-    local CPATH = _h.readAll()
-    _h.close()
-
-    local fh = {}
-    if string.sub(dest, 0, 1) == '/' then
-        fh = fs.open(dest, 'w')
-    elseif not fs.exists(fs.combine(CPATH, dest)) then
-        fh = fs.open(fs.combine(CPATH, dest), 'w')
-    else
-        fh = fs.open(fs.combine(CPATH, dest), 'w')
-    end
-
-    fh.write(response)
-    fh.close()
-
-    print("wget: downloaded as "..dest.. " from "..url)
-    return 0
+if not IS_CUBIX then
+    main({...})
 end

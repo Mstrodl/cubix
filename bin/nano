@@ -1,15 +1,6 @@
 #!/usr/bin/env lua
 --/bin/nano: an alternative to program a good text editor.
 
-if os.loadAPI("/lib/debug_manager") then
-    debug = _G["debug_manager"]
-    debug.debug_write("debug: loaded", false)
-else
-    debug = {}
-    debug.debug_write = print
-    debug.debug_write("debug: not loaded")
-end
-
 _handler = {}
 _handler.signal_handler = function (sig)
     if sig == 'kill' then
@@ -20,21 +11,6 @@ end
 
 function main(args)
     local file = args[1]
-    local _h = fs.open("/tmp/current_path", 'r')
-    local current_path = _h.readAll()
-    _h.close()
-    function check_slash(s) return string.sub(s, 0, 1) == '/' end
-    if check_slash(file) then
-        if fs.exists(file) then
-            local h = fs.open(file, 'a')
-        else
-            local h = fs.open(file, 'w')
-        end
-    else
-        if fs.exists(fs.combine(current_path, file)) then
-            local h = fs.open(fs.combine(current_path, file), 'a')
-        else
-            local h = fs.open(fs.combine(current_path, file), 'w')
-        end
-    end
+    local h = fs.open(os.cshell.resolve(file), 'r')
+    h.close()
 end

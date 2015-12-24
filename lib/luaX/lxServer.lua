@@ -116,15 +116,17 @@ function sv_demo()
     os.lib.lx.blank()
     demo_printMark()
 
-    for i=3,5 do
+    for i=3,15 do
         write_square(i,i,6+i,os.lib.lx.random_color())
+        sleep(.5)
     end
+
+    sleep(3.5)
 
     os.lib.lx.blank()
     demo_printMark()
 
     os.debug.kpanic('lx kpanic test')
-
 end
 
 function libroutine()

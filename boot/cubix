@@ -2,7 +2,7 @@
 --/boot/cubix: well, cubix!
 
 AUTHOR = "Lukas Mendes"
-BUILD_DATE = "2015-12-23"
+BUILD_DATE = "2015-12-24"
 
 --  version format: major.revision.minor
 --      major: linear
@@ -196,7 +196,7 @@ else
 end
 
 if kflag.quiet then
-    debug.debug_write = function(x)end
+    debug.debug_write = function()end
     debug.testcase = function()end
     debug.ferror = function()end
 end
@@ -252,6 +252,13 @@ function loadmodule_ret(path)
 end
 
 os.internals.loadmodule = loadmodule
+
+function os.viewLoadedMods()
+    for k,v in pairs(os.lib) do
+        write(k..' ')
+    end
+    write('\n')
+end
 
 --hack
 os.lib.proc = {}

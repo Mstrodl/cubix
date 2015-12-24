@@ -3,7 +3,7 @@
 
 AUTHOR = "Lukas Mendes"
 VERSION = "0.0.4"
-BUILD_DATE = "2015-12-23"
+BUILD_DATE = "2015-12-24"
 
 --[[
     The Cubix Live Installer has the basic utilities to install cubix
@@ -493,4 +493,6 @@ function main()
     run_shell()
 end
 
-main()
+if not IS_CUBIX then
+    main()
+end

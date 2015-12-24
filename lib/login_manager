@@ -156,7 +156,7 @@ function add_new_user(u, p)
     --TODO: permissions
     local _salt = os.generateSalt(15)
     local hp = os.lib.hash.hash.sha256(p .. _salt)
-    local user_string = u .. '^' .. hp .. '^' .. _salt ..  '\n'
+    local user_string = '\n' .. u .. '^' .. hp .. '^' .. _salt ..  '\n'
     local h = fs.open("/etc/shadow", 'a')
     h.write(user_string)
     h.close()
