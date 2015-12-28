@@ -10,5 +10,5 @@ _handler.signal_handler = function (sig)
 end
 
 function main(args)
-    os.runfile_proc("/bin/cshell")
+    os.runfile_proc("/bin/cshell", args)
 end

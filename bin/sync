@@ -1,0 +1,14 @@
+#!/usr/bin/env lua
+--/bin/sync: synchronize filesystems
+
+_handler = {}
+_handler.signal_handler = function(sig)
+    if sig == 'kill' then
+        --print("sync: SIGKILL")
+        return 0
+    end
+end
+
+function main()
+    fsmanager.sync()
+end

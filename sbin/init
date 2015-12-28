@@ -4,13 +4,12 @@
 _handler = {}
 _handler.signal_handler = function (sig)
     if sig == 'kill' then
+        _G['CANT_HANDLE_THE_FORCE'] = true
         os.ferror("init: SIGKILL")
-        if permission.grantAccess(fs.perms.ROOT) then
-            if CUBIX_TURNINGOFF or CUBIX_REBOOTING then
-                return 0
-            else
-                os.shutdown()
-            end
+        if CUBIX_TURNINGOFF or CUBIX_REBOOTING then
+            return 0
+        else
+            os.shutdown()
         end
     end
 end
@@ -107,7 +106,6 @@ RUNLEVELFUNC[5] = runlevel_5
 RUNLEVELFUNC[6] = runlevel_6
 
 function main(args)
-    --TODO: ability to runlevel
     if args[1] ~= nil then
         runlevel = tonumber(args[1])
     else

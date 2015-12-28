@@ -20,11 +20,11 @@ function debug_write(dmessage, screen, isErrorMsg)
         end
         if screen == nil then
             print('[' .. __debug_counter ..']' .. dmessage)
-        elseif screen == false and os.__boot_flag == true then
+        elseif screen == false and os.__boot_flag or _G['CUBIX_REBOOTING'] or _G['CUBIX_TURNINGOFF'] then
             print('[' .. __debug_counter ..']' .. dmessage)
         end
         debug_write_tobuffer(dmessage..'\n')
-        os.sleep(math.random() / 8)
+        os.sleep(math.random() / 12)
         term.set_term_color(colors.white)
     end
 end

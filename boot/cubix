@@ -2,7 +2,7 @@
 --/boot/cubix: well, cubix!
 
 AUTHOR = "Lukas Mendes"
-BUILD_DATE = "2015-12-24"
+BUILD_DATE = "2015-12-28"
 
 --  version format: major.revision.minor
 --      major: linear
@@ -15,7 +15,7 @@ VERSION_MAJOR = 0
 VERSION_REV   = 5
 VERSION_MINOR = 1
 VERSION = VERSION_MAJOR.."."..VERSION_REV.."."..VERSION_MINOR
---
+
 STABLE = ((VERSION_REV % 2) == 0)
 
 if STABLE then
@@ -35,6 +35,7 @@ term.set_term_color = function (c)
 end
 
 os.viewTable = function (t)
+    if t == nil then return 0 end
     print(t)
     for k,v in pairs(t) do
         print(k..","..tostring(v).." ("..type(v)..")")
@@ -203,7 +204,9 @@ end
 
 os.debug = debug
 
-debug.debug_write("Cubix version "..VERSION.." loading...")
+term.set_term_color(colors.green)
+debug.debug_write("Welcome to Cubix "..VERSION..'!')
+os.sleep(.5)
 
 os.lib = {}
 os.internals = {}
@@ -212,9 +215,9 @@ os.internals._kernel = {}
 local isReloadable = {}
 
 function loadmodule(nmodule, path)
-    os.debug.debug_write('[loadmodule] loading: '..nmodule)
+    os.debug.debug_write('[mod] loading: '..nmodule)
     if isReloadable[nmodule] ~= nil and isReloadable[nmodule] == false then
-        os.debug.debug_write("[loadmodule] cannot reload "..nmodule..", please reboot!", nil, true)
+        os.debug.debug_write("[mod] cannot reload "..nmodule..", please reboot!", nil, true)
         return 0
     end
     if os.loadAPI(path) then
@@ -222,14 +225,14 @@ function loadmodule(nmodule, path)
         if _G[nmodule].libroutine ~= nil then
             _G[nmodule].libroutine()
         else
-            os.debug.debug_write("[loadmodule] libroutine() not found", nil, true)
+            os.debug.debug_write("[mod] libroutine() not found", nil, true)
             sleep(.3)
         end
         os.lib[nmodule] = _G[fs.getName(path)]
         isReloadable[nmodule] = os.lib[nmodule].RELOADABLE
-        os.debug.debug_write('[loadmodule] loaded: '..nmodule)
+        os.debug.debug_write('[mod] loaded: '..nmodule)
     else
-        os.debug.kpanic("[loadmodule] not loaded: "..nmodule)
+        os.debug.kpanic("[mod] not loaded: "..nmodule)
     end
 end
 
@@ -344,7 +347,7 @@ end
 
 EXTDEVICES = {}
 function os.internals._kernel.new_device(typedev, name, pth)
-    os.debug.debug_write("[extdev] "..name.." ("..typedev..") -> "..pth.." detected")
+    os.debug.debug_write("[extdev] "..name.." ("..typedev..") -> "..pth)
     EXTDEVICES[name] = {devtype=typedev, path=pth}
     os.internals._kernel.register_device({name=pth, device=from_extdev(name,pth,typedev)})
 end
@@ -362,7 +365,6 @@ _G['dev_write'] = dev_write
 
 function dev_read(path, bytes)
     local result = os.list_devices[path].device_read(bytes)
-    print(type(result))
     return result
 end
 _G['dev_read'] = dev_read
@@ -372,6 +374,11 @@ function dev_available(path)
     return av
 end
 _G['dev_available'] = dev_available
+
+function get_device(pth)
+    return os.list_devices[pth]
+end
+_G['get_device'] = get_device
 
 function os.list_dev()
     for k,v in pairs(os.list_devices) do
@@ -419,7 +426,7 @@ os.__debug_buffer = debug.__debug_buffer
 os.__boot_flag = false
 
 --setting tty
-os.lib.tty.current_tty("/dev/tty0")
+os.lib.tty.current_tty("/dev/tty1")
 
 --finally, run!
 os.__parent_init = os.new_process(kflag.init)

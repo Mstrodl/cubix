@@ -1,4 +1,8 @@
-On the Subject of Login Manager
+On the Subject of Login Manager(os.lib.login)
 
-Login in cubix is made by the login() function in /lib/login_manager. login() reads /etc/shadow, a file that stores users, their password and the salt
-By now, passwords are stored in the sha256(password + salt) ["man hashmngr"] form, and the defualt home folder for a user is /home/<user>
+Task #1:
+    Manage user access to things in every security aspect of cubix.
+
+    login(user, password) is the big boss here.
+    Passwords are stored in the sha256(password + salt) form ["man hashmngr"]
+    The defualt home folder for users is /home/<user>

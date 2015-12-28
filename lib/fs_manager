@@ -1,8 +1,8 @@
 #!/usr/bin/env lua
 --filesystem manager
---task: manage filesystem permissions AND new filesystems
+--task: Manage Filesystems
 
---TODO: filesystem drivers(vfat, ext3, and others)
+--TODO: filesystem drivers(vfat, ext3, devfs, tmpfs)
 
 function deepcopy(orig)
     local orig_type = type(orig)
@@ -34,8 +34,14 @@ function loadfs(fsname)
     end
 end
 
-function load_filesystems(k)
-    loadfs('cfs')
+function load_filesystems()
+    loadfs('cfs') --Cubix File System
+    loadfs('tmpfs') --Temporary File System
+    --loadfs('ext2')
+    --loadfs('ext3')
+    --loadfs('ext4')
+    --loadfs('fat')
+    --loadfs('vfat')
 end
 
 _G["fsdrivers"] = fsdrivers
@@ -95,8 +101,6 @@ fs.perm = function (path)
     local perm_obj = {}
     local information = nodes[path]
     perm_obj.writeperm = true
-    --perm_obj.readperm = 
-    --perm_obj.executeperm = 
     return perm_obj
 end
 
@@ -137,7 +141,6 @@ permission.grantAccess = function(perm)
             _uid = os.lib.login.currentUser().uid
         end
     end
-    --print("uid:" .. tostring(_uid))
     if (perm == fs.perms.ROOT or perm == fs.perms.SYS) and (_uid == 0 or os.__boot_flag == true) then
         return true
     elseif perm == fs.perms.NORMAL then
@@ -236,7 +239,9 @@ fsmanager.saveFS = function(mountpath)
 end
 
 fsmanager.sync = function()
+    os.debug.debug_write('[fsmanager:sync]')
     for k,v in pairs(mounts) do
+        os.debug.debug_write('[sync] saveFS: '..k)
         fsmanager.saveFS(k)
     end
 end
@@ -324,24 +329,33 @@ end
 fsmanager.umount_path = function(mpath)
     if not permission.grantAccess(fs.perms.SYS) then
         os.ferror("umount: system permission is required to umount")
-        return false
+        return {false, 'system permission is required to umount'}
     end
-    fsmanager.saveFS(mpath)
-    mounts[mpath] = nil
-    return true
+    if mounts[mpath] then
+        fsmanager.saveFS(mpath)
+        mounts[mpath] = nil
+        return {true}
+    end
+    return {false, 'mountpath not found'}
 end
 
 fsmanager.umount_dev = function(dev)
     if not permission.grantAccess(fs.perms.SYS) then
-        os.ferror("umount: system permission is required to umount")
-        return false
+        --os.ferror("umount: system permission is required to umount")
+        return {false, 'system permission is required to umount'}
     end
-    for k,v in pairs(mounts) do
-        if v.dev == dev then
-            fsmanager.saveFS(k)
-            mounts[k] = nil
+    local k = next(mounts)
+    while k do
+        if mounts[k] then
+            if mounts[k]['dev'] == dev then
+                fsmanager.saveFS(k)
+                mounts[k] = nil
+                return {true}
+            end
         end
+        k = next(mounts)
     end
+    return {false, 'device not found'}
 end
 
 fsmanager.getMount = function(mountpath)
@@ -356,12 +370,25 @@ fsmanager._test = function()
     fsmanager.setNode("/startup", 0, 755, nil, 0)
 end
 
+function shutdown_procedure()
+    local k = next(mounts)
+    while k do
+        if mounts[k] then
+            os.debug.debug_write('[fs:shutdown] umounting '..mounts[k]['dev']..' at '..k)
+            fsmanager.saveFS(k)
+            mounts[k] = nil
+            --return {true}
+        end
+        k = next(mounts)
+    end
+    sleep(.5)
+end
+
 function libroutine()
     os.deepcopy = deepcopy
     _G["permission"] = permission
     _G["fsmanager"] = fsmanager
     _G['oldfs'] = oldfs
     load_filesystems()
-    --fsmanager.mount("/dev/hdd", "cfs", "/")
+    fsmanager.mount("/dev/hdd", "cfs", "/")
 end
-

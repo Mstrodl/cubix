@@ -49,9 +49,12 @@ os.cshell.resolve = function(pth)
     end
 end
 
+aliases = {}
+
 function shell_command(k)
     --TODO: add support for & (multitasking)
-    if k == nil or k == "" then return 0 end
+    --if k == nil or k == "" then return 0 end
+    if string.sub(k, 1, 1) == '#' then return 0 end
     for _, k in pairs(os.strsplit(k, "&&")) do
     if k:find("|") then
         local count = 1
@@ -116,6 +119,16 @@ function shell_command(k)
         elseif program == 'getperm' then
             permission.getPerm()
             return 0
+        elseif program == 'alias' then
+            local arg = string.sub(k, #program + 1, #k)
+            local spl = os.strsplit(arg, '=')
+            local key = spl[1]
+            local alias = spl[2]
+            aliases[key] = string.sub(alias, 2, #alias - 1)
+            return 0
+        elseif program == 'aliases' then
+            os.viewTable(aliases)
+            return 0
         end
         local args = {}
         for k,v in pairs(c) do
@@ -157,7 +170,7 @@ function shell_command(k)
         end
 
         if not found then
-            os.ferror("cshell: Program not found")
+            os.ferror("cshell: "..program..": Program not found")
         end
     end
     end
@@ -166,6 +179,27 @@ end
 os.cshell.__shell_command = shell_command
 os.cshell.complete = function()
     --return fs.complete(current_path)
+end
+
+local aliases = {}
+
+function new_shcommand(cmd)
+    shell_command(cmd)
+end
+
+function run_cshrc(user)
+    if not fs.exists('/home/'..user..'/.cshrc') then
+        os.debug.debug_write("[cshell] .cshrc not found", nil, true)
+        return 1
+    end
+    local cshrc_handler = fs.open('/home/'..user..'/.cshrc', 'r')
+    local _lines = cshrc_handler.readAll()
+    cshrc_handler.close()
+    local lines = os.strsplit(_lines, '\n')
+    for k,v in ipairs(lines) do
+        new_shcommand(v)
+    end
+    return 0
 end
 
 function main(args)
@@ -181,10 +215,20 @@ function main(args)
     if #args > 0 then
         local ecmd = args[1]
         print(ecmd)
-        print(string.sub(ecmd, 1, #ecmd -1))
-        os.runfile(ecmd)
+        --print(string.sub(ecmd, 1, #ecmd -1))
+        local h = fs.open(os.cshell.resolve(ecmd), 'r')
+        local _l = h.readAll()
+        h.close()
+        local lines = os.strsplit(_l, '\n')
+        for k,v in ipairs(lines) do
+            shell_command(v)
+        end
         return 0
     end
+    local cuser = fs.open("/tmp/current_user", 'r')
+    current_user = cuser.readAll()
+    cuser.close()
+    run_cshrc(current_user)
     while true do
         local cuser = fs.open("/tmp/current_user", 'r')
         local cpath = fs.open("/tmp/current_path", 'r')
@@ -199,10 +243,13 @@ function main(args)
         end
         write(current_user .. ':' .. current_path .. shell_char)
         command = read(nil, HISTORY, os.cshell.complete)
-        table.insert(HISTORY, command)
         if command == "exit" then
             return 0
         elseif command ~= nil then
+            if command ~= '' or not command:find(" ") then
+                --i dont know why this isnt working, sorry.
+                table.insert(HISTORY, command)
+            end
             shell_command(command)
         end
     end

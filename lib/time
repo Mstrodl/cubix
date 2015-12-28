@@ -30,10 +30,10 @@ local function getTimeData()
             if d ~= nil then
                 return d
             else
-                ferror("getTimeData: d == nil")
+                os.debug.debug_write("getTimeData: d == nil", true, true)
             end
         else
-            ferror("getTimeData: s == nil")
+            os.debug.debug_write("getTimeData: s == nil", true, true)
         end
     end
     return nil
@@ -45,8 +45,8 @@ function getTime_fmt(_tZoneH, _tZoneM)
     local tZoneM = _tZoneM or 0
     local d = getTimeData()
     if d == nil then
-        ferror("getTime_fmt: getTimeData returned nil")
-        return 0
+        os.debug.debug_write("getTime_fmt: getTimeData returned nil, returning time zero", true, true)
+        return {0,0,0,0,0,0,0}
     end
     local t = textutils.unserialise(d)
     local gh = t[4]

@@ -1,27 +1,27 @@
 Cubix API
 
-The Cubix kernel has quite good variables that deserve to be listed, so here we are(in order they are defined in /boot/cubix).
+os.list_mfiles [table]
+    managed files in cubix ["man procmngr"]
+os.list_devices [table]
+    list the devices registered in cubix ["man devicemngr"]
 
-  -os.list_mfiles
-    -list the managed files in cubix (see "man procmngr")
-  -os.list_devices
-    -list the devices registered in cubix (see "man devices")
-  -os.system_halt()
-    -halts the system execution, returns nil.
-  -os.viewTable(table)
-    -a simple function that shows the elements from a table, returns nil.
-  -os.central_print(s)
-    -centralized text
-  -os.ferror(s)
-    -wrapper to a emulation of stderr
-  -os.safestr(s)
-    -turns a string into printable characters
-  -os.strsplit(s, sep)
-    -emulates python split
+os.system_halt() [function, nil]
+    halts the system execution.
+os.viewTable(table) [function, nil]
+    show the elements from a table.
+os.ferror(s) [function, nil]
+    error function
 
-  -os.lib.hash.sha256(s) - SHA256 hash of a string, returns string.
-  -os.lib.hash.md5(s) - MD5 hash of a string, returns string.
+os.safestr(s) [function, string]
+    turns a string into printable characters
 
-  -term.set_term_color(color) - a simple function to compatiblity between Computers and Advanced Computers, returns nil.
+os.strsplit(s, sep) [function, list]
+    emulation of python 'split' function
 
+os.lib.hash.sha256(s) [function, string]
+    SHA256 hash of a string
+os.lib.hash.md5(s) [function, string]
+    MD5 hash of a string
 
+term.set_term_color(color) [function, nil]
+    a simple function to compatiblity between Computers and ADV. Computers

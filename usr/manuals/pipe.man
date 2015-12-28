@@ -1,4 +1,4 @@
-Pipes
+On the Subject of Pipes
 
 A pipe is a communication interface between programs(not as well as unix, as unix links stdout of one program to stdin of another), the symbol used to create pipes(in cshell) is "|", a simple example would be:
 
@@ -7,5 +7,3 @@ ps | glep login
 as a result, ps will show the list of processes, but glep filters that output, showing only the lines that contain "login", a example result would be:
 
 2 /sbin/init > /sbin/login
-
-

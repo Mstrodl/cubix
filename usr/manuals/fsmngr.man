@@ -1,3 +1,4 @@
-FileSystem Manager
+On the subject of the File System Manager
 
-Task: Manage FS permissions and new FS
+Task #1:
+    Manage File Systems.

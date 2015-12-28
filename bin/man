@@ -1,5 +1,5 @@
 #!/usr/bin/env lua
---/bin/man: manuals! :D
+--/bin/man: program to open manual pages
 
 _handler = {}
 _handler.signal_handler = function (sig)
@@ -38,6 +38,7 @@ function parse_cmfl(path)
                 i = i + 1
             end
         elseif v == '.m' then
+            new_lines[#new_lines+1] = '\n'
             new_lines[#new_lines+1] = lines[k+1]
             local i = 2
             while lines[k+i] ~= '.e' do

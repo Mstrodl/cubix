@@ -4,6 +4,7 @@
 _handler = {}
 _handler.signal_handler = function(sig)
     if sig == 'kill' then
+        os.debug.debug_write("lua: recieved SIGKILL", false, true)
         return 0
     end
 end

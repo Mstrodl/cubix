@@ -1,14 +1,11 @@
-Process Manager
+On the subject of the Process Manager
 
-Primary task: Interface process
-Secondary task: Manage /proc
-
-Primary:
-  Non-localized variables:
-    -os.processes - list - shows the list of actual processes running at the system
-    -os.pid_last - number - the last PID of a process, used to create the PID of the next process
-    -os.signals - table - system signals
-      -os.signals.SIGKILL - number
+Primary task:
+    Process Manager creates, kills and interfaces process with the userspace.
+  Global variables:
+    -os.processes [table] - shows the list of actual processes running at the system
+    -os.pid_last [number] - the last PID of a process, used to create the PID of the next process
+    -os.signals [table] - system signals(SIGKILL, SIGINT, SIGILL, SIGFPE...)
 
   Functions:
     -Process related:
@@ -31,5 +28,8 @@ Primary:
         -creates a process, set its parent and runs it with specified arguments, after that, sends a SIGKILL to it
 
 
-Secondary:
-  -proc_manager creates /proc/cpuinfo, /proc/temperature and /proc/partitions, fake files that simulate a real unix /proc
+ * Secondary task:
+    The concept of /proc is around Managed Files, they're files that the kernel can show information to the user.
+     * /proc/cpuinfo
+     * /proc/temperature
+     * /proc/partitions

@@ -1,7 +1,4 @@
-Cubix Shell
+On the subject of the Cubix Shell(cshell)
 
 The Cubix Shell is located at /bin/cshell and referenced by /bin/sh.
-
-When it starts it prints the user logged in that shell and the current directory, then it follows a simple rule, if the user is not root, it prints "$" after the shell, if it is, print "#"
-
 By default the root user can run programs at /sbin and for a normal user to run it, it has to use "sudo" to do that

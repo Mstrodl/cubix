@@ -1,0 +1,16 @@
+!cmfl!
+
+.name
+wget - download files through http
+
+.cmd
+wget <URL> <DESTFILE>
+
+.listop URL
+    URL could be a normal http url, like "http://lkmnds.github.io" (and it needs the http://, HTTP ONLY, not https)
+    or URL could be a pastebin link, like "pastebin:pastebinid"
+.e
+
+.listop DESTFILE
+    as normal operation, wget will rewrite DESTFILE when called, so don't mess things up
+.e

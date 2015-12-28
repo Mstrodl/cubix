@@ -48,10 +48,10 @@ os.call_handle = function(process, handler)
         if r._handler then
             r._handler.signal_handler(handler)
         else
-            os.debug.debug_write("[proc_handler] "..process.file.." does not have a signal handler, ignoring it")
+            os.debug.debug_write("[proc_handler] "..process.file.." doesnt have a signal handler, ignoring")
         end
     else
-        os.debug.debug_write("[proc_handler] "..process.file.." does not have anything to show, ignoring it", false)
+        os.debug.debug_write("[proc_handler] "..process.file.." doesnt have anything to show, ignoring", false)
     end
 end
 
@@ -61,7 +61,7 @@ os.send_signal = function (proc, signal)
     elseif proc == -1 then
         os.ferror("proc.send_signal: process was killed")
     elseif signal == os.signals.SIGKILL then
-        os.debug.debug_write("[proc_manager] "..proc.file.." recieved SIGKILL.", false)
+        os.debug.debug_write("[proc_manager] SIGKILL -> "..proc.file, false)
         os.processes[proc.pid] = -1 --removing anything related to the process in os.processes
         for k,v in pairs(proc.childs) do
             os.terminate(v)
@@ -89,7 +89,7 @@ os.getrunning = function()
     return running
 end
 
-function generate_pfolder(proc, folder)
+function generate_pfolder(proc, folder, arguments)
     --[[
     exe - executable
     stat - status
@@ -102,6 +102,17 @@ function generate_pfolder(proc, folder)
     local stat_handler = fs.open(fs.combine(folder, 'stat'), 'w')
     stat_handler.write("stat working")
     stat_handler.close()
+
+    local line_args = ''
+    for k,v in ipairs(arguments) do
+        line_args = line_args .. v .. ' '
+    end
+
+    proc.lineargs = line_args
+
+    local cmd_handler = fs.open(fs.combine(folder, 'cmd'), 'w')
+    cmd_handler.write(proc.file..' '..line_args)
+    cmd_handler.close()
 end
 
 os.run_process = function(p, args, pipe)
@@ -114,7 +125,7 @@ os.run_process = function(p, args, pipe)
     running = p.pid
     local proc_folder = "/proc/"..tostring(p.pid)
     fs.makeDir(proc_folder)
-    generate_pfolder(p, proc_folder)
+    generate_pfolder(p, proc_folder, args)
     p.uid = os.lib.login.currentUser().uid
 
     --running the file
@@ -124,10 +135,10 @@ os.run_process = function(p, args, pipe)
         if p.rfile.main ~= nil and type(p.rfile.main) == 'function' then
             p.rfile.main(args, pipe)
         else
-            os.debug.debug_write("[process] cannot call main() from "..p.file)
+            os.debug.debug_write("[process] can't call main(): "..p.file)
         end
     else
-        os.debug.debug_write("[process] cannot load "..p.file)
+        os.debug.debug_write("[process] can't load "..p.file)
     end
 
     --finish process
@@ -153,7 +164,8 @@ os.new_process = function(executable)
     cls.childs = {}
     cls.rfile = nil
     cls.uid = -1
-    os.debug.debug_write("[proc_manager] new process: "..cls.file, false)
+    cls.lineargs = ''
+    os.debug.debug_write("[proc] new: "..cls.file, false)
     return cls
 end
 
@@ -172,10 +184,9 @@ os.runfile_proc = function(executable, arguments, parent, pipe)
     end
     if arguments == nil then arguments = {} end
     --if pipe == nil then pipe = pipemngr.new_pipe("empty") end
-    _process = os.new_process(executable) --creating a process
-    os.set_parent(_process, _parent) --making parenting possible
+    _process = os.new_process(executable) --creating
+    os.set_parent(_process, _parent) --parenting
     os.run_process(_process, arguments, pipe) -- running
-    --os.send_signal(_process, os.signals.SIGKILL) --killing after its task is done
 end
 
 function test_processes()
@@ -252,7 +263,7 @@ end
 
 partitions_file.file.read = function(bytes)
     k = [[major minor  #blocks name
-8      0      1024876  hda]]
+8      0      1024876  hdd]]
     if bytes == nil then
         return k
     else

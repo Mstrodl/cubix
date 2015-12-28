@@ -2,8 +2,6 @@ Simple Boot Loader
 
 SBL was made to be a GRUB-like bootloader
 
-By default SBL verifies /boot/sblcfg/systems.cfg and by that loads a menu to the user, when the user selects what OS they want to load, SBL reads the bootscript related to the OS in systems.cfg.
-
 BootScript commands:
   set <key>=<value>
       the set command sets a key to a value, in the SBL context, we have only one special key, "root", this key sets where SBL will load the file, the 2 values "root" can have is "(hdd)" and "(disk)"
@@ -12,6 +10,6 @@ BootScript commands:
   kernel <args>
       it will set the SBL to load that kernel in args, example: "kernel /boot/cubix acpi" will load "/boot/cubix acpi"
   boot
-      well, boots.
+      boot the selected system
   chainloader +1
       this command makes SBL load the "sstartup" file in the "root" value

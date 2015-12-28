@@ -21,12 +21,13 @@ local __clear_temp = function()
 end
 
 local function acpi_shutdown()
-    if permission.grantAccess(fs.perms.SYS) then
+    if permission.grantAccess(fs.perms.SYS) or _G['CANT_HANDLE_THE_FORCE'] then
         os.debug.debug_write("[shutdown] shutting down for system halt")
         _G['CUBIX_TURNINGOFF'] = true
         os.debug.debug_write("[shutdown] sending SIGKILL to all processes")
         if not os.__boot_flag then --still without proper userspace
             os.lib.proc.__killallproc()
+            os.lib.fs_mngr.shutdown_procedure()
         end
         os.sleep(1)
         __clear_temp()
@@ -46,6 +47,7 @@ local function acpi_reboot()
         os.debug.debug_write("[reboot] sending SIGKILL to all processes")
         if not os.__boot_flag then --still without proper userspace
             os.lib.proc.__killallproc()
+            os.lib.fs_mngr.shutdown_procedure()
         end
         os.sleep(1)
         __clear_temp()
@@ -59,6 +61,7 @@ local function acpi_reboot()
 end
 
 local function acpi_suspend()
+    os.debug.debug_write('[suspend] starting', true)
     while true do
         term.clear()
         term.setCursorPos(1,1)
@@ -67,14 +70,21 @@ local function acpi_suspend()
             break
         end
     end
+    os.debug.debug_write('[suspend] ending', true)
 end
 
 local function acpi_hibernate()
     --[[
         So, to hibernate we need to write the RAM into a file, and then
-        in boot, read that file...
+        in boot, read that file... WTF?
     ]]
     --after that, black magic happens (again)
+    --[[
+        Dear future Self,
+
+        I don't know how to do this,
+        Please, finish.
+    ]]
     os.debug.debug_write("[acpi_hibernate] starting hibernation")
     local ramimg = fs.open("/dev/ram", 'w')
     ramimg.close()

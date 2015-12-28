@@ -13,11 +13,20 @@ function main(args)
     if permission.grantAccess(fs.perms.ROOT) then
         local path = args[1]
         local components = os.strsplit(path, '/')
-        --os.viewTable(components)
         if components[1] == 'dev' then
-            fsmanager.umount_dev(path)
-        else 
-            fsmanager.umount_path(path)
+            local ok = fsmanager.umount_dev(path)
+            if ok[1] == true then
+                os.debug.debug_write('[umount] '..path)
+            else
+                os.debug.debug_write('[umount_dev] error umounting '..path..' : '..ok[2], nil, true)
+            end
+        else
+            local ok = fsmanager.umount_path(path)
+            if ok[1] == true then
+                os.debug.debug_write('[umount] '..path)
+            else
+                os.debug.debug_write('[umount_path] error umounting '..path..' : '..ok[2], nil, true)
+            end
         end
     else
         os.ferror("umount: system permission is required to umount")

@@ -15,11 +15,14 @@ function main(args, pipe)
     for k,v in pairs(p) do
         if v ~= -1 then
             if v.parent == nil then
-                os.pprint(k.."   "..(v.file), pipe)
+                os.pprint(k.."   "..(v.file .. ' ' .. v.lineargs), pipe)
             else
-                os.pprint(k.."   "..(v.parent).." > " .. (v.file), pipe)
+                if v.parent ~= '/sbin/init' then
+                    os.pprint(k.."   "..(v.parent).." > " .. (v.file .. ' ' .. v.lineargs), pipe)
+                else
+                    os.pprint(k.."   "..(v.file .. ' ' .. v.lineargs), pipe)
+                end
             end
         end
     end
 end
-

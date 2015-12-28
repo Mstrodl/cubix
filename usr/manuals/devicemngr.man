@@ -1,8 +1,14 @@
-Debug Manager
+On the subject of the Device Manager
 
-Task: manage the whole /dev
+Task #1:
+    Manage /dev
 
-/dev/null - a device that cannot be read(), but everything write() to it will be ignored
-/dev/zero - only gives zeros
-/dev/random - gives random characters
-
+    Devices available:
+        /dev/null
+            everything write() to it is ignored
+        /dev/zero
+            only gives zeros when read()
+        /dev/random
+            gives random characters when read()
+        /dev/full
+            sends a SIGILL(Illegal Instruction) when something is write() to it

@@ -1,25 +1,35 @@
-Cubix Kernel Boot Sequence
+On the subject of Cubix Boot Sequence
 
--> First, the SBL is loaded in startup file and reads /boot/sblcfg/systems.cfg file, allowing for users to put more OSes easily, after that, SBL loads a menu and the user select what OS to load, then it will load the bootscript specified in systems.cfg and passes control to it["man sbl" for help].
+ * SBL is loaded in startup file and reads /boot/sblcfg/systems.cfg file, then, SBL loads a menu and the user select which OS to load, then it will load the bootscript related to it in systems.cfg and passes control to it["man sbl"].
 
-Then, if Cubix was selected at the menu, /boot/cubix starts to manage the system initalization:
+Then, if Cubix was selected at the menu, /boot/cubix starts to manage the system bootup:
 
--> First: load label and put it in /var/pcid; write version of cubix to /proc/version; write the build time to /proc/build_date and the time the OS started in /proc/sttime.
+Tasks of /boot/cubix:
+ * First Stage:
+    load label and put it in /var/pcid
+    write version of cubix to /proc/version
+    write the build time to /proc/build_date and the time the OS started in /proc/sttime.
 
--> Second: loads the managers, they play a important role in Cubix to do the task they are assigned for:
- -video_manager;
- -debug_manager["man debugmngr"];
- -acpi["man acpi"];
- -fs_manager["man fsmngr"];
- -proc_manager["man procmngr"];
- -hash_manager["man kernel api"];
- -device_manager["man devicemngr"];
- -tty_manager: loads support for ttys in /dev/ttyX (and no, device_manager does not work on this)
- -login_manager["man loginmngr"]
- -pipe_manager["man pipe"]
+ * Second Stage: loads the Managers:
+    video_manager
+    debug_manager["man debugmngr"]
+    acpi["man acpi"]
+    fs_manager["man fsmngr"]
+    proc_manager["man procmngr"]
+    hash_manager["man kernel api"]
+    device_manager["man devicemngr"]
+    tty_manager: loads support for ttys in /dev/ttyX
+    login_manager["man loginmngr"]
+    pipe_manager["man pipe"]
 
--> Third: Loads /sbin/login (as a process, "man procmngr" for details), the login manager, it asks for the user's username, the password and after that it loads the /bin/wshell, the cubix shell.
+ * Third Stage:
+    Load /sbin/init, which, depending of the runlevel, could start /sbin/login or luaX(the "graphical manager")
 
--> Shutdown: The shutdown process starts when /sbin/init gets a SIGKILL or when user calls /sbin/shutdown(init calls that too), the task of they is to wipe out /tmp, as they're temporary files and will be recreated when cubix starts up, then they do an os.shutdown() and bang.
-
-
+ * Shutdown:
+    Shutdown starts when /sbin/init gets a SIGKILL or when user runs /sbin/shutdown, they call os.shutdown() (assuming acpi is loaded)
+    then acpi_(shutdown|reboot) will:
+     * kill all processes
+     * delete /tmp and /proc/<number> folders
+     * recreate /tmp
+     * do a native shutdown
+     * bang.

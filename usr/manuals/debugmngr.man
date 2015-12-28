@@ -1,13 +1,15 @@
 Debug Manager
 
-Primary task: Manage debug information from the OS
+Task #1:
+    Manage debug information from the OS and from other managers
+    All of the functions of the Debug Manager can be found in os.debug (no, the debug manager isn't loaded like other modules(with loadmodule), instead, loadAPI is used)
+    The system log can be found in /tmp/syslog(will be deleted when shutdown["man acpi"])
 
-Functions:
-  -debug_write(message[, toscreen])
-    -writes message to screen if toscreen is nil
-    -if toscreen is false it does not write a message
-    -but in any of the cases it writes the message to the __debug_buffer
-  -dmesg()
-    -shows __debug_buffer
-  -kpanic()
-    -Kernel Panic!
+    debug_write(message[, toScreen, isErrorMessage])
+        writes message to screen if toscreen is nil
+        if toscreen is false it does not write a message
+        but in any of the cases it writes the message to the __debug_buffer
+    dmesg()
+        shows __debug_buffer
+    kpanic()
+        Kernel Panic!

@@ -18,7 +18,6 @@ function mread(x)
         end
     until count == x
     write('\n')
-    print(type(txt))
     return txt
 end
 

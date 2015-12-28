@@ -12,8 +12,6 @@ end
 function main(args)
     if #args == 0 then return 0 end
     local newfolder = args[1]
-    --local current_path = os.chsell.getpwd()
     fs.makeDir(os.cshell.resolve(newfolder))
     return 0
 end
-

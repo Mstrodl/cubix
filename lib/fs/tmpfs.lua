@@ -1,13 +1,30 @@
---Cubix File System
+--Temporary File System
 
 local res = {}
+local files = {}
+
+--[[
+files(table of tables):
+each table:
+    KEY = filename - filename
+
+    perm - permission
+    file - actual file
+]]
+
+function list_files()
+    local result = {}
+    for k,v in pairs(files) do
+        table.insert(result, k)
+    end
+    return result
+end
 
 function collectFiles(dir, stripPath, table)
     if not table then table = {} end
-    dir = dir
     local fixPath = fsmanager.stripPath(stripPath, dir)
     table[dir] = fsmanager.getInformation(dir)
-    local files = fs.list(dir)
+    local files = list_files()
     if dir == '/' then dir = '' end
     if fixPath == '/' then fixPath = '' end
     for k, v in pairs(files) do
@@ -16,10 +33,6 @@ function collectFiles(dir, stripPath, table)
         if oldfs.isDir(dir .. "/" .. v) then collectFiles(dir .. "/" .. v, stripPath, table) end
     end
     return table
-end
-
-function _test()
-    return collectFiles("/", "/", {})
 end
 
 function getSize(path)end
@@ -96,6 +109,53 @@ function isDir(path)
     return fs.isDir(path)
 end
 
+function makeObject(path, mode)
+    if files[path] then --file already exists
+        if mode == 'w' then files[path].file = '' end
+        return {
+            _file = files[path].file,
+            _perm = files[path].perm,
+            _cursor = 1,
+            write = function(data)
+                if _perm.writeperm then
+                    _file = _file .. data
+                    return data
+                else
+                    ferror("tmpfs: cant write to file")
+                end
+            end,
+            read = function(bytes)
+                if _perm.readperm then
+                    local res = string.sub(_file, _cursor, _cursor + bytes)
+                    _cursor = _cursor + bytes
+                    return res
+                else
+                    ferror("tmpfs: cant read file")
+                end
+            end,
+            readAll = function()
+                if _perm.readperm then
+                    local bytes = #_file
+                    local res = string.sub(_file, 1, bytes)
+                    return res
+                else
+                    ferror('tmpfs: cant read file')
+                end
+            end,
+        }
+    else
+        --create file
+        files[path] = {file='', perm=0}
+        if mode == 'r' then
+            ferror("tmpfs: file does not exist")
+        elseif mode == 'w' then
+            --create a file
+        elseif mode == 'a' then
+            --actualization
+        end
+    end
+end
+
 function open(path, mode)
-    return fs.open(path, mode)
+    return makeObject(path, mode)
 end

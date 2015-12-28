@@ -1,21 +1,7 @@
 #LXW data for lxTerm
 
 # maximum is 19x51
-
-lxtermwindow:
-
-SSSSSSSSSSSSSSSSSSSSSSSSSSSSSS
-S                            S
-S                            S
-S                            S
-S                            S
-S                            S
-S                            S
-S                            S
-SSSSSSSSSSSSSSSSSSSSSSSSSSSSSS
-
 name:lxterm
 hw:9,30
 changeable:false
 main:/g/lxterm/lxterm.lua
-

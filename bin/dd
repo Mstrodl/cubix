@@ -19,8 +19,7 @@ function main(args)
     end
     local i = fs.open(infile, 'r')
     local o = fs.open(outfile, 'w')
-    o.write(i.readAll().sub(0, bytes))
+    o.write(i.read(bytes))
     i.close()
     o.close()
 end
-
