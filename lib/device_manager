@@ -18,14 +18,37 @@ function loadDevice(name, path)
     end
 end
 
-loadDevice("_dev_random", "/lib/devices/random_device.lua")
-loadDevice("_dev_null", "/lib/devices/null_device.lua")
-loadDevice("_dev_zero", "/lib/devices/zero_device.lua")
-loadDevice("_dev_full", "/lib/devices/full_device.lua")
+MAPDEVICES_BLOCK = {}
+
+MAPDEVICES_CHAR = {}
+MAPDEVICES_CHAR[1] = {
+    [3]={key='dev_null', name='/dev/null', lib='null_device.lua'},
+    [5]={key='dev_zero', name='/dev/zero', lib='zero_device.lua'},
+    [7]={key='dev_full', name='/dev/full', lib='full_device.lua'},
+    [8]={key='dev_random', name='/dev/random', lib='random_device.lua'},
+}
+
+MAPDEVICES_CHAR[5] = {}
+
+function lddev(path, type, major, minor)
+    if type == 'b' then
+        local d = MAPDEVICES_BLOCK[major][minor]
+        loadDevice(d.name, '/lib/devices/'..d.lib)
+        os.internals._kernel.register_device(path, _G[d.name][d.key])
+    elseif type == 'c' then
+        local d = MAPDEVICES_CHAR[major][minor]
+        if d == nil then
+            ferror("lddev: device not found")
+            return false
+        end
+        loadDevice(d.name, '/lib/devices/'..d.lib)
+        os.internals._kernel.register_device(path, _G[d.name][d.key])
+    end
+end
 
 function libroutine()
-    os.internals._kernel.register_device(_dev_random.dev_random)
-    os.internals._kernel.register_device(_dev_null.dev_null)
-    os.internals._kernel.register_device(_dev_zero.dev_zero)
-    os.internals._kernel.register_device(_dev_full.dev_full)
+    lddev('/dev/null', 'c', 1, 3)
+    lddev('/dev/zero', 'c', 1, 5)
+    lddev('/dev/full', 'c', 1, 7)
+    lddev('/dev/random', 'c', 1, 8)
 end

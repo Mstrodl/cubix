@@ -2,6 +2,14 @@
 
 local res = {}
 
+function canMount(uid)
+    if uid == 0 then
+        return true
+    else
+        return false
+    end
+end
+
 function collectFiles(dir, stripPath, table)
     if not table then table = {} end
     dir = dir
@@ -27,15 +35,10 @@ function getSize(path)end
 function saveFS(mountpath, dev)
     local p = dev
     if p == '/' then p = '' end
-    local FSDATA = oldfs.open(p .. "/UFSDATA", "w")
+    local FSDATA = oldfs.open(p .. "/CFSDATA", "w")
     local WRITEDATA = ""
     for k, v in pairs(collectFiles(mountpath, mountpath, {})) do
-        if v.perms ~= '777' then
-            print(k)
-            os.viewTable(v)
-            --sleep(1.5)
-        end
-        if string.sub(k, 1, 4) ~= '.git' then
+        if string.sub(k, 1, 4) ~= '.git' and string.sub(k, 1, 5) ~= '/.git' and string.sub(k, 1, 6) ~= '/.git/' then
             WRITEDATA = WRITEDATA .. k .. ":" .. v.owner .. ":" .. v.perms .. ":"
             if v.linkto then WRITEDATA = WRITEDATA .. v.linkto end
             WRITEDATA = WRITEDATA .. ":" .. v.gid .. "\n"
@@ -49,8 +52,8 @@ end
 function loadFS(mountpath, dev)
     local p = dev
     if p == '/' then p = '' end
-    if not fs.exists(p..'/UFSDATA') then saveFS(mountpath, dev) end
-    local _fsdata = fs.open(p..'/UFSDATA', 'r')
+    if not fs.exists(p..'/CFSDATA') then saveFS(mountpath, dev) end
+    local _fsdata = oldfs.open(p..'/CFSDATA', 'r')
     local fsdata = _fsdata.readAll()
     _fsdata.close()
     local splitted = os.strsplit(fsdata, "\n")
@@ -82,20 +85,22 @@ function loadFS(mountpath, dev)
     return res, true
 end
 
---loadFS('/', '/')
-
-function list(path)
-    return fs.list(path)
+function list(mountpath, path)
+    return oldfs.list(path)
 end
 
-function exists(path)
-    return fs.exists(path)
+function exists(mountpath, path)
+    return oldfs.exists(path)
 end
 
-function isDir(path)
-    return fs.isDir(path)
+function isDir(mountpath, path)
+    return oldfs.isDir(path)
 end
 
-function open(path, mode)
-    return fs.open(path, mode)
+function makeDir(mountpath, path)
+    return oldfs.makeDir(path)
+end
+
+function open(mountpath, path, mode)
+    return oldfs.open(path, mode)
 end

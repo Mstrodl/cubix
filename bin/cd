@@ -27,7 +27,7 @@ function pth_goup(p)
     elements = strsplit(p, '/')
     res = ''
     for i = 1, (#elements - 1) do
-        print(res)
+        --print(res)
         res = res .. '/' .. elements[i]
     end
     return res

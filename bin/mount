@@ -12,11 +12,10 @@ end
 function main(args)
     if permission.grantAccess(fs.perms.SYS) then
         --running as fucking root
-        print(#args)
         if #args == 3 then
-            local device = args[1]
+            local device = os.cshell.resolve(args[1])
+            local path = os.cshell.resolve(args[2])
             local fs = args[3]
-            local path = args[2]
             if fsmanager.mount(device, fs, path) then
                 print("mount: mounted "..device)
             else
@@ -33,6 +32,20 @@ function main(args)
             local _mounts = fsmanager.getMounts()
             for k,v in pairs(_mounts) do
                 print((v.dev).." on "..(k).." type "..(v.fs))
+            end
+        elseif #args == 3 then
+            --view if user can mount
+            local device = os.cshell.resolve(args[1])
+            local path = os.cshell.resolve(args[2])
+            local fs = args[3]
+            if fsmanager.canMount(fs) then
+                if fsmanager.mount(device, fs, path) then
+                    print("mount: mounted "..device..' : '..fs)
+                else
+                    os.ferror("mount: error")
+                end
+            else
+                os.ferror("mount: sorry, you cannot mount this filesystem.")
             end
         end
     end

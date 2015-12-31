@@ -1,123 +1,90 @@
 --Temporary File System
 
-local res = {}
-local files = {}
+paths = {}
 
 --[[
 files(table of tables):
 each table:
     KEY = filename - filename
 
+    type - ("dir", "file")
     perm - permission
     file - actual file
 ]]
 
-function list_files()
+--using tmpfs(making a device first):
+--mkvdisk /dev/tmpdev
+--mkfs.tmpfs /dev/tmpdev
+--mount /dev/tmpdev /mnt/temporaryfs tmpfs
+
+function list_files(mountpath)
     local result = {}
-    for k,v in pairs(files) do
+    for k,v in pairs(paths[mountpath]) do
         table.insert(result, k)
     end
     return result
 end
 
-function collectFiles(dir, stripPath, table)
-    if not table then table = {} end
-    local fixPath = fsmanager.stripPath(stripPath, dir)
-    table[dir] = fsmanager.getInformation(dir)
-    local files = list_files()
-    if dir == '/' then dir = '' end
-    if fixPath == '/' then fixPath = '' end
-    for k, v in pairs(files) do
-        if string.sub(v, 1, 1) == '/' then v = string.sub(v, 2, #v) end
-        table[fixPath .. "/" .. v] = fsmanager.getInformation(dir .. "/" .. v)
-        if oldfs.isDir(dir .. "/" .. v) then collectFiles(dir .. "/" .. v, stripPath, table) end
+function canMount(uid)
+    return true
+end
+
+function getSize(mountpath, path) return 0 end
+
+function loadFS(mountpath)
+    print("tmpfs: "..mountpath)
+    if not paths[mountpath] then
+        paths[mountpath] = {}
     end
-    return table
+    return {}, true
 end
 
-function getSize(path)end
-
-function saveFS(mountpath, dev)
-    local p = dev
-    if p == '/' then p = '' end
-    local FSDATA = oldfs.open(p .. "/UFSDATA", "w")
-    local WRITEDATA = ""
-    for k, v in pairs(collectFiles(mountpath, mountpath, {})) do
-        if v.perms ~= '777' then
-            print(k)
-            os.viewTable(v)
-            --sleep(1.5)
+function list(mountpath, path)
+    if path == '/' or path == '' or path == nil then
+        return list_files(mountpath)
+    else
+        local all = list_files(mountpath)
+        local res = {}
+        for k,v in ipairs(all) do
+            if string.sub(v, 1, #path) == path then
+                table.insert(res, string.sub(v, #path))
+            end
         end
-        if string.sub(k, 1, 4) ~= '.git' then
-            WRITEDATA = WRITEDATA .. k .. ":" .. v.owner .. ":" .. v.perms .. ":"
-            if v.linkto then WRITEDATA = WRITEDATA .. v.linkto end
-            WRITEDATA = WRITEDATA .. ":" .. v.gid .. "\n"
-        end
+        return res
     end
-    print("saveFS: ok")
-    FSDATA.write(WRITEDATA)
-    FSDATA.close()
 end
 
-function loadFS(mountpath, dev)
-    local p = dev
-    if p == '/' then p = '' end
-    if not fs.exists(p..'/UFSDATA') then saveFS(mountpath, dev) end
-    local _fsdata = fs.open(p..'/UFSDATA', 'r')
-    local fsdata = _fsdata.readAll()
-    _fsdata.close()
-    local splitted = os.strsplit(fsdata, "\n")
-    local res = {}
-    for k,v in ipairs(splitted) do
-        local tmp = os.strsplit(v, ":")
-        --os.viewTable(tmp)
-        --sleep(1)
-        if #tmp == 5 then
-            res[tmp[1]] = {
-                owner = tonumber(tmp[2]),
-                perms = tmp[3],
-                linkto = tmp[4],
-                gid = tonumber(tmp[5])
-            }
-        elseif #tmp == 4 then
-            res[tmp[1]] = {
-                owner = tonumber(tmp[2]),
-                perms = tmp[3],
-                linkto = nil,
-                gid = tonumber(tmp[4])
-            }
-        end
-        if tmp[4] == "" then
-            res[tmp[1]].linkto = nil
-        end
-        --os.viewTable(res[tmp[1]])
+function exists(mountpath, path)
+    return paths[mountpath][path] ~= nil
+end
+
+function isDir(mountpath, path)
+    return paths[path].type == 'dir'
+end
+
+function makeDir(mountpath, path)
+    if not paths[mountpath][path] then
+        print("new folder")
+        paths[mountpath][path] = {
+            type='dir',
+            perm=777
+        }
     end
-    return res, true
 end
 
---loadFS('/', '/')
-
-function list(path)
-    return fs.list(path)
-end
-
-function exists(path)
-    return fs.exists(path)
-end
-
-function isDir(path)
-    return fs.isDir(path)
-end
-
-function makeObject(path, mode)
-    if files[path] then --file already exists
-        if mode == 'w' then files[path].file = '' end
+function makeObject(mountpath, path, mode)
+    if paths[mountpath][path] then --file already exists
+        if mode == 'w' then paths[mountpath][path].file = '' end
         return {
-            _file = files[path].file,
-            _perm = files[path].perm,
+            _file = paths[mountpath][path].file,
+            _perm = paths[mountpath][path].perm,
+            _mode = mode,
             _cursor = 1,
             write = function(data)
-                if _perm.writeperm then
+                if _perm.writeperm and _mode == 'a' then --append
+                    _file = _file .. data
+                    return data
+                elseif _perm.writeperm and _mode == 'w' then --write from start
                     _file = _file .. data
                     return data
                 else
@@ -156,6 +123,7 @@ function makeObject(path, mode)
     end
 end
 
-function open(path, mode)
-    return makeObject(path, mode)
+function open(mountpath, path, mode)
+    print("tmpfs: new file!")
+    return makeObject(mountpath, path, mode)
 end

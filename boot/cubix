@@ -325,10 +325,10 @@ loadmodule("proc", "/lib/proc_manager")
 --hash manager
 loadmodule("hash", "/lib/hash_manager")
 
-function os.internals._kernel.register_device(d)
-    os.debug.debug_write("[dev] "..d.name.." created")
-    DEVICES[d.name] = d.device
-    fs.open(d.name, 'w', fs.perms.SYS).close()
+function os.internals._kernel.register_device(path, d)
+    os.debug.debug_write("[dev] "..path.." created")
+    DEVICES[path] = d.device
+    fs.open(path, 'w', fs.perms.SYS).close()
 end
 
 --device manager
@@ -339,7 +339,7 @@ function from_extdev(name_dev, path_dev, type_dev)
     --path_dev -> /dev/
     --name -> only a id
     --type_dev -> device drivers(something.lua)
-    --returns a table with the device methods(read, devwrite)
+    --returns a table with the device methods
     local devmod = loadmodule_ret("/lib/devices/"..type_dev..".lua")
     devmod.setup(name_dev, path_dev)
     return devmod
@@ -349,7 +349,7 @@ EXTDEVICES = {}
 function os.internals._kernel.new_device(typedev, name, pth)
     os.debug.debug_write("[extdev] "..name.." ("..typedev..") -> "..pth)
     EXTDEVICES[name] = {devtype=typedev, path=pth}
-    os.internals._kernel.register_device({name=pth, device=from_extdev(name,pth,typedev)})
+    os.internals._kernel.register_device(pth, {name=pth, device=from_extdev(name,pth,typedev)})
 end
 
 --default devices

@@ -1,0 +1,24 @@
+#!/usr/bin/env lua
+--/bin/mknod: create devices
+
+_handler = {}
+_handler.signal_handler = function(sig)
+    if sig == 'kill' then
+        --print("mount: SIGKILL")
+        return 0
+    end
+end
+
+function main(args)
+    if #args == 4 then
+        local path = args[1]
+        local type = args[2]
+        local major = tonumber(args[3])
+        local minor = tonumber(args[4])
+        if os.lib.devices then
+            os.lib.devices.lddev(path, type, major, minor)
+        else
+            ferror("mknod: how are you there in limbo?")
+        end
+    end
+end

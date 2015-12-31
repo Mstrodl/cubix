@@ -23,25 +23,25 @@ oldfs = deepcopy(fs)
 
 fsdrivers = {}
 
-function loadfs(fsname)
-    os.debug.debug_write("[loadfs] loading "..fsname)
+function load_fs(fsname)
+    os.debug.debug_write("[load_fs] loading "..fsname)
     local pth = '/lib/fs/'..fsname..'.lua'
     if os.loadAPI(pth) then
         fsdrivers[fsname] = _G[fs.getName(pth)]
-        os.debug.debug_write('[loadfs] loaded: '..fsname)
+        os.debug.debug_write('[load_fs] loaded: '..fsname)
     else
-        os.debug.kpanic("[loadfs] not loaded: "..fsname)
+        os.debug.kpanic("[load_fs] not loaded: "..fsname)
     end
 end
 
 function load_filesystems()
-    loadfs('cfs') --Cubix File System
-    loadfs('tmpfs') --Temporary File System
-    --loadfs('ext2')
-    --loadfs('ext3')
-    --loadfs('ext4')
-    --loadfs('fat')
-    --loadfs('vfat')
+    load_fs('cfs') --Cubix File System
+    load_fs('tmpfs') --Temporary File System
+    --load_fs('ext2')
+    --load_fs('ext3')
+    --load_fs('ext4')
+    --load_fs('fat')
+    --load_fs('vfat')
 end
 
 _G["fsdrivers"] = fsdrivers
@@ -102,30 +102,6 @@ fs.perm = function (path)
     local information = nodes[path]
     perm_obj.writeperm = true
     return perm_obj
-end
-
-fs.getSize = oldfs.getSize
-
-fs.getFreeSpace = oldfs.getFreeSpace
-
-fs.move = function(fpath, tpath)
-    return oldfs.move(fpath, tpath)
-end
-
-fs.copy = function(fpath, tpath)
-    return oldfs.copy(fpath, tpath)
-end
-
-fs.delete = function(pth)
-    if fs.perm(pth).writeperm then
-        oldfs.delete(pth)
-    end
-end
-
-fs.isReadOnly = oldfs.isReadOnly
-
-fs.open = function (file, mode)
-    return oldfs.open(file, mode)
 end
 
 permission = {}
@@ -302,9 +278,21 @@ fsmanager.viewNodes = function()
     os.viewTable(nodes)
 end
 
+fsmanager.canMount = function(fs)
+    if os.__boot_flag then
+        return true
+    else
+        return fsdrivers[fs].canMount(os.currentUID())
+    end
+end
+
 fsmanager.mount = function(device, filesystem, path)
-    if not permission.grantAccess(fs.perms.SYS) then
-        os.ferror("mount: system permission is required to mount")
+    --if not permission.grantAccess(fs.perms.SYS) then
+    --    os.ferror("mount: system permission is required to mount")
+    --    return false
+    --end
+    if not fsmanager.canMount(filesystem) then
+        os.ferror("mount: i'm afraid you can't mount this filesystem.")
         return false
     end
     if not fsdrivers[filesystem] then
@@ -313,6 +301,14 @@ fsmanager.mount = function(device, filesystem, path)
     end
     if mounts[path] then
         os.ferror("mount: filesystem already mounted")
+        return false
+    end
+    if not oldfs.exists(path) then
+        ferror("mount: mountpath does not exist")
+        return false
+    end
+    if not oldfs.isDir(path) then
+        ferror("mount: mountpath is not a folder")
         return false
     end
     os.debug.debug_write("[mount] mounting "..device..": "..filesystem.." at "..path, false)
@@ -331,6 +327,9 @@ fsmanager.umount_path = function(mpath)
         os.ferror("umount: system permission is required to umount")
         return {false, 'system permission is required to umount'}
     end
+    if mpath == '/' then
+        return {false, "device is busy"}
+    end
     if mounts[mpath] then
         fsmanager.saveFS(mpath)
         mounts[mpath] = nil
@@ -343,6 +342,9 @@ fsmanager.umount_dev = function(dev)
     if not permission.grantAccess(fs.perms.SYS) then
         --os.ferror("umount: system permission is required to umount")
         return {false, 'system permission is required to umount'}
+    end
+    if dev == '/dev/hdd' then
+        return {false, "device is busy"}
     end
     local k = next(mounts)
     while k do
@@ -382,6 +384,74 @@ function shutdown_procedure()
         k = next(mounts)
     end
     sleep(.5)
+end
+
+
+fs.getSize = oldfs.getSize
+
+fs.getFreeSpace = oldfs.getFreeSpace
+
+fs.move = function(fpath, tpath)
+    return oldfs.move(fpath, tpath)
+end
+
+fs.copy = function(fpath, tpath)
+    return oldfs.copy(fpath, tpath)
+end
+
+fs.delete = function(pth)
+    if fs.perm(pth).writeperm then
+        oldfs.delete(pth)
+    end
+end
+
+fs.isReadOnly = oldfs.isReadOnly
+
+fs.list = function(path)
+    for k,v in pairs(mounts) do
+        if string.sub(path, 1, #k) == k and k ~= '/' then
+            --mounted path ahead
+            return fsdrivers[mounts[k]['fs']].list(k, string.sub(path, #k + 1))
+        end
+    end
+    --normal path(as cfs mounted in '/')
+    if fsdrivers['cfs'] then
+        return fsdrivers['cfs'].list('/', path)
+    else
+        return oldfs.list(path)
+    end
+end
+
+
+fs.makeDir = function(path)
+    for k,v in pairs(mounts) do
+        if string.sub(path, 1, #k) == k and k ~= '/' then
+            --mounted path ahead
+            return fsdrivers[mounts[k]['fs']].makeDir(k, string.sub(path, #k + 2))
+        end
+    end
+    --normal path(as cfs mounted in '/')
+    if fsdrivers['cfs'] then
+        return fsdrivers['cfs'].makeDir('/', path)
+    else
+        return oldfs.makeDir(path)
+    end
+end
+
+
+fs.open = function (path, mode)
+    for k,v in pairs(mounts) do
+        if string.sub(path, 1, #k) == k and k ~= '/' then
+            --mounted path ahead
+            return fsdrivers[mounts[k]['fs']].open(k, string.sub(path, #k + 1))
+        end
+    end
+    --normal path
+    if fsdrivers['cfs'] then
+        return fsdrivers['cfs'].open('/', path, mode)
+    else
+        return oldfs.open(path, mode)
+    end
 end
 
 function libroutine()
