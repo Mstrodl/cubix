@@ -22,6 +22,10 @@ function main(_args)
 
     local isValid = current_token:verifyValid()
 
+    -- if os.currentUID() == 0 then
+    --     run_program()
+    -- end
+
     if not isValid then
         if not os.lib.login.front_login('sudo') then
             os.ferror("sudo: Login incorrect")
@@ -80,5 +84,3 @@ function main(_args)
     end
     return 0
 end
-
-

@@ -9,24 +9,41 @@ function rawread()
     end
 end
 
+local RANDOM_BLOCKS = 256
+
+local function getRandomString()
+    local cache = ''
+    for i=0, RANDOM_BLOCKS do
+        cache = cache .. string.char(math.random(0, 255))
+    end
+    return cache
+end
+
 function print_rndchar()
+    local newseed = ''
     while true do
-        s = string.char(math.random(0, 255))
+        newseed = getRandomString()
+        math.randomseed(newseed)
         io.write(os.safestr(s))
-        math.randomseed(tostring(os.clock()))
     end
 end
 
-dev_random = {}
-dev_random.device = {}
-dev_random.name = '/dev/random'
+dev_urandom = {}
+dev_urandom.device = {}
+dev_urandom.name = '/dev/urandom'
 
-dev_random.device.device_write = function (message)
-    print("cannot write to /dev/random")
+dev_urandom.device.device_write = function (message)
+    print("cannot write to /dev/urandom")
 end
 
-dev_random.device.device_read = function (bytes)
+dev_urandom.device.device_read = function (bytes)
     local crand = {}
+    local cache = tostring(os.clock())
+    local seed = 0
+    for i=1,#cache do
+        seed = seed + string.byte(string.sub(cache,i,i))
+    end
+    math.randomseed(tostring(seed))
     if bytes == nil then
         crand = coroutine.create(print_rndchar)
         coroutine.resume(crand)
@@ -37,12 +54,6 @@ dev_random.device.device_read = function (bytes)
             end
         end
     else
-        local cache = tostring(os.clock())
-        local seed = 0
-        for i=1,#cache do
-            seed = seed + string.byte(string.sub(cache,i,i))
-        end
-        math.randomseed(tostring(seed))
         result = ''
         for i = 0, bytes do
             s = string.char(math.random(0, 255))

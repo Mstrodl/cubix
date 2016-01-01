@@ -1,2 +1,1 @@
-devscripts;http://lkmnds.github.io/yapi/devscripts.yap
-sbl;http://lkmnds.github.io/yapi/sbl-latest.yap
+{1.0=false, 2.0=http_failure}

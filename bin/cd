@@ -49,7 +49,7 @@ function cd(pth)
     elseif fs.exists(pth) == true then
         CURRENT_PATH = pth
     elseif pth == nil then
-        CURRENT_PATH = "/home/"..current_user
+        --CURRENT_PATH = "/home/"..current_user
     else
         print("cd: not found!")
     end --end

@@ -78,6 +78,18 @@ os.strsplit = function (inputstr, sep)
     return t
 end
 
+function strcount(str, char)
+    local c = 0
+    for i=1, #str do
+        local v = string.sub(str, i, i)
+        if v == char then
+            c = c + 1
+        end
+    end
+    return c
+end
+_G['strcount'] = strcount
+
 kflag = {}
 
 for k,v in ipairs(Args) do
@@ -426,7 +438,7 @@ os.__debug_buffer = debug.__debug_buffer
 os.__boot_flag = false
 
 --setting tty
-os.lib.tty.current_tty("/dev/tty1")
+os.lib.tty.current_tty("/dev/tty0")
 
 --finally, run!
 os.__parent_init = os.new_process(kflag.init)

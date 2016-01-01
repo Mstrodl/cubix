@@ -19,6 +19,9 @@ function loadDevice(name, path)
 end
 
 MAPDEVICES_BLOCK = {}
+MAPDEVICES_BLOCK[7] = {
+    [0]={key='dev_dummy', name='/dev/dummy', lib='dummy_device.lua'}
+}
 
 MAPDEVICES_CHAR = {}
 MAPDEVICES_CHAR[1] = {
@@ -26,6 +29,7 @@ MAPDEVICES_CHAR[1] = {
     [5]={key='dev_zero', name='/dev/zero', lib='zero_device.lua'},
     [7]={key='dev_full', name='/dev/full', lib='full_device.lua'},
     [8]={key='dev_random', name='/dev/random', lib='random_device.lua'},
+    [9]={key='dev_urandom', name='/dev/urandom', lib='urandom_device.lua'},
 }
 
 MAPDEVICES_CHAR[5] = {}
@@ -33,6 +37,10 @@ MAPDEVICES_CHAR[5] = {}
 function lddev(path, type, major, minor)
     if type == 'b' then
         local d = MAPDEVICES_BLOCK[major][minor]
+        if d == nil then
+            ferror("lddev: device not found")
+            return false
+        end
         loadDevice(d.name, '/lib/devices/'..d.lib)
         os.internals._kernel.register_device(path, _G[d.name][d.key])
     elseif type == 'c' then
@@ -47,8 +55,14 @@ function lddev(path, type, major, minor)
 end
 
 function libroutine()
+    --lddev('/dev/mem', 'c', 1, 1)
     lddev('/dev/null', 'c', 1, 3)
     lddev('/dev/zero', 'c', 1, 5)
     lddev('/dev/full', 'c', 1, 7)
     lddev('/dev/random', 'c', 1, 8)
+    lddev('/dev/urandom', 'c', 1, 9)
+
+    lddev('/dev/loop0', 'b', 7, 0)
+    lddev('/dev/loop1', 'b', 7, 0)
+    lddev('/dev/loop2', 'b', 7, 0)
 end

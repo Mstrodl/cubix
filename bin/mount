@@ -24,7 +24,7 @@ function main(args)
         elseif #args == 0 then
             local _mounts = fsmanager.getMounts()
             for k,v in pairs(_mounts) do
-                print((v.dev).." on "..(k).." type "..(v.fs))
+                print((v.dev).." on "..(k).." fs "..(v.fs))
             end
         end
     else

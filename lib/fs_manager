@@ -40,49 +40,10 @@ function load_filesystems()
     --load_fs('ext2')
     --load_fs('ext3')
     --load_fs('ext4')
-    --load_fs('fat')
     --load_fs('vfat')
 end
 
 _G["fsdrivers"] = fsdrivers
-
---[[
-
-fs.open
-fs.getName
-fs.combine
-fs.isReadOnly
-fs.move
-fs.copy
-fs.delete
-fs.isDir
-fs.getFreeSpace
-fs.complete
-fs.getDrive
-fs.getSize
-fs.list
-fs.exists
-fs.makeDir
-fs.find
-fs.getDir
-
-PERMISSIONS:
-
-Symbolic Notation 	Numeric Notation English
----------- 	0000 	no permissions
----x--x--x 	0111 	execute
---w--w--w- 	0222 	write
---wx-wx-wx 	0333 	write & execute
--r--r--r-- 	0444 	read
--r-xr-xr-x 	0555 	read & execute
--rw-rw-rw- 	0666 	read & write
--rwxrwxrwx 	0777 	read, write, & execute
-
-read
-write
-execute
-
-]]
 
 --yes, this was from uberOS
 
@@ -189,6 +150,33 @@ fs.verifyPerm = function(path, user, mode)
     end
 end
 
+--{owner, owner group, others}
+--[[
+
+PERMISSIONS:
+
+Symbolic Notation 	Numeric Notation English
+---------- 	0000 	no permissions
+---x--x--x 	0111 	execute
+--w--w--w- 	0222 	write
+--wx-wx-wx 	0333 	write & execute
+-r--r--r-- 	0444 	read
+-r-xr-xr-x 	0555 	read & execute
+-rw-rw-rw- 	0666 	read & write
+-rwxrwxrwx 	0777 	read, write, & execute
+
+]]
+permission.fileCurPerm = function()
+    if os.currentUID() == 0 then
+        --root here
+        return '770'
+    elseif os.currentUID() ~= 0 then
+        return '777'
+    end
+end
+
+
+
 fsmanager.stripPath = function(base, full)
     if base == full then return '/' end
     return string.sub(full, #base + 1, #full)
@@ -292,11 +280,11 @@ fsmanager.mount = function(device, filesystem, path)
     --    return false
     --end
     if not fsmanager.canMount(filesystem) then
-        os.ferror("mount: i'm afraid you can't mount this filesystem.")
+        os.ferror("mount: current user can't mount "..filesystem)
         return false
     end
     if not fsdrivers[filesystem] then
-        os.ferror("mount: cannot mount "..device..": filesystem not loaded")
+        os.ferror("mount: can't mount "..device..": filesystem not loaded")
         return false
     end
     if mounts[path] then
@@ -304,7 +292,7 @@ fsmanager.mount = function(device, filesystem, path)
         return false
     end
     if not oldfs.exists(path) then
-        ferror("mount: mountpath does not exist")
+        ferror("mount: mountpath "..path.." doesn't exist")
         return false
     end
     if not oldfs.isDir(path) then
@@ -324,7 +312,7 @@ end
 
 fsmanager.umount_path = function(mpath)
     if not permission.grantAccess(fs.perms.SYS) then
-        os.ferror("umount: system permission is required to umount")
+        --os.ferror("umount: system permission is required to umount")
         return {false, 'system permission is required to umount'}
     end
     if mpath == '/' then
@@ -376,7 +364,7 @@ function shutdown_procedure()
     local k = next(mounts)
     while k do
         if mounts[k] then
-            os.debug.debug_write('[fs:shutdown] umounting '..mounts[k]['dev']..' at '..k)
+            os.debug.debug_write('[fs_mngr] umounting '..mounts[k]['dev']..' at '..k)
             fsmanager.saveFS(k)
             mounts[k] = nil
             --return {true}
@@ -387,9 +375,47 @@ function shutdown_procedure()
 end
 
 
-fs.getSize = oldfs.getSize
+-- how to basic: fs.complete
+-- fs.find
+-- fs.getDir
+
+fs.combine = oldfs.combine
+
+fs.getSize = function (path)
+    for k,v in pairs(mounts) do
+        if string.sub(path, 1, #k) == k and k ~= '/' then
+            --mounted path ahead
+            return fsdrivers[mounts[k]['fs']].getSize(k, string.sub(path, #k + 1))
+        end
+    end
+    --normal path
+    if fsdrivers['cfs'] then
+        return fsdrivers['cfs'].getSize('/', path)
+    else
+        return oldfs.getSize(path)
+    end
+end
 
 fs.getFreeSpace = oldfs.getFreeSpace
+
+fs.getDrive = oldfs.getDrive --???
+
+fs.getDir = oldfs.getDir
+
+fs.exists = function(path)
+    for k,v in pairs(mounts) do
+        if string.sub(path, 1, #k) == k and k ~= '/' then
+            --mounted path ahead
+            return fsdrivers[mounts[k]['fs']].exists(k, string.sub(path, #k + 2))
+        end
+    end
+    --normal path(as cfs mounted in '/')
+    if fsdrivers['cfs'] then
+        return fsdrivers['cfs'].exists('/', path)
+    else
+        return oldfs.exists(path)
+    end
+end
 
 fs.move = function(fpath, tpath)
     return oldfs.move(fpath, tpath)
@@ -399,9 +425,18 @@ fs.copy = function(fpath, tpath)
     return oldfs.copy(fpath, tpath)
 end
 
-fs.delete = function(pth)
-    if fs.perm(pth).writeperm then
-        oldfs.delete(pth)
+fs.delete = function(path)
+    for k,v in pairs(mounts) do
+        if string.sub(path, 1, #k) == k and k ~= '/' then
+            --mounted path ahead
+            return fsdrivers[mounts[k]['fs']].delete(k, string.sub(path, #k + 2))
+        end
+    end
+    --normal path(as cfs mounted in '/')
+    if fsdrivers['cfs'] then
+        return fsdrivers['cfs'].delete('/', path)
+    else
+        return oldfs.delete(path)
     end
 end
 
@@ -438,12 +473,26 @@ fs.makeDir = function(path)
     end
 end
 
+fs.isDir = function(path)
+    for k,v in pairs(mounts) do
+        if string.sub(path, 1, #k) == k and k ~= '/' then
+            --mounted path ahead
+            return fsdrivers[mounts[k]['fs']].isDir(k, string.sub(path, #k + 2))
+        end
+    end
+    --normal path(as cfs mounted in '/')
+    if fsdrivers['cfs'] then
+        return fsdrivers['cfs'].isDir('/', path)
+    else
+        return oldfs.isDir(path)
+    end
+end
 
 fs.open = function (path, mode)
     for k,v in pairs(mounts) do
         if string.sub(path, 1, #k) == k and k ~= '/' then
             --mounted path ahead
-            return fsdrivers[mounts[k]['fs']].open(k, string.sub(path, #k + 1))
+            return fsdrivers[mounts[k]['fs']].open(k, string.sub(path, #k + 2), mode)
         end
     end
     --normal path
@@ -460,5 +509,6 @@ function libroutine()
     _G["fsmanager"] = fsmanager
     _G['oldfs'] = oldfs
     load_filesystems()
-    fsmanager.mount("/dev/hdd", "cfs", "/")
+    fsmanager.mount("/dev/hda", "cfs", "/")
+    fsmanager.mount("/dev/loop1", "tmpfs", "/dev/shm")
 end

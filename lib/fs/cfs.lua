@@ -60,8 +60,6 @@ function loadFS(mountpath, dev)
     local res = {}
     for k,v in ipairs(splitted) do
         local tmp = os.strsplit(v, ":")
-        --os.viewTable(tmp)
-        --sleep(1)
         if #tmp == 5 then
             res[tmp[1]] = {
                 owner = tonumber(tmp[2]),
@@ -97,10 +95,15 @@ function isDir(mountpath, path)
     return oldfs.isDir(path)
 end
 
+function delete(mountpath, path)
+    return oldfs.delete(path)
+end
+
 function makeDir(mountpath, path)
     return oldfs.makeDir(path)
 end
 
 function open(mountpath, path, mode)
+    --print("cfs open here "..path..' '..mode)
     return oldfs.open(path, mode)
 end

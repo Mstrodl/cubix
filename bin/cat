@@ -15,17 +15,15 @@ function cat(file, bytes)
     local cpth = fs.open("/tmp/current_path", 'r')
     local CURRENT_PATH = cpth.readAll()
     cpth.close()
+    local pth = os.cshell.resolve(file)
     local _result = ''
     if DEVICES[file] ~= nil then
         _result = DEVICES[file].device_read(bytes)
     elseif MFILES[file] ~= nil then
         _result = MFILES[file].read(bytes)
-    elseif fs.exists(file) and not fs.isDir(file) then
-        local h = fs.open(file, 'r')
-        _result = h.readAll()
-        h.close()
-    elseif fs.exists(fs.combine(CURRENT_PATH, file)) and not fs.isDir(file) then
-        local h = fs.open(fs.combine(CURRENT_PATH, file), 'r')
+    elseif fs.exists(pth) and not fs.isDir(pth) then
+        local h = fs.open(pth, 'r')
+        if h == nil then ferror("cat: error opening file") return 0 end
         _result = h.readAll()
         h.close()
     elseif fs.exists(file) and fs.isDir(file) then
