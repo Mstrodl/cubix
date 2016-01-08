@@ -10,18 +10,13 @@ _handler.signal_handler = function(sig)
 end
 
 function main(args)
-    --TODO: multiple args
-    local cpath = fs.open("/tmp/current_path", 'r')
-    local current_path = cpath.readAll()
-    cpath.close()
-
-    local f = args[1]
-
-    if fs.exists(f) then
-        fs.delete(f)
-    elseif fs.exists(fs.combine(current_path, f)) then
-        fs.delete(fs.combine(current_path, f))
-    else
-        os.ferror("rm: node not found")
+    --actually doing multiple args
+    for i=1, #args do
+        local file = os.cshell.resolve(args[i])
+        if fs.exists(file) then
+            fs.delete(file)
+        else
+            ferror("rm: node not found")
+        end
     end
 end

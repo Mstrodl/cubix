@@ -361,6 +361,10 @@ function main(args)
                         return 1
                     end
                     local k = download_file(SPATH)
+                    if type(k) == 'table' then
+                        ferror("yapi: http error")
+                        return 1
+                    end
                     local _h = fs.open(YAPIDIR..'/db', 'w')
                     _h.write(k)
                     _h.close()

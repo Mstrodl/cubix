@@ -1,0 +1,249 @@
+#!/usr/bin/env lua
+--rewrite of login manager from scratch
+
+--things to do:
+--  Tokens
+--  Login thingy
+--  Utils to /etc/ßħæðøw
+
+--[[
+
+GENERATION OF TOKENS???
+salt .. random data .. magic_string .. token session
+
+HOW TO VERIFY A TOKEN????
+In normal sense, you need to compare the client token with the server's token
+but we are at a enviroment that does not have clients or servers
+I don't know.
+
+HOW TO USE A TOKEN??
+if verify_token(Token) then
+    Token:use()
+else
+    ferorr("token not valid")
+end
+
+]]
+
+RELOADABLE = false
+
+local current_token = {
+    salt = '',
+    sessions = -1,
+    user = '',
+    hash = ''
+}
+local current_user = {
+    username = '',
+    uid = -1
+}
+
+function proof_work(data)
+    local cache = data
+    for i=0, 14 do --15 times
+        cache = os.lib.hash.hash.sha256(cache)
+    end
+    return cache
+end
+
+Token = {}
+Token.__index = Token
+function Token.new(user, sessions)
+    inst = {}
+    setmetatable(inst, Token)
+    inst.salt = os.generateSalt(100)
+    inst.sessions = sessions
+    inst.user = user
+    inst.hash = proof_work(inst.salt .. tostring(inst.sessions) .. inst.user)
+    return inst
+end
+
+function Token:use()
+    --make sessions = sessions - 1
+    self.sessions = self.sessions - 1
+    --generate new salt and hash
+    self.salt = os.generateSalt(100)
+    self.hash = proof_work(self.salt .. tostring(self.sessions) .. self.user)
+end
+
+function verify_token(token, user)
+    if token == {} then
+        return false
+    end
+    if token.sessions < 0 then
+        return false
+    end
+    if token.hash == proof_work(token.salt .. tostring(token.sessions) .. token.user) and user == token.user then
+        return true
+    end
+    return false
+end
+
+function general_verify(user)
+    return verify_token(current_token, user)
+end
+
+function use_ctok()
+    current_token:use()
+end
+
+function currentUser()
+    return os.deepcopy(current_user).username
+end
+
+function userUID()
+    local c = os.deepcopy(current_user)
+    return c.uid
+end
+
+function login(usr, pwd)
+    --if actual token is usable and is related to actual user, return true
+    if verify_token(current_token, usr) then
+        current_token:use()
+        return true
+    end
+    --else, just do the normal login operation
+    local handler = fs.open('/etc/shadow', 'r')
+    local lines = os.strsplit(handler.readAll(), '\n')
+    handler.close()
+    for k,v in ipairs(lines) do
+        local udata = os.strsplit(v, '^')
+        local hashed = proof_work(pwd .. udata[3])
+        if udata[1] == usr and udata[2] == hashed then
+            --ok, you won the password, generate a new token with 5 sessions in it
+            local new_token = Token.new(usr, 4) -- 5 times(4, 3, 2, 1, 0)
+            current_token = new_token
+            current_user.username = usr
+            if usr == 'root' then
+                current_user.uid = 0
+            else
+                current_user.uid = 1
+            end
+            return true
+        end
+    end
+    return false
+end
+
+local _special_sudo = false
+
+function alert_sudo()
+    --how to see if sudo is running
+    local runningproc = os.processes[os.getrunning()]
+    if runningproc.file == '/bin/sudo' or runningproc.file == 'bin/sudo' then
+        _special_sudo = true
+    else
+        ferror("alert_sudo: I know what you're doing")
+    end
+end
+
+function close_sudo()
+    _special_sudo = false
+end
+
+function isSudo()
+    return _special_sudo
+end
+
+local current_sudoers = {
+    user = {},
+    group = {}
+}
+
+local function read_sudoers()
+    local h = fs.open("/etc/sudoers", 'r')
+    if not h then
+        os.debug.kpanic("error opening /etc/sudoers")
+    end
+    local d = h.readAll()
+    h.close()
+    local lines = os.strsplit(d, '\n')
+    for _,line in ipairs(lines) do
+        if string.sub(line, 1, 1) ~= '#' then
+            if string.sub(line, 1, 1) == 'u' then
+                local spl = os.strsplit(line, ' ')
+                local user = spl[2]
+                local _users = spl[3]
+                if _users == '*' then
+                    current_sudoers.user[user] = {}
+                    current_sudoers.user[user].users = '*'
+                else
+                    local users = os.strsplit(_users, ';')
+                    for _,v in ipairs(users) do
+                        table.insert(current_sudoers.user[user].users, v)
+                    end
+                end
+            elseif string.sub(line, 1, 1) == 'g' then
+                local spl = os.strsplit(line, ' ')
+            elseif string.sub(line, 1, 1) == 'h' then
+                local spl = os.strsplit(line, ' ')
+                local group = spl[2]
+                local _users = spl[3]
+                if _users == '*' then
+                    current_sudoers.group[group] = {users = '*all*'}
+                else
+                    local users = os.strsplit(_users, ';')
+                    for _,v in ipairs(users) do
+                        table.insert(current_sudoers.group[group].users, v)
+                    end
+                end
+            elseif string.sub(line, 1, 1) == 'q' then
+                local spl = os.strsplit(line, ' ')
+            end
+        end
+    end
+end
+
+function sudoers()
+    return os.deepcopy(current_sudoers)
+end
+
+function sudoers_verify_user(usr, other_usr)
+    local user = current_sudoers.user[usr]
+    if user == nil then
+        return false
+    end
+    if user.users == '*' then
+        return true
+    end
+    for k,v in pairs(user.users) do
+        if v == other_usr then
+            return true
+        end
+    end
+    return false
+end
+
+function sudoers_verify_group(usr, group)
+
+end
+
+function sudoers_gverify_user(group, usr)
+
+end
+
+function sudoers_gverify_group(group, other_group)
+
+end
+
+function front_login(program, user)
+    local current_user = currentUser()
+    if user == nil then user = current_user.username end
+    write("["..program.."] password for "..user..": ")
+    local try_pwd = read('')
+
+    if login(current_user, try_pwd) then
+        return true
+    else
+        os.ferror("front_login: Login incorrect")
+        return false
+    end
+end
+
+function libroutine()
+    os.login = {}
+    os.login.login = login
+    os.login.adduser = add_new_user
+    os.login.changepwd = changepwd
+    read_sudoers()
+end

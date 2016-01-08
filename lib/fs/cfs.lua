@@ -104,6 +104,28 @@ function makeDir(mountpath, path)
 end
 
 function open(mountpath, path, mode)
-    --print("cfs open here "..path..' '..mode)
     return oldfs.open(path, mode)
+end
+
+function check(device)
+    --sanity check
+    if dev_available(device) then
+        diskprobe(device, 'hell')
+    else
+        ferror("check: device not found")
+        return false
+    end
+    --actually, check
+    for i=0, len_blocks(device) do
+        --n sei se eh jornal ou journal
+        if get_block(device, i) ~= get_journal(device, i) then
+            ferror("o shit nigga")
+            correct(device, i)
+        end
+    end
+    print("check: done")
+end
+
+function check_for_terrorists()
+    check("/dev/airplane")
 end

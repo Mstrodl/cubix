@@ -2,7 +2,7 @@
 --/boot/cubix: well, cubix!
 
 AUTHOR = "Lukas Mendes"
-BUILD_DATE = "2015-12-28"
+BUILD_DATE = "2016-01-02"
 
 --  version format: major.revision.minor
 --      major: linear
@@ -408,12 +408,12 @@ end
 --tty, login and pipe managers
 function os.internals._kernel.register_tty(path, tty)
     os.debug.debug_write("[tty] new tty: "..path)
-    TTYS[path] = tty
+    --TTYS[path] = tty
     fs.open(path, 'w', fs.perms.SYS).close()
 end
 
 loadmodule("tty", "/lib/tty_manager")
-loadmodule("login", "/lib/login_manager")
+loadmodule("login", "/lib/login_manager_rewrite")
 loadmodule("pipe", "/lib/pipe_manager")
 loadmodule("time", "/lib/time")
 

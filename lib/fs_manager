@@ -75,7 +75,7 @@ permission.grantAccess = function(perm)
         if os.lib.login.isSudo() then
             _uid = 0
         else
-            _uid = os.lib.login.currentUser().uid
+            _uid = os.lib.login.userUID()
         end
     end
     if (perm == fs.perms.ROOT or perm == fs.perms.SYS) and (_uid == 0 or os.__boot_flag == true) then
@@ -94,7 +94,7 @@ permission.initKernelPerm = function()
 end
 
 permission.default = function()
-    local _uid = os.lib.login.currentUser().uid
+    local _uid = os.lib.login.userUID()
     if _uid == 0 then
         __using_perm = fs.perms.ROOT
     elseif _uid > 0 then
@@ -155,7 +155,6 @@ end
 
 PERMISSIONS:
 
-Symbolic Notation 	Numeric Notation English
 ---------- 	0000 	no permissions
 ---x--x--x 	0111 	execute
 --w--w--w- 	0222 	write
@@ -174,8 +173,6 @@ permission.fileCurPerm = function()
         return '777'
     end
 end
-
-
 
 fsmanager.stripPath = function(base, full)
     if base == full then return '/' end
@@ -488,7 +485,7 @@ fs.isDir = function(path)
     end
 end
 
-fs.open = function (path, mode)
+fs.open = function (path, mode, perm)
     for k,v in pairs(mounts) do
         if string.sub(path, 1, #k) == k and k ~= '/' then
             --mounted path ahead
@@ -503,12 +500,30 @@ fs.open = function (path, mode)
     end
 end
 
+function run_fstab()
+    os.debug.debug_write("[run_fstab] reading fstab")
+    if not fs.exists("/etc/fstab") then
+        os.debug.kpanic("/etc/fstab not found")
+    end
+    local h = fs.open("/etc/fstab", 'r')
+    local _fstab = h.readAll()
+    h.close()
+    local lines = os.strsplit(_fstab, '\n')
+    for k,v in ipairs(lines) do
+        local spl = os.strsplit(v, ';')
+        local device = spl[1]
+        local mpoint = spl[2]
+        local fs = spl[3]
+        local options = spl[4]
+        fsmanager.mount(device, fs, mpoint)
+    end
+end
+
 function libroutine()
     os.deepcopy = deepcopy
     _G["permission"] = permission
     _G["fsmanager"] = fsmanager
     _G['oldfs'] = oldfs
     load_filesystems()
-    fsmanager.mount("/dev/hda", "cfs", "/")
-    fsmanager.mount("/dev/loop1", "tmpfs", "/dev/shm")
+    run_fstab()
 end

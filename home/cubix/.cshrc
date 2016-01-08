@@ -7,4 +7,3 @@
 #setting aliases
 alias yapisy='sudo yapi -Sy'
 alias god='su'
-#mount /dev/loop0 /mnt/tmpfs tmpfs

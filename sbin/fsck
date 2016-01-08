@@ -1,0 +1,27 @@
+#!/usr/bin/env lua
+--/sbin/fsck: file system check
+
+_handler = {}
+_handler.signal_handler = function (sig)
+    if sig == 'kill' then
+        --print("users: recieved SIGKILL")
+        return 0
+    end
+end
+
+VERSION = '0.0.1'
+
+function main(args)
+    print("cubix fsck v"..VERSION)
+    if #args > 1 then
+        local device = args[1]
+        local fs = args[2]
+        if fsdrivers[fs].check then
+            fsdrivers[fs].check(device)
+        else
+            print("check function in "..fs.." not found")
+        end
+    else
+        print("usage: fsck <device> <filesystem>")
+    end
+end

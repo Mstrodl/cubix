@@ -126,7 +126,7 @@ os.run_process = function(p, args, pipe)
     local proc_folder = "/proc/"..tostring(p.pid)
     fs.makeDir(proc_folder)
     generate_pfolder(p, proc_folder, args)
-    p.uid = os.lib.login.currentUser().uid
+    p.uid = os.lib.login.userUID()
 
     --running the file
     if os.loadAPI(p.file) then

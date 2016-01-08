@@ -10,10 +10,15 @@ function rawread()
 end
 
 function print_rndchar()
+    local cache = tostring(os.clock())
+    local seed = 0
+    for i=1,#cache do
+        seed = seed + string.byte(string.sub(cache,i,i))
+    end
+    math.randomseed(tostring(seed))
     while true do
         s = string.char(math.random(0, 255))
-        io.write(os.safestr(s))
-        math.randomseed(tostring(os.clock()))
+        io.write(s)
     end
 end
 
@@ -46,7 +51,7 @@ dev_random.device.device_read = function (bytes)
         result = ''
         for i = 0, bytes do
             s = string.char(math.random(0, 255))
-            result = result .. os.safestr(s)
+            result = result .. s
         end
         return result
     end

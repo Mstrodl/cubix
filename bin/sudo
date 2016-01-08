@@ -16,39 +16,14 @@ _handler.signal_handler = function (sig)
     end
 end
 
-function main(_args)
-    local current_user = os.lib.login.currentUser()
-    local current_token = os.lib.login.__CT
+local __sudo_lock = true
 
-    local isValid = current_token:verifyValid()
+function sudo_error(msg)
+    ferror(msg)
+    os.lib.login.close_sudo()
+end
 
-    -- if os.currentUID() == 0 then
-    --     run_program()
-    -- end
-
-    if not isValid then
-        if not os.lib.login.front_login('sudo') then
-            os.ferror("sudo: Login incorrect")
-            return 0
-        end
-    else
-        if not os.lib.login.isSudo() then
-            if not os.lib.login.front_login('sudo') then
-                os.ferror("sudo: Login incorrect")
-                return 0
-            end
-        else
-            current_token:use()
-        end
-    end
-
---[[
-    if not permission.grantAccess(fs.perms.ROOT) then
-        os.ferror("permission: error getting root permission")
-        return 0
-    end
-]]
-
+function run_program(_args)
     local program = _args[1]
     if program == nil then return 0 end
     local args = os.tail(_args)
@@ -82,5 +57,36 @@ function main(_args)
     if not found then
         os.ferror("sudo: Program not found")
     end
+    return 0
+end
+
+function main(args)
+    os.lib.login.alert_sudo()
+    local current_user = os.lib.login.currentUser()
+    local isValid = os.lib.login.general_verify(current_user)
+    --if valid, verify if current user can run programs with UID=0
+    if isValid then
+        if os.lib.login.sudoers_verify_user(current_user, 'root') then
+            os.lib.login.use_ctok()
+            run_program(args)
+        else
+            sudo_error("sudo: "..current_user.." is not in the sudoers file")
+            return 1
+        end
+    else
+        if os.lib.login.sudoers_verify_user(current_user, 'root') then
+            if os.lib.login.front_login('sudo', current_user) then
+                --os.lib.login.use_ctok()
+                run_program(args)
+            else
+                sudo_error("sudo: Login incorrect")
+                return 1
+            end
+        else
+            sudo_error("sudo: "..current_user.." is not in the sudoers file")
+            return 1
+        end
+    end
+    os.lib.login.close_sudo()
     return 0
 end

@@ -34,6 +34,10 @@ MAPDEVICES_CHAR[1] = {
 
 MAPDEVICES_CHAR[5] = {}
 
+--create virtual disks(without loopback)
+--fs-tools:
+-- * copy from a fs to another fs
+
 function lddev(path, type, major, minor)
     if type == 'b' then
         local d = MAPDEVICES_BLOCK[major][minor]
@@ -55,14 +59,17 @@ function lddev(path, type, major, minor)
 end
 
 function libroutine()
-    --lddev('/dev/mem', 'c', 1, 1)
+    --normal devices
     lddev('/dev/null', 'c', 1, 3)
     lddev('/dev/zero', 'c', 1, 5)
     lddev('/dev/full', 'c', 1, 7)
     lddev('/dev/random', 'c', 1, 8)
     lddev('/dev/urandom', 'c', 1, 9)
 
+    --loopback devices
     lddev('/dev/loop0', 'b', 7, 0)
     lddev('/dev/loop1', 'b', 7, 0)
     lddev('/dev/loop2', 'b', 7, 0)
+    lddev('/dev/loop3', 'b', 7, 0)
+    lddev('/dev/loop4', 'b', 7, 0)
 end

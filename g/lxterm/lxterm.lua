@@ -13,7 +13,9 @@ function main()
     commandBox1.stX = 0
     commandBox1.stY = 0
     commandBox1.pathToShell = '/sbin/login'
-    os.runfile_proc(commandBox1.pathToShell)
+    while true do
+        os.runfile_proc(commandBox1.pathToShell)
+    end
 end
 
 --[[

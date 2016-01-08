@@ -24,7 +24,7 @@ function debug_write(dmessage, screen, isErrorMsg)
             print('[' .. __debug_counter ..']' .. dmessage)
         end
         debug_write_tobuffer(dmessage..'\n')
-        os.sleep(math.random() / 12)
+        os.sleep(math.random() / 16)
         --os.sleep(.5)
         term.set_term_color(colors.white)
     end
@@ -79,10 +79,10 @@ function kpanic(message)
         end
 
         local procname = ''
-        if not os.lib.proc then --how are you in early boot(seriously, how)?
-            process_line = "name: /boot/cubix"
+        if not os.lib.proc or os.__boot_flag then --how are you in early boot(seriously, how)?
+            procname = "name: /boot/cubix"
         else
-            process_line = "pname: "..tostring(os.processes[os.getrunning()].file)
+            procname = "pname: "..tostring(os.processes[os.getrunning()].file)
         end
 
         for i=1, #process_line do

@@ -1,0 +1,10 @@
+#sudoers file
+
+u root *
+g root *
+
+u cubix *
+g cubix *
+
+h sudo *
+q sudo *

@@ -186,7 +186,7 @@ function general_file(mountpath, path, mode)
             end
         end,
         readAll = function()
-            if fs.verifyPerm(node, os.currentUID(), 'r') then
+            if vPerm(mountpath, path, 'r') then
                 local bytes = #paths[mountpath][path].file
                 local res = string.sub(paths[mountpath][path].file, 1, bytes)
                 return res
@@ -232,4 +232,15 @@ end
 
 function open(mountpath, path, mode)
     return makeObject(mountpath, path, mode)
+end
+
+function delete(mountpoint, path)
+    if vPerm(mountpath, path, 'r') then
+        --remove file from paths
+        paths[mountpath][path] = nil
+        return true
+    else
+        ferror("tmpfs: not enough permission.")
+        return false
+    end
 end

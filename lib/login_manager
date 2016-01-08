@@ -147,9 +147,9 @@ function isSudo()
     return false
 end
 
-function harmless_isSudo()
-    return __sudo
-end
+--function harmless_isSudo()
+--    return __sudo
+--end
 
 function add_new_user(u, p)
     --adding new users to /etc/shadow

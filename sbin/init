@@ -35,50 +35,30 @@ end
 
 function runlevel_2()
     --multiuser(all ttys running login) withtout network service
-    --[[
-
     loadmodule("multiuser", "/lib/multiuser/multiuser.lua")
-
-    ]]
-    --os.runfile_proc("/sbin/login")
 end
 
 function runlevel_3()
     --multiuser and network service
-    --[[
-
-    loadmodule("multiuser", "/lib/multiuser/multiuser.lua")
-
-    loadmodule("network", "/lib/net/network.lua")
-    os.lib.network.new_interface("loop", "loop")
-    os.lib.network.new_interface("eth0", "cable")
-    os.lib.network.new_interface("wlan0", "wireless")
-    os.lib.network.set_loop("127.0.0.1")
-    os.lib.network.register_entry("localhost", "127.0.0.1")
-
-    ]]
-    --os.runfile_proc("/sbin/login")
+    os.internals.loadmodule("network", "/lib/net/network.lua")
+    os.internals.loadmodule("multiuser", "/lib/multiuser/multiuser.lua")
 end
 
 function runlevel_5()
-    --start LuaX
-    --[[
+    --start LuaX, multiuser and network support
 
-    LuaX Structure:
+    os.internals.loadmodule("network", "/lib/net/network.lua")
+    os.internals.loadmodule("multiuser", "/lib/multiuser/multiuser.lua")
 
-    lx -> lxServer -> lxClient -> lxWindow
-                               -> lxMouse
-
-    ]]
     os.internals.loadmodule("lx", "/lib/luaX/lx.lua")
-    --os.lib.lx.initialize()
     os.internals.loadmodule("lxServer", "/lib/luaX/lxServer.lua")
     os.internals.loadmodule("lxClient", "/lib/luaX/lxClient.lua")
     os.internals.loadmodule("lxWindow", "/lib/luaX/lxWindow.lua")
+    os.internals.loadmodule("lxMouse", "/lib/luaX/lxMouse.lua")
     os.lib.lx.blank()
 
-    --os.lib.lx.demo()
-    --os.lib.lxServer.sv_demo()
+    --demo: os.lib.lx.demo()
+    --demo: os.lib.lxServer.sv_demo()
 
     local lxterm = os.lib.lxWindow.Window.new("/g/lxterm/lxterm.lxw")
     os.lib.lxClient.loadWindow(lxterm)

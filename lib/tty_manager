@@ -1,14 +1,10 @@
 #!/usr/bin/env lua
 --tty manager
 --task: manage TTYs
---register ttys to users
---/bin/switch: (will) switch from tty to another
---/bin/who uses it
---/bin/users: (will) use it
 
-TTYS = {}
+local TTYS = {}
 
-__current_tty = ''
+local __current_tty = ''
 
 function get_tty(id)
     return TTYS[id]
@@ -25,15 +21,24 @@ function getcurrentTTY()
     return TTYS[__current_tty]
 end
 
+function get_ttys()
+    return TTYS
+end
+
 TTY = {}
 TTY.__index = TTY
 function TTY.new(tid)
-    inst = {}
+    local inst = {}
+    setmetatable(inst, TTY)
     inst.buffer = ""
     inst.id = tid
     inst.using = false
     TTYS[tid] = inst
     return inst
+end
+
+function TTY:run_process(absolute_path)
+    os.debug.debug_write("[tty] "..self.id..' running '..absolute_path, false)
 end
 
 function TTY:write(msg)
@@ -50,6 +55,7 @@ function write(message)
 end
 
 function libroutine()
+    --10 ttys by default
     os.internals._kernel.register_tty("/dev/tty0", TTY.new("/dev/tty0"))
     os.internals._kernel.register_tty("/dev/tty1", TTY.new("/dev/tty1"))
     os.internals._kernel.register_tty("/dev/tty2", TTY.new("/dev/tty2"))
@@ -60,5 +66,5 @@ function libroutine()
     os.internals._kernel.register_tty("/dev/tty7", TTY.new("/dev/tty7"))
     os.internals._kernel.register_tty("/dev/tty8", TTY.new("/dev/tty8"))
     os.internals._kernel.register_tty("/dev/tty9", TTY.new("/dev/tty9"))
-    os.internals._kernel.register_tty("/dev/tty10", TTY.new("/dev/tty10"))
+    --os.internals._kernel.register_tty("/dev/tty10", TTY.new("/dev/tty10"))
 end

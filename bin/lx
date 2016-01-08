@@ -27,6 +27,7 @@ function lx_start_default()
     os.internals.loadmodule("lxServer", "/lib/luaX/lxServer.lua")
     os.internals.loadmodule("lxClient", "/lib/luaX/lxClient.lua")
     os.internals.loadmodule("lxWindow", "/lib/luaX/lxWindow.lua")
+    os.internals.loadmodule("lxMouse", "/lib/luaX/lxMouse.lua")
     local lxterm = os.lib.lxWindow.Window.new("/g/lxterm/lxterm.lxw")
     os.lib.lx.blank()
     os.lib.lxClient.loadWindow(lxterm)
@@ -75,6 +76,20 @@ function main(args)
             end
         else
             lx_start_default()
+        end
+    elseif args[1] == 'mods' then
+        if os.lib.lx then
+            print("luaX loaded modules:")
+            term.set_term_color(colors.green)
+            for k,v in pairs(os.lib) do
+                if string.sub(k, 1, 2) == 'lx' then
+                    write(k..' ')
+                end
+            end
+            write('\n')
+            term.set_term_color(colors.white)
+        else
+            ferror("lx: luaX not loaded")
         end
     elseif args[1] == 'status' or args[1] == nil then
         if os.lib.lx then

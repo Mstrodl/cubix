@@ -3,7 +3,7 @@
 
 AUTHOR = "Lukas Mendes"
 VERSION = "0.0.4"
-BUILD_DATE = "2015-12-24"
+BUILD_DATE = "2016-01-02"
 
 --[[
     The Cubix Live Installer has the basic utilities to install cubix
@@ -418,7 +418,9 @@ end
 function genfstab(args)
     local file = args[1]
     local fh = fs.open(file, 'w')
-    fh.write("/dev/hdd;/;cfs;;1;1\n")
+    --device;mountpoint;fs;options;\n
+    fh.write("/dev/hda;/;cfs;;\n")
+    fh.write("/dev/loop1;/dev/shm;tmpfs;;\n")
     fh.close()
     print("genfstab: generated fstab in "..file)
 end

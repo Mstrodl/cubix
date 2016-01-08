@@ -4,7 +4,7 @@
 _handler = {}
 _handler.signal_handler = function (sig)
     if sig == 'kill' then
-        debug.debug_write("nano: SIGKILL'd!", false)
+        os.debug.debug_write("nano: SIGKILL'd!", false)
         return 0
     end
 end
