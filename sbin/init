@@ -49,20 +49,7 @@ function runlevel_5()
 
     os.internals.loadmodule("network", "/lib/net/network.lua")
     os.internals.loadmodule("multiuser", "/lib/multiuser/multiuser.lua")
-
-    os.internals.loadmodule("lx", "/lib/luaX/lx.lua")
-    os.internals.loadmodule("lxServer", "/lib/luaX/lxServer.lua")
-    os.internals.loadmodule("lxClient", "/lib/luaX/lxClient.lua")
-    os.internals.loadmodule("lxWindow", "/lib/luaX/lxWindow.lua")
-    os.internals.loadmodule("lxMouse", "/lib/luaX/lxMouse.lua")
-    os.lib.lx.blank()
-
-    --demo: os.lib.lx.demo()
-    --demo: os.lib.lxServer.sv_demo()
-
-    local lxterm = os.lib.lxWindow.Window.new("/g/lxterm/lxterm.lxw")
-    os.lib.lxClient.loadWindow(lxterm)
-    os.system_halt()
+    os.runfile_proc("/bin/lx", {'start'})
 end
 
 function runlevel_6()

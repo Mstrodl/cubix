@@ -1,3 +1,13 @@
+0.5.1 - 0.5.2 (17-01-2015) [just writing changes before official release]
+  tl;dr this is not finished
+
+  Major changes:
+    +login manager rewrited (sudoers, groups, and more)!
+    +added better support for devices
+
+  Devices:
+    +changed way /dev/random and /dev/urandom get random seeds(based on os.clock(), not os.time())
+
 0.4.0 - 0.5.1 (12-21-2015)
   tl;dr you should use this now
 

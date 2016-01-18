@@ -33,10 +33,15 @@ local current_token = {
     user = '',
     hash = ''
 }
+
 local current_user = {
     username = '',
+    group = '',
+    gid = -1,
     uid = -1
 }
+
+local groups = {}
 
 function proof_work(data)
     local cache = data
@@ -91,9 +96,12 @@ function currentUser()
     return os.deepcopy(current_user).username
 end
 
+function currentGroup()
+    return os.deepcopy(current_user).group
+end
+
 function userUID()
-    local c = os.deepcopy(current_user)
-    return c.uid
+    return os.deepcopy(current_user).uid
 end
 
 function login(usr, pwd)
@@ -114,6 +122,8 @@ function login(usr, pwd)
             local new_token = Token.new(usr, 4) -- 5 times(4, 3, 2, 1, 0)
             current_token = new_token
             current_user.username = usr
+            current_user.group = udata[4]
+            current_user.gid = get_group_gid(udata[4])
             if usr == 'root' then
                 current_user.uid = 0
             else
@@ -128,7 +138,6 @@ end
 local _special_sudo = false
 
 function alert_sudo()
-    --how to see if sudo is running
     local runningproc = os.processes[os.getrunning()]
     if runningproc.file == '/bin/sudo' or runningproc.file == 'bin/sudo' then
         _special_sudo = true
@@ -150,7 +159,36 @@ local current_sudoers = {
     group = {}
 }
 
+local function read_groups()
+    os.debug.debug_write("[login] reading groups")
+    local h = fs.open("/etc/groups", 'r')
+    if not h then
+        os.debug.kpanic("error opening /etc/groups")
+    end
+    local d = h.readAll()
+    h.close()
+    local lines = os.strsplit(d, '\n')
+    for _,line in ipairs(lines) do
+        if string.sub(line, 1, 1) ~= '#' then
+            local data = os.strsplit(line, ':')
+            local gname = data[1]
+            local gid = data[2]
+            local _gmembers = data[3]
+            local gmembers = os.strsplit(_gmembers, ',')
+            groups[gid] = {
+                members = gmembers,
+                name = gname
+            }
+        end
+    end
+end
+
+function getGroups()
+    return os.deepcopy(groups)
+end
+
 local function read_sudoers()
+    os.debug.debug_write("[login] reading sudoers")
     local h = fs.open("/etc/sudoers", 'r')
     if not h then
         os.debug.kpanic("error opening /etc/sudoers")
@@ -218,12 +256,47 @@ function sudoers_verify_group(usr, group)
 
 end
 
-function sudoers_gverify_user(group, usr)
-
+function sudoers_gverify_user(grp, usr)
+    local group = current_sudoers.group[grp]
+    if group == nil then
+        return false
+    end
+    if group.users == '*' then
+        return true
+    end
+    for k,v in pairs(group.users) do
+        if v == usr then
+            return true
+        end
+    end
+    return false
 end
 
 function sudoers_gverify_group(group, other_group)
 
+end
+
+function get_group_gid(group_name)
+    for k,v in pairs(groups) do
+        if v.name == group_name then
+            return k
+        end
+    end
+    return -1
+end
+
+function isInGroup(uid, gid)
+    if groups[gid] then
+        local g = groups[gid]
+        for k,v in ipairs(g.members) do
+            if v == uid then
+                return true
+            end
+        end
+        return false
+    else
+        return false
+    end
 end
 
 function front_login(program, user)
@@ -240,10 +313,81 @@ function front_login(program, user)
     end
 end
 
+local function user_exists(u)
+    local h = fs.open("/etc/shadow", 'r')
+    if h == nil then
+        os.debug.kpanic("error opening /etc/shadow")
+    end
+    local l = h.readAll()
+    h.close()
+    local lines = os.strsplit(l, '\n')
+    for _,line in ipairs(lines) do
+        local data = os.strsplit(line, '^')
+        if data[1] == u then
+            return true
+        end
+    end
+    return false
+end
+
+function add_new_user(u, p)
+    --adding new users to /etc/shadow
+    if u == 'root' then
+        return false
+    end
+    if user_exists(u) then
+        return false
+    end
+    if permission.grantAccess(fs.perms.SYS) then
+        local _salt = os.generateSalt(15)
+        local hp = proof_work(p .. _salt)
+        local user_string = '\n' .. u .. '^' .. hp .. '^' .. _salt ..  '\n'
+        local h = fs.open("/etc/shadow", 'a')
+        h.write(user_string)
+        h.close()
+        fs.makeDir("/home/"..u)
+        return true
+    else
+        ferror("add_new_user: error getting SYSTEM permission")
+        return false
+    end
+end
+
+function changepwd(user, p, np)
+    if login(user, p) then
+        --change pwd
+        local h = fs.open("/etc/shadow", 'r')
+        if h == nil then
+            os.debug.kpanic("error opening /etc/shadow")
+        end
+        local fLines = strsplit(h.readAll(), '\n')
+        h.close()
+        for k,v in pairs(fLines) do
+            local pair = os.strsplit(v, '^')
+            if pair[1] == user then
+                local _salt = os.generateSalt(15)
+                pair[2] = proof_work(np .. _salt)
+                fLines[k] = pair[1] .. '^' .. pair[2] .. '^' .. _salt .. '\n'
+            else
+                fLines[k] = fLines[k] .. '\n'
+            end
+        end
+        local h2 = fs.open("/etc/shadow", 'w')
+        for k,v in pairs(fLines) do
+            h2.write(v)
+        end
+        h2.close()
+        return true
+    else
+        return false
+    end
+end
+
 function libroutine()
     os.login = {}
     os.login.login = login
     os.login.adduser = add_new_user
     os.login.changepwd = changepwd
+    read_groups()
     read_sudoers()
 end

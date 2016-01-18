@@ -1,0 +1,8 @@
+#Group file for cubix
+root:0:
+disk:4:cubix
+lx:5:cubix
+network:6:cubix
+power:7:
+storage:8:cubix
+video:9:cubix

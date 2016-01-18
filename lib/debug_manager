@@ -85,8 +85,8 @@ function kpanic(message)
             procname = "pname: "..tostring(os.processes[os.getrunning()].file)
         end
 
-        for i=1, #process_line do
-            os.lib.lx.write_letter(string.sub(process_line,i,i), 4+i, 6, colors.red, colors.white)
+        for i=1, #procname do
+            os.lib.lx.write_letter(string.sub(procname,i,i), 4+i, 6, colors.red, colors.white)
         end
 
         for i=1, #message do

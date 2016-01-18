@@ -1,0 +1,16 @@
+#base pkgdata
+
+#Basic data
+pkgName;base
+pkgVersion;0.5.1
+pkgBuild;51
+
+#Maintainer
+pkgAuthor;Lukas Mendes
+pkgEAuthor;lkmnds@gmail.com
+
+pkgDescription;Cubix base system
+
+#files
+#pkgFile;*;/
+pkgAll;/

@@ -1,12 +1,5 @@
 #!/usr/bin/env lua
 --/bin/sudo: grants access to run programs in /sbin
--- so, yes, Cubix has some security flaws, and one of these flaws is
--- to run /sbin programs using os.runfile, and shell does not give a
--- single fuck to Cubix permissions, only /bin/cshell uses some kind of
--- "if you're root, i will run, if not, fuck you" strategy
--- and this is not good because of the point described here
--- and because of this point sudo can be created without fs_manager
--- craziness.
 
 _handler = {}
 _handler.signal_handler = function (sig)

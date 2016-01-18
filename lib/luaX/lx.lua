@@ -40,7 +40,7 @@ print = _print
 function blank()
     term.clear()
     term.setCursorPos(1,1)
-    term.setBackgroundColor(colors.lightBlue)
+    term.setBackgroundColor(startColor)
     for x = 1, 51 do
         for y = 1, 19 do
             term.setCursorPos(x, y)
@@ -98,7 +98,7 @@ colorcodes = {
     ["f"] = colors.white,
 }
 
-colores = {colors.black, colors.blue, colors.lime, colors.green, colors.brown, colors.magenta, colors.orange, colors.lightGray, colors.gray, colors.cyan, colors.lime, colors.red, colors.pink, colors.yellow, colors.white} 
+colores = {colors.black, colors.blue, colors.lime, colors.green, colors.brown, colors.magenta, colors.orange, colors.lightGray, colors.gray, colors.cyan, colors.lime, colors.red, colors.pink, colors.yellow, colors.white}
 
 function random_color()
     return colores[math.random(1, #colores)]
@@ -119,11 +119,11 @@ function demo()
     write_pixel(5, 6, random_color())
     write_pixel(5, 7, random_color())
     write_pixel(5, 8, random_color())
-    
+
     write_pixel(6, 8, random_color())
     write_pixel(7, 8, random_color())
     write_pixel(8, 8, random_color())
-    
+
     --y 10
     --x   x
     -- x x
@@ -140,7 +140,7 @@ function demo()
 
     write_pixel(11, 7, random_color())
     write_pixel(13, 7, random_color())
-    
+
     write_pixel(10, 8, random_color())
     write_pixel(14, 8, random_color())
 end

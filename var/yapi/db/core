@@ -1,0 +1,6 @@
+devscripts;http://lkmnds.github.io/yapi/devscripts.yap
+sbl;http://lkmnds.github.io/yapi/sbl.yap
+netutils;http://lkmnds.github.io/yapi/netutils.yap
+osh;http://lkmnds.github.io/yapi/osh.yap
+cshell;http://lkmnds.github.io/yapi/cshell.yap
+base;http://lkmnds.github.io/yapi/base.yap

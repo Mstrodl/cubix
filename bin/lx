@@ -1,17 +1,5 @@
 #!/usr/bin/env lua
---/bin/lx: manages luaX in userspace
-
---[[
-uses of lx
-
-$ lx start
-$ lx load <lxw file>
-
-$ lx load /g/lxterm/lxterm.lxw
-
-$ lx demo
-
-]]
+--/bin/lx: manages luaX in user(spaaaaaaaaace)
 
 _handler = {}
 _handler.signal_handler = function (sig)
@@ -22,6 +10,7 @@ _handler.signal_handler = function (sig)
 end
 
 function lx_start_default()
+    --this is the default routine to start luaX with lxterm
     os.debug.debug_write("[lx] starting")
     os.internals.loadmodule("lx", "/lib/luaX/lx.lua")
     os.internals.loadmodule("lxServer", "/lib/luaX/lxServer.lua")
@@ -35,12 +24,18 @@ function lx_start_default()
 end
 
 function lx_stop_default()
+    os.internals.unloadmod("lx")
+    os.internals.unloadmod("lxServer")
+    os.internals.unloadmod("lxClient")
+    os.lib.lxWindow.unload_all()
+    os.internals.unloadmod("lxWindow")
+    os.internals.unloadmod("lxMouse")
     return 0
 end
 
 function usage()
     print("lx <argument> <...>")
-    print("available arguments: load start status stop")
+    print("argument: load start status stop mods demo")
 end
 
 function main(args)

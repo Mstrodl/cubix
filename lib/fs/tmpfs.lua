@@ -216,7 +216,8 @@ function makeObject(mountpath, path, mode)
         paths[mountpath][path] = {
             type='file',
             file='',
-            perm=permission.fileCurPerm()
+            perm=permission.fileCurPerm(),
+            owner=os.currentUID()
         }
         if mode == 'r' then
             ferror("tmpfs: file does not exist")
@@ -235,7 +236,7 @@ function open(mountpath, path, mode)
 end
 
 function delete(mountpoint, path)
-    if vPerm(mountpath, path, 'r') then
+    if vPerm(mountpath, path, 'w') then
         --remove file from paths
         paths[mountpath][path] = nil
         return true
