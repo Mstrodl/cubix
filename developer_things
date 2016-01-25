@@ -1,0 +1,15 @@
+To developers wanting to create their own versions of base package:
+
+Before "makeyap":
+ * reboot into cubix(or craftos)
+ * Clear /tmp/syslog(this is needed to clear boot messages)
+  * rm /tmp/syslog && touch /tmp/syslog
+ * remove UFSDATA(because of the long list of entries in UFSDATA, you need to do this)
+  * rm /dev/hdd/UFSDATA
+
+Running makeyap takes quite a long time getting all files in the system
+and creating the yap file, it will be over 9000 lines long, so don't open it with
+editors(atom uses a lot of ram when opening, gedit works ok)
+
+After "makeyap":
+ * sync the buffers(recreate UFSDATA with current configuration)

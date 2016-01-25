@@ -3,7 +3,7 @@
 
 AUTHOR = "Lukas Mendes"
 VERSION = "0.0.4"
-BUILD_DATE = "2016-01-17"
+BUILD_DATE = "2016-01-24"
 
 --[[
     The Cubix Live Installer has the basic utilities to install cubix
@@ -171,6 +171,18 @@ function lsblk()
 end
 
 --yapstrap binary
+function run_build_hook(hook)
+    if hook == 'initramfs'
+        if os.loadAPI("/boot/libcubix") then
+            libcubix.generate_lcubix('all', '/boot/cubix-initramfs')
+        else
+            ferror("error loading libcubix.")
+        end
+    else
+        ferror("build hook not found")
+    end
+end
+
 function yapstrap(args)
     if current_envir ~= 'cubixli' then
         ferror("yapstrap: cubixli env not loaded")
@@ -185,6 +197,8 @@ function yapstrap(args)
             local handler = fs.open("/tmp/install_lock", 'w')
             handler.close()
             normal("created /tmp/install_lock")
+            normal("running build hook: initramfs")
+            run_build_hook('initramfs')
             normal("yapstrap: finished "..v.." task")
         end
     end

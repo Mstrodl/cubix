@@ -1,0 +1,7 @@
+#This is the file that generate-initramfs uses to genenerate a cubix-initramfs file
+
+#libcubix entry
+libcubix
+
+#boot splash entry:
+bootsplash

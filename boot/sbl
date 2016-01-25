@@ -4,6 +4,8 @@
 term.clear()
 term.setCursorPos(1,1)
 
+VERSION = '0.11'
+
 function _halt()
     while true do os.sleep(0) end
 end
@@ -59,8 +61,8 @@ function CUI(m)
     while true do
         term.clear()
         term.setCursorPos(1,2)
-	    cprint("-- SBL (Simple Boot Loader) --")
-        cprint("\n")
+	    cprint("SBL "..VERSION)
+        cprint("")
         for i=1, l, 1 do
             if i==n then
                 cprint(i .. " ["..m[i].."]")
@@ -68,8 +70,9 @@ function CUI(m)
                 cprint(i .. " " .. m[i])
             end
         end
-        cprint("\n")
-        cprint("Select an OS to load[arrow up/arrow down]")
+        cprint("")
+        cprint("Select a OS to load")
+        cprint("[arrow up/arrow down/enter]")
         local kpress = nil
         a, b= os.pullEventRaw()
         if a == "key" then
@@ -95,16 +98,12 @@ function read_osfile()
         local sysdat = strsplit(systems[k], ';')
         detected_oses_name[i] = sysdat[1]
         detected_oses_path[i] = sysdat[2]
-        print("systems.cfg: "..sysdat[1]..' : '..sysdat[2])
+        print(sysdat[1]..' -> '..sysdat[2])
         i = i + 1
         os.sleep(.2)
     end
     systems_file.close()
     return {detected_oses_name, detected_oses_path}
-end
-
-function parse(cmd)
-
 end
 
 local availablemods = {}
@@ -208,15 +207,17 @@ function loadkernel(kfile, memory)
     end
     print("SBL: loading \""..sFrom..'/'..sCommand.."\"\n")
     if sCommand == '/rom/programs/shell' then
-        os.run({}, "/rom/programs/shell")
+        shell.run("/rom/programs/shell")
     else
         os.run({}, sFrom..'/'..sCommand, table.unpack(tArgs, 2))
     end
 end
 
-term.set_term_color(colors.green)
+term.setBackgroundColor(colors.white)
+term.set_term_color(colors.black)
 print("Welcome to SBL!\n")
 term.set_term_color(colors.white)
+term.setBackgroundColor(colors.black)
 os.sleep(.5)
 
 oses = read_osfile()

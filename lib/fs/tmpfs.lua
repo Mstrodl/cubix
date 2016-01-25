@@ -45,7 +45,7 @@ end
 function getSize(mountpath, path) return 0 end
 
 function loadFS(mountpath)
-    print("tmpfs: loading at "..mountpath)
+    os.debug.debug_write("tmpfs: loading at "..mountpath)
     if not paths[mountpath] then
         paths[mountpath] = {}
     end

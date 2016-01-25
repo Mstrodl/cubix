@@ -2,7 +2,7 @@
 --/boot/cubix: well, cubix!
 
 AUTHOR = "Lukas Mendes"
-BUILD_DATE = "2016-01-17"
+BUILD_DATE = "2016-01-24"
 
 --  version format: major.revision.minor
 --      major: linear
@@ -34,61 +34,17 @@ term.set_term_color = function (c)
     end
 end
 
-os.viewTable = function (t)
-    if t == nil then return 0 end
-    print(t)
-    for k,v in pairs(t) do
-        print(k..","..tostring(v).." ("..type(v)..")")
-    end
-end
-
-os.tail = function(t)
-    if # t <= 1 then
-        return nil
-    end
-    local newtable = {}
-    for i, v in ipairs(t) do
-        if i > 1 then
-            table.insert(newtable, v)
-        end
-    end
-    return newtable
+if os.loadAPI("/boot/cubix-initramfs") then
+    print("Yay, loaded initramfs")
+else
+    term.set_term_color(colors.red)
+    print("Sorry, you can't load cubix. (initramfs error)")
+    os.system_halt()
 end
 
 local Args = {...} --arguments to cubix
 
 os.__boot_flag = true
-
-os.strsplit = function (inputstr, sep)
-    if sep == nil then
-        sep = "%s"
-    end
-    if type(inputstr) ~= 'string' then
-        os.ferror("os.strsplit: type(inputstr) == "..type(inputstr))
-        return 1
-    end
-    if inputstr == nil then
-        return ''
-    end
-    local t={} ; i=1
-    for str in string.gmatch(inputstr, "([^"..sep.."]+)") do
-        t[i] = str
-        i = i + 1
-    end
-    return t
-end
-
-function strcount(str, char)
-    local c = 0
-    for i=1, #str do
-        local v = string.sub(str, i, i)
-        if v == char then
-            c = c + 1
-        end
-    end
-    return c
-end
-_G['strcount'] = strcount
 
 kflag = {}
 
@@ -164,60 +120,44 @@ end
 
 _G['ferror'] = os.ferror
 
-os.safestr = function (s)
-    if string.byte(s) > 191 then
-        return '@'..string.byte(s)
-    end
-    return s
-end
-
-os.generateSalt = function(l)
-    if l < 1 then
-        return nil
-    end
-    local res = ''
-    for i = 1, l do
-        res = res .. string.char(math.random(32, 126))
-    end
-    return res
-end
-
-function _prompt(message, yes, nope)
-    write(message..'['..yes..'/'..nope..'] ')
-    local result = read()
-    if result == yes then
-        return true
-    else
-        return false
-    end
-end
-
-_G['prompt'] = _prompt
-
 if os.loadAPI("/lib/video_manager") then
     print("loaded video")
 end
 
 if os.loadAPI("/lib/debug_manager") then
-    debug = _G["debug_manager"]
-    debug.debug_write("debug: loaded")
+    __debug = _G["debug_manager"]
+    __debug.debug_write("debug: loaded")
 else
-    debug.debug_write = print
+    __debug.debug_write = print
     term.set_term_color(colors.red)
-    debug.debug_write("debug: not loaded")
+    __debug.debug_write("debug: not loaded")
     term.set_term_color(colors.white)
 end
 
-if kflag.quiet then
-    debug.debug_write = function()end
-    debug.testcase = function()end
-    debug.ferror = function()end
+os.debug = __debug
+debug = os.debug
+
+if kflag.splash then
+    if bootsplash then
+        bootsplash.load_normal()
+        kflag.quiet = true
+    else
+        ferror("splash: bootsplash not loaded at initramfs.")
+        sleep(1)
+        kflag.quiet = false
+    end
 end
 
-os.debug = debug
+if kflag.quiet or kflag.nodebug then
+    --if quiet of nodebug, just make normal debug functions as nothing.
+    __debug.debug_write = function()end
+    __debug.testcase = function()end
+    __debug.ferror = function()end
+end
 
 term.set_term_color(colors.green)
-debug.debug_write("Welcome to Cubix "..VERSION..'!')
+os.debug.debug_write("Welcome to Cubix "..VERSION..'!')
+term.set_term_color(colors.white)
 os.sleep(.5)
 
 os.lib = {}
@@ -449,6 +389,18 @@ os.__boot_flag = false
 
 --setting tty
 os.lib.tty.current_tty("/dev/tty0")
+
+if kflag.quiet then
+    if os.loadAPI("/lib/debug_manager") then
+        __debug = _G["debug_manager"]
+        debug.debug_write("debug: loaded")
+    else
+        __debug.debug_write = print
+        term.set_term_color(colors.red)
+        __debug.debug_write("debug: not loaded")
+        term.set_term_color(colors.white)
+    end
+end
 
 --finally, run!
 os.__parent_init = os.new_process(kflag.init)

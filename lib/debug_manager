@@ -50,7 +50,7 @@ function kpanic(message)
     if _G['LX_SERVER_LOADED'] == nil or _G['LX_SERVER_LOADED'] == false then
         term.set_term_color(colors.yellow)
         debug_write("[cubix] Kernel Panic!")
-        if not os.lib.proc or os.__boot_flag then --early kernel
+        if os.__boot_flag then --early kernel
             debug_write("Proc: /boot/cubix")
         else
             debug_write("Proc: "..tostring(os.getrunning()))
