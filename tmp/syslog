@@ -1,10 +1,4 @@
-[121][proc_manager] SIGKILL -> bin/rm
-[122][proc] new: bin/touch
-[123][process] running bin/touch pid=11
-[124][proc_manager] SIGKILL -> bin/touch
-[125][proc] new: bin/rm
-[126][process] running bin/rm pid=12
-[127][proc_manager] SIGKILL -> bin/rm
-[128][proc] new: makeyap
-[129][process] running makeyap pid=13
-[130][proc_manager] SIGKILL -> makeyap
+[124][proc_manager] SIGKILL -> bin/rm
+[125][proc] new: bin/touch
+[126][process] running bin/touch pid=10
+[127][proc_manager] SIGKILL -> bin/touch

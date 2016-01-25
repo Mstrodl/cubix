@@ -32,7 +32,9 @@ MAPDEVICES_CHAR[1] = {
     [9]={key='dev_urandom', name='/dev/urandom', lib='urandom_device.lua'},
 }
 
-MAPDEVICES_CHAR[5] = {}
+MAPDEVICES_CHAR[10] = {
+    [8]={key='dev_mouse', name='/dev/mouse', lib='mouse_device.lua'}
+}
 
 --create virtual disks(without loopback)
 --fs-tools:
@@ -72,4 +74,7 @@ function libroutine()
     lddev('/dev/loop2', 'b', 7, 0)
     lddev('/dev/loop3', 'b', 7, 0)
     lddev('/dev/loop4', 'b', 7, 0)
+
+    --mouse
+    lddev("/dev/mouse", 'c', 10, 8)
 end
