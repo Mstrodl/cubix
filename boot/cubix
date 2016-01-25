@@ -2,7 +2,7 @@
 --/boot/cubix: well, cubix!
 
 AUTHOR = "Lukas Mendes"
-BUILD_DATE = "2016-01-24"
+BUILD_DATE = "2016-01-25"
 
 --  version format: major.revision.minor
 --      major: linear
@@ -401,6 +401,11 @@ if kflag.quiet then
         term.set_term_color(colors.white)
     end
 end
+
+os.debug = __debug
+
+term.clear()
+term.setCursorPos(1,1)
 
 --finally, run!
 os.__parent_init = os.new_process(kflag.init)

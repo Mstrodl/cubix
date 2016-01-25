@@ -3,5 +3,5 @@
 #libcubix entry
 libcubix
 
-#boot splash entry:
-bootsplash
+#boot splash entry(disabled by default):
+#bootsplash

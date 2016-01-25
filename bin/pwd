@@ -10,9 +10,5 @@ _handler.signal_handler = function (sig)
 end
 
 function main()
-    local cpth = fs.open("/tmp/current_path", 'r')
-    local CURRENT_PATH = cpth.readAll()
-    cpth.close()
-
-    print(CURRENT_PATH)
+    print(os.cshell.getpwd())
 end

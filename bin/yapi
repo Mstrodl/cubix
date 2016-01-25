@@ -1,8 +1,8 @@
 #!/usr/bin/env lua
---/bin/yapi: Yet Another Package Installer (wieh a pacman syntax-like)
+--/bin/yapi: Yet Another Package Installer (with a pacman syntax-like)
 
 AUTHOR = 'Lukas Mendes'
-VERSION = '0.1.1'
+VERSION = '0.1.2'
 
 _handler = {}
 _handler.signal_handler = function (sig)
@@ -310,7 +310,9 @@ function yapidb:return_dep_onepkg(pkgname)
             return {}
         end
         for _,dep in ipairs(yapdata['deps']) do
-            table.insert(dependencies, dep)
+            if not self:is_installed(dep) then
+                table.insert(dependencies, dep)
+            end
         end
         return dependencies
     else

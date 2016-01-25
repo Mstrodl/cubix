@@ -116,24 +116,3 @@ function generate_lcubix(type, path)
         h2.close()
     end
 end
---bootsplash module for cubix initramfs
-
-bootsplash = {}
-
-bootsplash.load_normal = function()
-    local h = fs.open("/etc/bootsplash.default", 'r')
-    if h == nil then
-        os.debug.kpanic("bootsplash: error opening bootsplash.default")
-    end
-    local splash = h.readAll()
-    h.close()
-    if splash == 'text' then
-        term.clear()
-        term.setCursorPos(6,6)
-        print("Cubix - text animation bootscreen.")
-    else
-        os.debug.kpanic("bootsplash: invalid bootscreen")
-    end
-end
-
-_G['bootsplash'] = bootsplash
