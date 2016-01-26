@@ -174,7 +174,12 @@ local function read_groups()
             local gname = data[1]
             local gid = data[2]
             local _gmembers = data[3]
-            local gmembers = os.strsplit(_gmembers, ',')
+            local gmembers = {}
+            if _gmembers == {} then
+                gmembers = os.strsplit(_gmembers, ',')
+            else
+                gmembers = {}
+            end
             groups[gid] = {
                 members = gmembers,
                 name = gname

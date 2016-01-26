@@ -51,8 +51,6 @@ kflag = {}
 for k,v in ipairs(Args) do
     if v == 'quiet' then
         kflag.quiet = true
-    elseif v == 'nodebug' then
-        kflag.nodebug = true
     elseif v == 'splash' then
         kflag.splash = true
     elseif v == 'acpi' then
@@ -137,21 +135,18 @@ end
 os.debug = __debug
 debug = os.debug
 
-if kflag.splash then
-    if bootsplash then
-        bootsplash.load_normal()
-        kflag.quiet = true
-    else
-        ferror("splash: bootsplash not loaded at initramfs.")
-        sleep(1)
-        kflag.quiet = false
-    end
-end
+cubix = {}
+_G['cubix'] = cubix
 
-if kflag.quiet or kflag.nodebug then
+cubix.boot_kernel = function()
+
+if kflag.quiet then
     --if quiet of nodebug, just make normal debug functions as nothing.
-    __debug.debug_write = function()end
-    __debug.testcase = function()end
+    __debug.debug_write = function()
+        os.sleep(math.random() / 16)
+    end
+    __debug.testcase = function()
+    end
     __debug.ferror = function()end
 end
 
@@ -218,7 +213,7 @@ end
 os.internals.loadmodule = loadmodule
 os.internals.unloadmod = unloadmod
 
-function os.viewLoadedMods()
+os.viewLoadedMods = function()
     for k,v in pairs(os.lib) do
         write(k..' ')
     end
@@ -415,7 +410,25 @@ else
     os.run_process(os.__parent_init)
 end
 
---if something goes wrong in kflag.init, just halt
+--if something goes wrong in kflag.init(such as kill of a monster), just halt
 os.system_halt()
 
 end
+
+end
+
+if kflag.splash then
+    if bootsplash then
+        kflag.quiet = true
+        bootsplash.load_normal()
+    else
+        ferror("splash: bootsplash not loaded at initramfs.")
+        sleep(1)
+        kflag.quiet = false
+        cubix.boot_kernel()
+    end
+else
+    cubix.boot_kernel()
+end
+
+print("tha end")
