@@ -254,7 +254,9 @@ local function read_sudoers()
                 local user = spl[2]
                 local _users = spl[3]
                 if _users == '*' then
-                    current_sudoers.user[user] = {}
+                    if current_sudoers.user[user] == nil then
+                        current_sudoers.user[user] = {}
+                    end
                     current_sudoers.user[user].users = '*'
                 else
                     local users = os.strsplit(_users, ';')
@@ -262,14 +264,30 @@ local function read_sudoers()
                         table.insert(current_sudoers.user[user].users, v)
                     end
                 end
-            elseif string.sub(line, 1, 1) == 'g' then --TODO: this
+            elseif string.sub(line, 1, 1) == 'g' then
                 local spl = os.strsplit(line, ' ')
+                local user = spl[2]
+                local _groups = spl[3]
+                if _groups == '*' then
+                    if current_sudoers.user[user] == nil then
+                        current_sudoers.user[user] = {}
+                    end
+                    current_sudoers.user[user].groups = '*'
+                else
+                    local groups = os.strsplit(_users, ';')
+                    for _,v in ipairs(groups) do
+                        table.insert(current_sudoers.user[user].groups, v)
+                    end
+                end
             elseif string.sub(line, 1, 1) == 'h' then
                 local spl = os.strsplit(line, ' ')
                 local group = spl[2]
                 local _users = spl[3]
                 if _users == '*' then
-                    current_sudoers.group[group] = {users = '*all*'}
+                    if current_sudoers.group[group] == nil then
+                        current_sudoers.group[group] = {}
+                    end
+                    current_sudoers.group[group].users = '*'
                 else
                     local users = os.strsplit(_users, ';')
                     for _,v in ipairs(users) do
@@ -278,6 +296,19 @@ local function read_sudoers()
                 end
             elseif string.sub(line, 1, 1) == 'q' then --TODO: this
                 local spl = os.strsplit(line, ' ')
+                local group = spl[2]
+                local _groups = spl[3]
+                if _groups == '*' then
+                    if current_sudoers.group[group] == nil then
+                        current_sudoers.group[group] = {}
+                    end
+                    current_sudoers.group[group].groups = '*'
+                else
+                    local groups = os.strsplit(_groups, ';')
+                    for _,v in ipairs(groups) do
+                        table.insert(current_sudoers.group[group].groups, v)
+                    end
+                end
             end
         end
     end
@@ -306,7 +337,19 @@ function sudoers_verify_user(usr, other_usr)
 end
 
 function sudoers_verify_group(usr, group)
-
+    local user = current_sudoers.user[usr]
+    if user == nil then
+        return false
+    end
+    if user.groups == '*' then
+        return true
+    end
+    for k,v in pairs(user.groups) do
+        if v == group then
+            return true
+        end
+    end
+    return false
 end
 
 --verify if a user from "grp" group can impersonate another user
@@ -327,7 +370,19 @@ function sudoers_gverify_user(grp, usr)
 end
 
 function sudoers_gverify_group(group, other_group)
-
+    local grp = current_sudoers.group[group]
+    if grp == nil then
+        return false
+    end
+    if grp.groups == '*' then
+        return true
+    end
+    for k,v in pairs(grp.groups) do
+        if v == other_group then
+            return true
+        end
+    end
+    return false
 end
 
 --get gid of groups
