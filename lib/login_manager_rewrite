@@ -135,6 +135,21 @@ function login(usr, pwd)
     return false
 end
 
+--function to compare if user has typed correctly(don't use this as actual login operation)
+function compare(usr, pwd)
+    local handler = fs.open('/etc/shadow', 'r')
+    local lines = os.strsplit(handler.readAll(), '\n')
+    handler.close()
+    for k,v in ipairs(lines) do
+        local udata = os.strsplit(v, '^')
+        local hashed = proof_work(pwd .. udata[3])
+        if udata[1] == usr and udata[2] == hashed then
+            return true
+        end
+    end
+    return false
+end
+
 local _special_sudo = false
 
 function alert_sudo()
@@ -362,10 +377,10 @@ function changepwd(user, p, np)
     if login(user, p) then
         --change pwd
         local h = fs.open("/etc/shadow", 'r')
-        if h == nil then
+        if h == nil or h == {} then
             os.debug.kpanic("error opening /etc/shadow")
         end
-        local fLines = strsplit(h.readAll(), '\n')
+        local fLines = os.strsplit(h.readAll(), '\n')
         h.close()
         for k,v in pairs(fLines) do
             local pair = os.strsplit(v, '^')

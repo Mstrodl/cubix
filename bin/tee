@@ -22,7 +22,7 @@ function main(args, pipe)
     local file = args[1]
     local h = fs.open(os.cshell.resolve(file), 'w')
 
-    if h == nil
+    if h == nil then
         os.ferror("tee: error opening path")
         return 1
     end
