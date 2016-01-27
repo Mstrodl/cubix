@@ -1,0 +1,15 @@
+#!/usr/bin/env lua
+--/bin/lsmod: list loaded modules in cubix
+
+_handler = {}
+_handler.signal_handler = function(sig)
+    if sig == 'kill' then
+        return 0
+    end
+end
+
+function main(args)
+    term.set_term_color(colors.green)
+    os.viewLoadedMods()
+    term.set_term_color(colors.white)
+end

@@ -34,10 +34,11 @@ function pth_goup(p)
 end
 
 function cd(pth)
+    local current_user = os.lib.login.currentUser()
     if CURRENT_PATH == nil then
         CURRENT_PATH = '/'
     elseif pth == nil then
-        CURRENT_PATH = CURRENT_PATH
+        CURRENT_PATH = "/home/"..current_user
     elseif pth == '.' then
         CURRENT_PATH = CURRENT_PATH
     elseif pth == '..' then
@@ -48,8 +49,6 @@ function cd(pth)
         CURRENT_PATH = CURRENT_PATH .. '/' .. pth
     elseif fs.exists(pth) == true then
         CURRENT_PATH = pth
-    elseif pth == nil then
-        --CURRENT_PATH = "/home/"..current_user
     else
         print("cd: not found!")
     end --end
@@ -57,19 +56,12 @@ end
 
 function main(args)
     local pth = args[1]
-    CURRENT_PATH = cpath
 
-    local cpath = fs.open("/tmp/current_path", 'r')
-    CURRENT_PATH = cpath.readAll()
-    cpath.close()
-
-    local cuser = fs.open("/tmp/current_user", 'r')
-    local current_user = cuser.readAll()
-    cuser.close()
-
+    CURRENT_PATH = os.cshell.getpwd()
     cd(pth)
 
     local _cpath = fs.open("/tmp/current_path", 'w')
     _cpath.write(CURRENT_PATH)
     _cpath.close()
+    --os.cshell.changepwd(CURRENT_PATH)
 end

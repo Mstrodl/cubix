@@ -1,6 +1,5 @@
 #!/usr/bin/env lua
 --/bin/wget
---TODO: download files using HTTP
 
 _handler = {}
 _handler.signal_handler = function (sig)
@@ -10,7 +9,7 @@ _handler.signal_handler = function (sig)
 end
 
 if not http then
-    os.ferror("wget: cannot use HTTP API, closing.")
+    os.ferror("wget: can't use HTTP API")
     return 0
 end
 

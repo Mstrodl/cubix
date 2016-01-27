@@ -15,10 +15,6 @@ end
 
 function main(args)
     if #args ~= 2 then
-        print("Loaded modules: ")
-        term.set_term_color(colors.green)
-        os.viewLoadedMods()
-        term.set_term_color(colors.white)
         usage()
         return 0
     end

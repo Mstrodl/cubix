@@ -35,7 +35,7 @@ function main(args)
         elseif args[2] == '-r' then
             return VERSION..'-ccraft'
         elseif args[2] == '-v' then
-            return 'Cubix '..VERSION..' (2015-08-26)'
+            return 'Cubix '..VERSION..' ('..BUILD_DATE..')'
         elseif args[2] == '-m' then
             return 'x86'
         elseif args[2] == '-p' then

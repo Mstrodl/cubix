@@ -2,7 +2,7 @@
 --/boot/cubix: well, cubix!
 
 AUTHOR = "Lukas Mendes"
-BUILD_DATE = "2016-01-26"
+BUILD_DATE = "2016-01-27"
 
 --  version format: major.revision.minor
 --      major: linear
@@ -141,7 +141,7 @@ _G['cubix'] = cubix
 cubix.boot_kernel = function()
 
 if kflag.quiet then
-    --if quiet of nodebug, just make normal debug functions as nothing.
+    --if quiet, just make normal debug functions as nothing.
     __debug.debug_write = function()
         os.sleep(math.random() / 16)
     end
@@ -385,6 +385,7 @@ os.__boot_flag = false
 --setting tty
 os.lib.tty.current_tty("/dev/tty0")
 
+--if quiet, return debug to original state(you know, debug is important)
 if kflag.quiet then
     if os.loadAPI("/lib/debug_manager") then
         __debug = _G["debug_manager"]

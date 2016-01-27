@@ -4,15 +4,10 @@
 _handler = {}
 _handler.signal_handler = function (sig)
     if sig == 'kill' then
-        --print("uname: recieved SIGKILL")
         return 0
     end
 end
 
 function main(args)
-    local cuser = fs.open("/tmp/current_user", 'r')
-    local current_user = cuser.readAll()
-    cuser.close()
-    print(current_user)
+    print(os.lib.login.currentUser())
 end
-

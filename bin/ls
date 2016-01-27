@@ -67,16 +67,13 @@ end
 
 function main(args)
     local p = args[1]
-    local cpth = fs.open("/tmp/current_path", 'r')
-    local cpath = cpth.readAll()
-    cpth.close()
+    local cpath = os.cshell.getpwd()
 
     if p == nil then
         ls(cpath)
-    elseif fs.exists(p) then
-        ls(p)
-    elseif fs.exists(fs.combine(cpath, p)) then
-        ls(fs.combine(cpath, p))
+    elseif fs.exists(os.cshell.resolve(p)) then
+        ls(os.cshell.resolve(p))
+    else
+        os.ferror("ls: node not found")
     end
 end
-
