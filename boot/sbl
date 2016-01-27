@@ -100,7 +100,7 @@ function read_osfile()
         detected_oses_path[i] = sysdat[2]
         print(sysdat[1]..' -> '..sysdat[2])
         i = i + 1
-        os.sleep(.2)
+        os.sleep(.1)
     end
     systems_file.close()
     return {detected_oses_name, detected_oses_path}

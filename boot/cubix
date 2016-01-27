@@ -2,7 +2,7 @@
 --/boot/cubix: well, cubix!
 
 AUTHOR = "Lukas Mendes"
-BUILD_DATE = "2016-01-25"
+BUILD_DATE = "2016-01-26"
 
 --  version format: major.revision.minor
 --      major: linear
@@ -431,4 +431,4 @@ else
     cubix.boot_kernel()
 end
 
-print("tha end")
+print("cubix kernel: the end")

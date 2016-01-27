@@ -326,7 +326,7 @@ function yapidb:return_deps(pkglist)
         local c = self:return_dep_onepkg(pkg)
         if c == false then
             ferror("::! [getdeps] error getting deps: "..pkg)
-            return 1
+            return nil
         end
         for i=0,#c do
             table.insert(r, c[i])
@@ -449,6 +449,10 @@ function main(args)
                     print("resolving dependencies...")
                     packages = database:return_deps(packages)
                     print("")
+                    if packages == nil then
+                        os.ferror("yapi: error getting deps")
+                        return 1
+                    end
                     write("Packages ("..#packages..") ")
                     for _,pkg in ipairs(packages) do
                         write(pkg..' ')

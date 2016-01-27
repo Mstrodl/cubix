@@ -2,8 +2,8 @@
 --cubix_live_installer(cubixli): starts a enviroment where the user can install cubix
 
 AUTHOR = "Lukas Mendes"
-VERSION = "0.0.4"
-BUILD_DATE = "2016-01-24"
+VERSION = "0.1.0"
+BUILD_DATE = "2016-01-26"
 
 --[[
     The Cubix Live Installer has the basic utilities to install cubix
@@ -99,7 +99,6 @@ local current_disks = {
     },
 
     cubixli_ramdisk = {
-        --{"loop", "loopback", "."},
         {"edev", "edevfs", "./dev"},
         {"cbxli", "cbxlifs", "./cbxli"}
     }
@@ -172,7 +171,7 @@ end
 
 --yapstrap binary
 function run_build_hook(hook)
-    if hook == 'initramfs'
+    if hook == 'initramfs' then
         if os.loadAPI("/boot/libcubix") then
             libcubix.generate_lcubix('all', '/boot/cubix-initramfs')
         else
