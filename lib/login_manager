@@ -1,8 +1,11 @@
 #!/usr/bin/env lua
---login manager
---task: automate login, reading from /etc/shadow
---/bin/login uses login_manager
---/bin/whoami uses /tmp/current_user (from /bin/login), not login_manager
+
+--~~DEPRECATED MODULE~~
+--~~DEPRECATED MODULE~~
+--~~DEPRECATED MODULE~~
+--~~DEPRECATED MODULE~~
+--~~DEPRECATED MODULE~~
+--THIS IS ONLY HERE FOR COMPARISON PURPOSES
 
 RELOADABLE = false
 
