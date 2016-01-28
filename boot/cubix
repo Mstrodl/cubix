@@ -152,6 +152,7 @@ end
 
 term.set_term_color(colors.green)
 os.debug.debug_write("Welcome to Cubix "..VERSION..'!')
+print('\n')
 term.set_term_color(colors.white)
 os.sleep(.5)
 
@@ -186,7 +187,7 @@ end
 function unloadmod(mod)
     if os.lib[mod] then
         os.debug.debug_write("[unloadmod] unloading "..mod)
-        os.lib[mod] = {}
+        os.lib[mod] = nil
     else
         ferror("unloadmod: module not found")
     end
@@ -424,7 +425,7 @@ if kflag.splash then
         bootsplash.load_normal()
     else
         ferror("splash: bootsplash not loaded at initramfs.")
-        sleep(1)
+        sleep(.5)
         kflag.quiet = false
         cubix.boot_kernel()
     end
