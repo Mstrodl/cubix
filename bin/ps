@@ -26,3 +26,5 @@ function main(args, pipe)
         end
     end
 end
+
+main({...})

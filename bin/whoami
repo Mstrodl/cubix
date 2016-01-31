@@ -11,3 +11,5 @@ end
 function main(args)
     print(os.lib.login.currentUser())
 end
+
+main({...})

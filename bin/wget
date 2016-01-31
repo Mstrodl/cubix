@@ -70,6 +70,4 @@ function main(args)
     print("wget: saved as "..p)
 end
 
-if not IS_CUBIX then
-    main({...})
-end
+main({...})

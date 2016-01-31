@@ -12,3 +12,5 @@ end
 function main(args)
     textutils.slowPrint("Hello World!")
 end
+
+main({...})

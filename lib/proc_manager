@@ -131,7 +131,7 @@ os.run_process = function(p, args, pipe)
     --running the file
     if os.loadAPI(p.file) then
         K = strsplit(p.file, '/')
-        p.rfile = _G[K[#K]] --non-localized variables in _G
+        p.rfile = _G[ K[ #K ] ] --non-localized variables in _G
         if p.rfile.main ~= nil and type(p.rfile.main) == 'function' then
             p.rfile.main(args, pipe)
         else
@@ -144,6 +144,42 @@ os.run_process = function(p, args, pipe)
     --finish process
     fs.delete(proc_folder)
     os.send_signal(p, os.signals.SIGKILL)
+end
+
+
+os.run_process = function(process, arguments, pipe)
+    --[[
+    So, about the issue of non-compatibility with
+    "CraftOS" designed programs with
+    "Cubix" programs, mostly because of the main() function
+    this new os.run_process is able to solve this
+    all "Cubix" programs must run the main function by themselves,
+    since I will use os.run to run them
+
+    Issue #1: pipe does not work as old
+    since the programs are running by os.run, the manager will not
+    be able to comunicate
+
+    ]]
+
+    if arguments == nil then arguments = {} end
+    --if pipe == nil then pipe = {} end
+    os.debug.debug_write("[process] running "..process.file.." pid="..tostring(process.pid), false)
+    permission.default()
+
+    os.processes[process.pid] = process
+    running = process.pid
+    local proc_folder = "/proc/"..tostring(process.pid)
+    fs.makeDir(proc_folder)
+    generate_pfolder(process, proc_folder, arguments)
+    process.uid = os.lib.login.userUID()
+
+    _G['pipe'] = pipe
+    os.run({}, process.file, unpack(arguments,1))
+
+    --finish process
+    fs.delete(proc_folder)
+    os.send_signal(process, os.signals.SIGKILL)
 end
 
 os.set_child = function(prnt, proc)

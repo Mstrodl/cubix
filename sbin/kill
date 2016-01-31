@@ -23,3 +23,5 @@ function main(args)
         print("usage: kill <pid1> <pid2> <pid3> ...")
     end
 end
+
+main({...})

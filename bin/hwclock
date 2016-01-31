@@ -12,3 +12,5 @@ end
 function main(args)
     print(textutils.formatTime(tonumber(os.time()), false))
 end
+
+main({...})

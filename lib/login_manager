@@ -1,113 +1,156 @@
 #!/usr/bin/env lua
+--rewrite of login manager from scratch
 
---~~DEPRECATED MODULE~~
---~~DEPRECATED MODULE~~
---~~DEPRECATED MODULE~~
---~~DEPRECATED MODULE~~
---~~DEPRECATED MODULE~~
---THIS IS ONLY HERE FOR COMPARISON PURPOSES
+--things to do:
+--  Tokens
+--  Login thingy
+--  Utils to /etc/ßħæðøw
 
-RELOADABLE = false
+--[[
 
-function strsplit(inputstr, sep)
-        if sep == nil then
-                sep = "%s"
-        end
-        local t={} ; i=1
-        for str in string.gmatch(inputstr, "([^"..sep.."]+)") do
-                t[i] = str
-                i = i + 1
-        end
-        return t
+Generating tokens:
+15rounds_sha256(salt .. sessions .. user)
+
+Verifying tokens:
+check if the hash included in the token matches up
+with the calculation up there
+
+Example use:
+if verify_token(myToken) then
+    myToken:use()
+else
+    ferror("sorry mate")
 end
 
-__CU = {}
-__CU.username = ''
-__CU.uid = -1
+]]
 
-local __CVV = ''
+-- the major differences between old and new login modules is:
+--  1 - the token logic is simplified, allowing me to fix it better
+--  2 - the code is not spaghetti
+--  3 - most of the functions that need to iterate with programs use deepcopy
+--      to get local variables of the module
+--  4 - user groups
+--  5 - sudoers file
 
+--reloading login module could be a major security flaw in cubix.
+RELOADABLE = false
+
+--current token in cubix
+local current_token = {
+    salt = '',
+    sessions = -1,
+    user = '',
+    hash = ''
+}
+
+--current user
+local current_user = {
+    username = '',
+    group = '',
+    gid = -1,
+    uid = -1
+}
+
+--group data
+local groups = {}
+
+--proof that a computer has worked to hash something(15 rounds of sha256)
+function proof_work(data)
+    local cache = data
+    for i=0, 14 do --15 times
+        cache = os.lib.hash.hash.sha256(cache)
+    end
+    return cache
+end
+
+--Token class
 Token = {}
 Token.__index = Token
-function Token.new()
+function Token.new(user, sessions)
     inst = {}
     setmetatable(inst, Token)
-    inst.value = ''
+    inst.salt = os.generateSalt(100)
+    inst.sessions = sessions
+    inst.user = user
+    inst.hash = proof_work(inst.salt .. tostring(inst.sessions) .. inst.user)
     return inst
 end
 
-function Token:generate(u, sessions)
-    self.value = u .. '::::' .. os.lib.hash.hash.sha256(os.generateSalt(100)) .. '::::' .. tostring(sessions)
+--using a token
+function Token:use()
+    --make sessions = sessions - 1
+    self.sessions = self.sessions - 1
+    --generate new salt and hash
+    self.salt = os.generateSalt(100)
+    self.hash = proof_work(self.salt .. tostring(self.sessions) .. self.user)
 end
 
-function Token:verifyValid()
-    local K = os.strsplit(self.value, "::::")
-    if #K == 3 and tonumber(K[3]) ~= nil then
-        if tonumber(K[3]) > 0 and K[2] == __CVV then
-            return true
-        else
-            return false
-        end
+--check if a token is valid
+function verify_token(token, user)
+    if token == {} then
+        return false
+    end
+    if token.sessions < 0 then
+        return false
+    end
+    if token.hash == proof_work(token.salt .. tostring(token.sessions) .. token.user) and user == token.user then
+        return true
     end
     return false
 end
 
---compare variable of __CVV on __CT.value
---if true, __CT is all valid
---if not, does not login pls
-
-function Token:use()
-    local K = os.strsplit(self.value, "::::")
-    local nsession = tostring(tonumber(K[3]-1))
-    os.debug.debug_write("[token] used token, now it has "..nsession.." uses", false)
-    local new_2 = os.lib.hash.hash.sha256(os.generateSalt(100))
-    __CVV = new_2
-    local K2 = table.concat({K[1], new_2, nsession}, "::::")
-    __CT.value = K2
+--because you can't access the current token, this is the
+--general function to check the current token against a user
+function general_verify(user)
+    return verify_token(current_token, user)
 end
 
-function Token:getUser()
-    local K = os.strsplit(self.value, "::::")
-    return K[1]
+--using current token
+function use_ctok()
+    current_token:use()
 end
 
-function getCurrentToken()
-    return __CT
-end
-
-__CT = Token.new()
-
+--getting current user by deepcopy
 function currentUser()
-    return os.deepcopy(__CU)
+    return os.deepcopy(current_user).username
 end
 
-local __sudo = false
+--getting current group by deepcopy
+function currentGroup()
+    return os.deepcopy(current_user).group
+end
 
-function login(usr, pwd, isSudo)
-    --TODO: session tokens
-    if isSudo == nil then isSudo = false end
-    if __CT:verifyValid() and __CT:getUser() == usr then
-        __sudo = isSudo
-        __CT:use()
+--getting current uid by deepcopy
+function userUID()
+    return os.deepcopy(current_user).uid
+end
+
+--actual login function.
+function login(usr, pwd)
+    --if actual token is usable and is related to actual user, return true
+    if verify_token(current_token, usr) then
+        current_token:use()
         return true
     end
+    --else, just do the normal login operation
     local handler = fs.open('/etc/shadow', 'r')
     local lines = os.strsplit(handler.readAll(), '\n')
     handler.close()
     for k,v in ipairs(lines) do
         local udata = os.strsplit(v, '^')
-        local hashed = os.lib.hash.hash.sha256(pwd .. udata[3])
+        local hashed = proof_work(pwd .. udata[3])
+        --checking user and password with given password
         if udata[1] == usr and udata[2] == hashed then
-            __CT:generate(udata[1], 3)
-            __CVV = os.strsplit(__CT.value, '::::')[2]
-            __CU.username = udata[1]
+            --ok, you won the password, generate a new token with 5 sessions in it
+            local new_token = Token.new(usr, 4) -- 5 times(4, 3, 2, 1, 0)
+            current_token = new_token
+            current_user.username = usr
+            current_user.group = udata[4]
+            current_user.gid = get_group_gid(udata[4])
             if usr == 'root' then
-                __sudo = isSudo
-                os.debug.debug_write("[login] UID = 0", false)
-                __CU.uid = 0
+                current_user.uid = 0
             else
-                os.debug.debug_write("[login] UID = 1", false)
-                __CU.uid = 1
+                current_user.uid = 1
             end
             return true
         end
@@ -115,18 +158,266 @@ function login(usr, pwd, isSudo)
     return false
 end
 
-function isInGroup(uid, gid)
-    return uid == gid
+--function to compare if user has typed correctly(don't use this as actual login operation)
+function compare(usr, pwd)
+    --this just has the login function without the Token partes btw
+    local handler = fs.open('/etc/shadow', 'r')
+    local lines = os.strsplit(handler.readAll(), '\n')
+    handler.close()
+    for k,v in ipairs(lines) do
+        local udata = os.strsplit(v, '^')
+        local hashed = proof_work(pwd .. udata[3])
+        if udata[1] == usr and udata[2] == hashed then
+            return true
+        end
+    end
+    return false
 end
 
+--seriously, you shouldn't set this to true.
+local _special_sudo = false
+
+--alert the login module that sudo is running
+function alert_sudo()
+    local runningproc = os.processes[os.getrunning()]
+    if runningproc.file == '/bin/sudo' or runningproc.file == 'bin/sudo' then
+        _special_sudo = true
+    else
+        ferror("alert_sudo: I know what you're doing")
+    end
+end
+
+--alert login module sudo is closed
+function close_sudo()
+    _special_sudo = false
+end
+
+--check if sudo is running
+function isSudo()
+    return _special_sudo
+end
+
+--current sudoers file
+local current_sudoers = {
+    user = {},
+    group = {}
+}
+
+--read and parse /etc/groups
+local function read_groups()
+    os.debug.debug_write("[login] reading groups")
+    local h = fs.open("/etc/groups", 'r')
+    if not h then
+        os.debug.kpanic("error opening /etc/groups")
+    end
+    local d = h.readAll()
+    h.close()
+    local lines = os.strsplit(d, '\n')
+    for _,line in ipairs(lines) do
+        if string.sub(line, 1, 1) ~= '#' then
+            local data = os.strsplit(line, ':')
+            local gname = data[1]
+            local gid = data[2]
+            local _gmembers = data[3]
+            local gmembers = {}
+            if _gmembers == {} then
+                gmembers = os.strsplit(_gmembers, ',')
+            else
+                gmembers = {}
+            end
+            groups[gid] = {
+                members = gmembers,
+                name = gname
+            }
+        end
+    end
+end
+
+--get all groups(by deepcopy)
+function getGroups()
+    return os.deepcopy(groups)
+end
+
+local function read_sudoers()
+    os.debug.debug_write("[login] reading sudoers")
+    local h = fs.open("/etc/sudoers", 'r')
+    if not h then
+        os.debug.kpanic("error opening /etc/sudoers")
+    end
+    local d = h.readAll()
+    h.close()
+    local lines = os.strsplit(d, '\n')
+    for _,line in ipairs(lines) do
+        if string.sub(line, 1, 1) ~= '#' then
+            if string.sub(line, 1, 1) == 'u' then
+                local spl = os.strsplit(line, ' ')
+                local user = spl[2]
+                local _users = spl[3]
+                if _users == '*' then
+                    if current_sudoers.user[user] == nil then
+                        current_sudoers.user[user] = {}
+                    end
+                    current_sudoers.user[user].users = '*'
+                else
+                    local users = os.strsplit(_users, ';')
+                    for _,v in ipairs(users) do
+                        table.insert(current_sudoers.user[user].users, v)
+                    end
+                end
+            elseif string.sub(line, 1, 1) == 'g' then
+                local spl = os.strsplit(line, ' ')
+                local user = spl[2]
+                local _groups = spl[3]
+                if _groups == '*' then
+                    if current_sudoers.user[user] == nil then
+                        current_sudoers.user[user] = {}
+                    end
+                    current_sudoers.user[user].groups = '*'
+                else
+                    local groups = os.strsplit(_users, ';')
+                    for _,v in ipairs(groups) do
+                        table.insert(current_sudoers.user[user].groups, v)
+                    end
+                end
+            elseif string.sub(line, 1, 1) == 'h' then
+                local spl = os.strsplit(line, ' ')
+                local group = spl[2]
+                local _users = spl[3]
+                if _users == '*' then
+                    if current_sudoers.group[group] == nil then
+                        current_sudoers.group[group] = {}
+                    end
+                    current_sudoers.group[group].users = '*'
+                else
+                    local users = os.strsplit(_users, ';')
+                    for _,v in ipairs(users) do
+                        table.insert(current_sudoers.group[group].users, v)
+                    end
+                end
+            elseif string.sub(line, 1, 1) == 'q' then --TODO: this
+                local spl = os.strsplit(line, ' ')
+                local group = spl[2]
+                local _groups = spl[3]
+                if _groups == '*' then
+                    if current_sudoers.group[group] == nil then
+                        current_sudoers.group[group] = {}
+                    end
+                    current_sudoers.group[group].groups = '*'
+                else
+                    local groups = os.strsplit(_groups, ';')
+                    for _,v in ipairs(groups) do
+                        table.insert(current_sudoers.group[group].groups, v)
+                    end
+                end
+            end
+        end
+    end
+end
+
+--getting sudoers by deepcopy
+function sudoers()
+    return os.deepcopy(current_sudoers)
+end
+
+--verify if a user can impersonate another user
+function sudoers_verify_user(usr, other_usr)
+    local user = current_sudoers.user[usr]
+    if user == nil then
+        return false
+    end
+    if user.users == '*' then
+        return true
+    end
+    for k,v in pairs(user.users) do
+        if v == other_usr then
+            return true
+        end
+    end
+    return false
+end
+
+function sudoers_verify_group(usr, group)
+    local user = current_sudoers.user[usr]
+    if user == nil then
+        return false
+    end
+    if user.groups == '*' then
+        return true
+    end
+    for k,v in pairs(user.groups) do
+        if v == group then
+            return true
+        end
+    end
+    return false
+end
+
+--verify if a user from "grp" group can impersonate another user
+function sudoers_gverify_user(grp, usr)
+    local group = current_sudoers.group[grp]
+    if group == nil then
+        return false
+    end
+    if group.users == '*' then
+        return true
+    end
+    for k,v in pairs(group.users) do
+        if v == usr then
+            return true
+        end
+    end
+    return false
+end
+
+function sudoers_gverify_group(group, other_group)
+    local grp = current_sudoers.group[group]
+    if grp == nil then
+        return false
+    end
+    if grp.groups == '*' then
+        return true
+    end
+    for k,v in pairs(grp.groups) do
+        if v == other_group then
+            return true
+        end
+    end
+    return false
+end
+
+--get gid of groups
+function get_group_gid(group_name)
+    for k,v in pairs(groups) do
+        if v.name == group_name then
+            return k
+        end
+    end
+    return -1
+end
+
+--check if user is in group
+function isInGroup(uid, gid)
+    if groups[gid] then
+        local g = groups[gid]
+        for k,v in ipairs(g.members) do --iterating by all members
+            if v == uid then
+                return true
+            end
+        end
+        return false
+    else
+        return false
+    end
+end
+
+--you should use this function to login a user in your program
 function front_login(program, user)
     local current_user = currentUser()
     if user == nil then user = current_user.username end
     write("["..program.."] password for "..user..": ")
     local try_pwd = read('')
 
-    if login(current_user.username, try_pwd, true) then
-        __CT:use()
+    if login(current_user, try_pwd) then
         return true
     else
         os.ferror("front_login: Login incorrect")
@@ -134,51 +425,62 @@ function front_login(program, user)
     end
 end
 
-local counter = 6
-
-function isSudo()
-    if __sudo then
-        if counter == 0 then
-            __sudo = false
-            return true
-        else
-            counter = counter - 1
+--check if a user exists
+local function user_exists(u)
+    local h = fs.open("/etc/shadow", 'r')
+    if h == nil then
+        os.debug.kpanic("error opening /etc/shadow")
+    end
+    local l = h.readAll()
+    h.close()
+    local lines = os.strsplit(l, '\n')
+    for _,line in ipairs(lines) do --iterating through /etc/shadow
+        local data = os.strsplit(line, '^')
+        if data[1] == u then
             return true
         end
     end
-    --print("nope, not __sudo")
     return false
 end
 
---function harmless_isSudo()
---    return __sudo
---end
-
 function add_new_user(u, p)
     --adding new users to /etc/shadow
-    --TODO: permissions
-    local _salt = os.generateSalt(15)
-    local hp = os.lib.hash.hash.sha256(p .. _salt)
-    local user_string = '\n' .. u .. '^' .. hp .. '^' .. _salt ..  '\n'
-    local h = fs.open("/etc/shadow", 'a')
-    h.write(user_string)
-    h.close()
-    fs.makeDir("/home/"..u)
-    return true
+    if u == 'root' then
+        return false
+    end
+    if user_exists(u) then
+        return false
+    end
+    if permission.grantAccess(fs.perms.SYS) then --if permission is alright
+        local _salt = os.generateSalt(15)
+        local hp = proof_work(p .. _salt)
+        local user_string = '\n' .. u .. '^' .. hp .. '^' .. _salt ..  '\n'
+        local h = fs.open("/etc/shadow", 'a')
+        h.write(user_string)
+        h.close()
+        fs.makeDir("/home/"..u)
+        return true
+    else
+        ferror("add_new_user: error getting SYSTEM permission")
+        return false
+    end
 end
 
+--change password from a user(needs actual and new password, in plain text)
 function changepwd(user, p, np)
     if login(user, p) then
         --change pwd
         local h = fs.open("/etc/shadow", 'r')
-        local fLines = strsplit(h.readAll(), '\n')
+        if h == nil or h == {} then
+            os.debug.kpanic("error opening /etc/shadow")
+        end
+        local fLines = os.strsplit(h.readAll(), '\n')
         h.close()
         for k,v in pairs(fLines) do
-            local pair = strsplit(v, '^')
-            local _salt = os.generateSalt(15)
-            if pair[1] == user then
+            local pair = os.strsplit(v, '^')
+            if pair[1] == user then --if /etc/shadow has entry for that user, generate a new entry
                 local _salt = os.generateSalt(15)
-                pair[2] = os.lib.hash.hash.sha256(np .. _salt)
+                pair[2] = proof_work(np .. _salt)
                 fLines[k] = pair[1] .. '^' .. pair[2] .. '^' .. _salt .. '\n'
             else
                 fLines[k] = fLines[k] .. '\n'
@@ -195,10 +497,11 @@ function changepwd(user, p, np)
     end
 end
 
---installing login API
 function libroutine()
     os.login = {}
     os.login.login = login
     os.login.adduser = add_new_user
     os.login.changepwd = changepwd
+    read_groups()
+    read_sudoers()
 end

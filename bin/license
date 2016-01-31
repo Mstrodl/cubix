@@ -15,3 +15,5 @@ function main(args,pipe)
     h.close()
     return 0
 end
+
+main({...})

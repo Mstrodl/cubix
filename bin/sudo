@@ -83,3 +83,5 @@ function main(args)
     os.lib.login.close_sudo()
     return 0
 end
+
+main({...})

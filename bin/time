@@ -40,3 +40,5 @@ function main(args)
     print("ticks: "..(ending_ticks-starting_ticks))
     return 0
 end
+
+main({...})

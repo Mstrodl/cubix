@@ -15,3 +15,5 @@ function main(args)
     fs.makeDir(os.cshell.resolve(newfolder))
     return 0
 end
+
+main({...})

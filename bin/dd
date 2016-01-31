@@ -50,3 +50,5 @@ function main(args)
     o.close()
     return true
 end
+
+main({...})

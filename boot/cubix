@@ -2,7 +2,7 @@
 --/boot/cubix: well, cubix!
 
 AUTHOR = "Lukas Mendes"
-BUILD_DATE = "2016-01-27"
+BUILD_DATE = "2016-01-31"
 
 --  version format: major.revision.minor
 --      major: linear
@@ -315,7 +315,7 @@ os.internals._kernel.new_device("kbd", "cckbd", "/dev/stdin")
 os.internals._kernel.new_device("term", "ccterm", "/dev/stdout")
 os.internals._kernel.new_device("err", "ccterm-err", "/dev/stderr")
 
-os.list_devices = fs_mngr.deepcopy(DEVICES)
+os.list_devices = deepcopy(DEVICES)
 function dev_write(path, data)
     return os.list_devices[path].device_write(data)
 end
@@ -359,7 +359,7 @@ function os.internals._kernel.register_tty(path, tty)
 end
 
 loadmodule("tty", "/lib/tty_manager")
-loadmodule("login", "/lib/login_manager_rewrite")
+loadmodule("login", "/lib/login_manager")
 loadmodule("pipe", "/lib/pipe_manager")
 loadmodule("time", "/lib/time")
 

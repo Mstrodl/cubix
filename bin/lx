@@ -108,3 +108,5 @@ function main(args)
         lx_stop_default()
     end
 end
+
+main({...})

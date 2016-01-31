@@ -38,7 +38,7 @@ function main(args)
             end
             repeat
                 i = i + 1
-            until IsPrime(i)       
+            until IsPrime(i)
         until n == 1
         return f
     end
@@ -49,3 +49,5 @@ function main(args)
     end
     write('\n')
 end
+
+main({...})

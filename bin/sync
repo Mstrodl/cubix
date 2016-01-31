@@ -12,3 +12,5 @@ end
 function main()
     fsmanager.sync()
 end
+
+main({...})

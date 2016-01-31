@@ -13,3 +13,5 @@ function main(args)
     os.viewLoadedMods()
     term.set_term_color(colors.white)
 end
+
+main({...})

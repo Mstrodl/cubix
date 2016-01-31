@@ -25,3 +25,5 @@ function main(args)
         print("usage: fsck <device> <filesystem>")
     end
 end
+
+main({...})

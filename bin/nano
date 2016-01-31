@@ -14,3 +14,5 @@ function main(args)
     local h = fs.open(os.cshell.resolve(file), 'r')
     h.close()
 end
+
+main({...})

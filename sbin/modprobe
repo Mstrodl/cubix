@@ -21,3 +21,5 @@ function main(args)
     local alias, path = args[1], args[2]
     os.internals.loadmodule(alias, path)
 end
+
+main({...})

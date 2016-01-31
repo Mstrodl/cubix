@@ -14,3 +14,5 @@ function main(args)
     local side = args[1]
     disk.eject(side)
 end
+
+main({...})

@@ -20,3 +20,5 @@ function main(args)
 
     print(current_user .. '   :0  ' .. textutils.formatTime(tonumber(ST_TIME), false) .. '  (:0)')
 end
+
+main({...})

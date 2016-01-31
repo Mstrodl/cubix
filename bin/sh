@@ -12,3 +12,5 @@ end
 function main(args)
     os.runfile_proc("/bin/cshell", args)
 end
+
+main({...})

@@ -89,3 +89,5 @@ function main(args)
     RUNLEVELFUNC[runlevel]()
     return 0
 end
+
+main({...})

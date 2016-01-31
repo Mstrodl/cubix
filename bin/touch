@@ -15,3 +15,5 @@ function main(args)
         fs.open(d, 'w').close()
     end
 end
+
+main({...})

@@ -13,3 +13,5 @@ function main(args)
     os.suspend()
     return 0
 end
+
+main({...})

@@ -50,3 +50,5 @@ function main(args)
         print("usage: sbl-mkconfig [mode]")
     end
 end
+
+main({...})

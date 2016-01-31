@@ -65,3 +65,5 @@ function main(args)
     _cpath.close()
     --os.cshell.changepwd(CURRENT_PATH)
 end
+
+main({...})

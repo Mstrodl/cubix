@@ -5,3 +5,4 @@ function main(args)
     os.runfile_proc("/sbin/login", {"root"})
 end
 
+main({...})

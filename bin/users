@@ -18,3 +18,5 @@ function main(args)
 
     print(current_user)
 end
+
+main({...})

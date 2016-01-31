@@ -51,3 +51,5 @@ function main(args)
 
     print(uname(argmt))
 end
+
+main({...})

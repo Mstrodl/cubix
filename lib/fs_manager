@@ -4,21 +4,6 @@
 
 --TODO: filesystem drivers(vfat, ext3, devfs, tmpfs)
 
-function deepcopy(orig)
-    local orig_type = type(orig)
-    local copy
-    if orig_type == 'table' then
-        copy = {}
-        for orig_key, orig_value in next, orig, nil do
-            copy[deepcopy(orig_key)] = deepcopy(orig_value)
-        end
-        setmetatable(copy, deepcopy(getmetatable(orig)))
-    else -- number, string, boolean, etc
-        copy = orig
-    end
-    return copy
-end
-
 oldfs = deepcopy(fs)
 
 fsdrivers = {}
@@ -520,7 +505,7 @@ function run_fstab()
 end
 
 function libroutine()
-    os.deepcopy = deepcopy
+    --os.deepcopy = deepcopy
     _G["permission"] = permission
     _G["fsmanager"] = fsmanager
     _G['oldfs'] = oldfs

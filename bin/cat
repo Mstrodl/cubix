@@ -47,3 +47,5 @@ function main(args, pipe)
         cat_pipe(args[1], pipe)
     end
 end
+
+main({...})

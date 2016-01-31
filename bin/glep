@@ -68,3 +68,5 @@ function main(args, pipe)
     end
     return 0
 end
+
+main({...})

@@ -20,3 +20,5 @@ function main(args)
         end
     end
 end
+
+main({...})

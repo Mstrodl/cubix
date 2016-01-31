@@ -24,3 +24,5 @@ function main(args)
         os.ferror("adduser: error creating new user")
     end
 end
+
+main({...})
