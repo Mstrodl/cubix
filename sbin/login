@@ -40,7 +40,8 @@ function main(args)
             k2.write("/root")
         end
         k2.close()
-        os.runfile_proc("/bin/cshell")
+        os.lib.control.register('/sbin/login', 'cwd', '/home/'..try_user)
+        os.runfile_proc("/bin/cshell_rewrite")
     else
         os.ferror("\nLogin incorrect")
     end

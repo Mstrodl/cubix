@@ -60,10 +60,12 @@ function main(args)
     CURRENT_PATH = os.cshell.getpwd()
     cd(pth)
 
-    local _cpath = fs.open("/tmp/current_path", 'w')
-    _cpath.write(CURRENT_PATH)
-    _cpath.close()
-    --os.cshell.changepwd(CURRENT_PATH)
+    --local _cpath = fs.open("/tmp/current_path", 'w')
+    --_cpath.write(CURRENT_PATH)
+    --_cpath.close()
+    os.lib.comm.register('/bin/cd', 'cd_lock', '1')
+    os.cshell.cwd(CURRENT_PATH)
+    os.lib.comm.register('/bin/cd', 'cd_lock', nil)
 end
 
 main({...})

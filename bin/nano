@@ -10,9 +10,7 @@ _handler.signal_handler = function (sig)
 end
 
 function main(args)
-    local file = args[1]
-    local h = fs.open(os.cshell.resolve(file), 'r')
-    h.close()
+    os.runfile_proc("/rom/programs/edit", {os.cshell.resolve(args[1])})
 end
 
 main({...})

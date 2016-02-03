@@ -5,18 +5,6 @@
 
 RELOADABLE = false
 
-function strsplit(inputstr, sep)
-    if sep == nil then
-        sep = "%s"
-    end
-    local t={} ; i=1
-    for str in string.gmatch(inputstr, "([^"..sep.."]+)") do
-        t[i] = str
-        i = i + 1
-    end
-    return t
-end
-
 os.processes = {}
 os.pid_last = 0
 
@@ -50,8 +38,6 @@ os.call_handle = function(process, handler)
         else
             os.debug.debug_write("[proc_handler] "..process.file.." doesnt have a signal handler, ignoring")
         end
-    else
-        os.debug.debug_write("[proc_handler] "..process.file.." doesnt have anything to show, ignoring", false)
     end
 end
 
@@ -113,37 +99,6 @@ function generate_pfolder(proc, folder, arguments)
     local cmd_handler = fs.open(fs.combine(folder, 'cmd'), 'w')
     cmd_handler.write(proc.file..' '..line_args)
     cmd_handler.close()
-end
-
-os.run_process = function(p, args, pipe)
-    if args == nil then args = {} end
-    --if pipe == nil then pipe = {} end
-    os.debug.debug_write("[process] running "..p.file.." pid="..tostring(p.pid), false)
-    permission.default()
-
-    os.processes[p.pid] = p
-    running = p.pid
-    local proc_folder = "/proc/"..tostring(p.pid)
-    fs.makeDir(proc_folder)
-    generate_pfolder(p, proc_folder, args)
-    p.uid = os.lib.login.userUID()
-
-    --running the file
-    if os.loadAPI(p.file) then
-        K = strsplit(p.file, '/')
-        p.rfile = _G[ K[ #K ] ] --non-localized variables in _G
-        if p.rfile.main ~= nil and type(p.rfile.main) == 'function' then
-            p.rfile.main(args, pipe)
-        else
-            os.debug.debug_write("[process] can't call main(): "..p.file)
-        end
-    else
-        os.debug.debug_write("[process] can't load "..p.file)
-    end
-
-    --finish process
-    fs.delete(proc_folder)
-    os.send_signal(p, os.signals.SIGKILL)
 end
 
 
@@ -223,6 +178,10 @@ os.runfile_proc = function(executable, arguments, parent, pipe)
     _process = os.new_process(executable) --creating
     os.set_parent(_process, _parent) --parenting
     os.run_process(_process, arguments, pipe) -- running
+end
+
+function get_processes()
+    return deepcopy(os.processes)
 end
 
 function test_processes()

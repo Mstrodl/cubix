@@ -9,8 +9,23 @@ _handler.signal_handler = function(sig)
     end
 end
 
+function isin(inputstr, wantstr)
+    for i = 1, #inputstr do
+        local v = string.sub(inputstr, i, i)
+        if v == wantstr then return true end
+    end
+    return false
+end
+
 function main(args, pipe)
-    p = os.processes
+    --TODO: get process from all terminals
+    --TODO: get progress of one tty
+    if isin(args[1], 'a') then
+        flag_all_terminals = true
+    elseif isin(args[1], 'x') then
+        flag_all_proc = true
+    end
+    p = os.lib.proc.get_processes()
     os.pprint("PID  PROCESS", pipe)
     for k,v in pairs(p) do
         if v ~= -1 then

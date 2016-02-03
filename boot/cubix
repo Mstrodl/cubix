@@ -2,7 +2,7 @@
 --/boot/cubix: well, cubix!
 
 AUTHOR = "Lukas Mendes"
-BUILD_DATE = "2016-01-31"
+BUILD_DATE = "2016-02-01"
 
 --  version format: major.revision.minor
 --      major: linear
@@ -362,6 +362,7 @@ loadmodule("tty", "/lib/tty_manager")
 loadmodule("login", "/lib/login_manager")
 loadmodule("pipe", "/lib/pipe_manager")
 loadmodule("time", "/lib/time")
+loadmodule("control", "/lib/comm_manager")
 
 os.pprint = function(message, pipe, double)
     if double == nil then double = false end

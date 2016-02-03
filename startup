@@ -1,3 +1,19 @@
 #!/usr/bin/env lua
+--load SBL
 _G['shell'] = shell
-os.run({}, "/boot/sbl")
+
+term.set_term_color = function (c)
+    if term.isColor() then
+        term.setTextColor(c)
+    end
+end
+
+if fs.exists('/boot/sbl') then
+    print("mbr: loading sbl.")
+    os.run({}, "/boot/sbl")
+else
+    term.set_term_color(colors.red)
+    print("error: sbl not found")
+    term.set_term_color(colors.white)
+    return 0
+end

@@ -1,0 +1,135 @@
+#!/usr/bin/env lua
+--/bin/cshell_rewrite: rewrite of cubix shell
+
+local shellToken = {}
+--local shell_wd = os.lib.control.get('/sbin/login', 'cwd')
+local shell_wd = nil
+
+local function normal_command(cmd)
+    local tokens = os.strsplit(cmd, ' ')
+    local args = os.tail(tokens)
+    local program = tokens[1]
+    --built-in "programs"
+    --echo, APATH, PPATH, getuid, getperm, alias, aliases
+    if program == 'echo' then
+        local message = os.strsplit(cmd, ';')[2]
+        print(message)
+    elseif program == 'APATH' then
+    elseif program == 'PPATH' then
+    elseif program == 'getuid' then
+        print(os.lib.login.userUID())
+        return 0
+    elseif program == 'getperm' then
+        permission.getPerm()
+        return 0
+    end
+
+    local found = false
+    --part where we see paths and permissions to run and everything
+    --TODO: the part where we see paths...
+
+    --not found
+    if not found then
+    end
+end
+
+local function shcmd(cmd)
+    --parse command
+    --nothing
+    if cmd == nil or cmd == '' then return 0 end
+    --comments
+    if string.sub(cmd, 1, 1) == '#' then return 0 end
+    --parse multiple commands
+    for _, command in pairs(os.strsplit(cmd, "&&")) do
+        if command:find("|") then --piping
+            local count = 1
+            local programs = os.strsplit(command, "|")
+            local main_pipe = os.lib.pipe.Pipe.new('main')
+            for _, prog in pairs(programs) do
+                --[[
+                For each program, run it with pipe support
+                ]]
+            end
+        else
+            --if command does not have |, run program normally
+            --now parse the command, with args and everything
+            normal_command(command)
+        end
+    end
+end
+
+if not os.cshell then
+    os.cshell = {}
+end
+os.cshell.PATH = '/bin:/usr/bin'
+
+os.cshell.change_path = function(newpath)
+end
+
+os.cshell.resolve = function()
+end
+
+os.cshell.run = function(command)
+    return shcmd(command)
+end
+
+os.cshell.cwd = function(newpwd)
+    --only cd can use this
+    local cdlock = os.lib.control.get('/bin/cd', 'cd_lock')
+    if cdlock == '1' then
+        shell_wd = newpwd
+    else
+        ferror("csh: cwd: cdlock ~= '1'")
+    end
+end
+
+os.cshell.getwd = function()
+    return shell_wd
+end
+os.cshell.getpwd = os.cshell.getwd
+
+os.cshell.resolve = function(pth)
+    local wd = os.cshell.getwd()
+    function _combine(c) return wd .. '/' .. c end
+    function check_slash(s) return string.sub(s, 1, 1) == '/' end
+    if check_slash(pth) then
+        return pth
+    else
+        return _combine(pth)
+    end
+end
+
+os.cshell.complete = function(pth)
+end
+
+function main(args)
+    os.shell = os.cshell
+    --get first cwd
+    shell_wd = os.lib.control.get('/sbin/login', 'cwd')
+    --generate a new token.
+    shellToken = os.lib.login.Token.new(os.lib.login.currentUser(), 100)
+    local HISTORY = {} --csh history
+    while true do --main loop
+        if shellToken.user == 'root' then --always check if user is root
+            shell_char = '#'
+        else
+            shell_char = '$'
+        end
+        write(shellToken.user)
+        write("@"..gethostname())
+        write(":"..shell_wd)
+        write(shell_char..' ')
+        local cmd = read(nil, HISTORY, os.cshell.complete)
+        if cmd == 'exit' then --hardcoded command
+            return 0
+        elseif cmd ~= nil then
+            if command ~= '' or not command:find(" ") then
+                table.insert(HISTORY, cmd)
+            end
+            shcmd(cmd)
+        end
+    end
+end
+
+--running
+main({...})

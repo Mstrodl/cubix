@@ -54,6 +54,7 @@ aliases = {}
 function shell_command(k)
     --TODO: add support for & (multitasking)
     --if k == nil or k == "" then return 0 end
+    if k == nil or k == '' then return 0 end
     if string.sub(k, 1, 1) == '#' then return 0 end
     for _, k in pairs(os.strsplit(k, "&&")) do
     if k:find("|") then
@@ -203,6 +204,7 @@ function run_cshrc(user)
 end
 
 function main(args)
+    os.shell = os.cshell --compatibility
     --TODO: -c
     if fs.exists("/tmp/install_lock") then
         term.set_term_color(colors.green)

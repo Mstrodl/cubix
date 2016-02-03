@@ -1,0 +1,28 @@
+#!/usr/bin/env lua
+--comm_manager: communication and control manager
+
+-- This manager makes communication between processes without files(resolving the /tmp/current_path issue)
+
+local data = {}
+
+function register(process, label, h)
+    local runningproc = os.processes[os.getrunning()]
+    if runningproc.file == process then
+        if data[runningproc.file] == nil then
+            data[runningproc.file] = {}
+        end
+        data[runningproc.file][label] = h
+    else
+        ferror("comm_manager: running process ~= process")
+    end
+end
+
+function get(process, label)
+    if not data[process] then
+        return nil
+    end
+    return data[process][label]
+end
+
+function libroutine()
+end

@@ -123,6 +123,17 @@ end
 os.deepcopy = deepcopy
 _G['deepcopy'] = deepcopy
 
+function gethostname()
+    local h = fs.open("/etc/hostname", 'r')
+    if h == nil then
+        return ''
+    end
+    local hstn = h.readAll()
+    h.close()
+    return hstn
+end
+_G['gethostname'] = gethostname
+
 function generate_lcubix(type, path)
     if type == 'all' then
         local h = fs.open("/boot/libcubix", 'r')

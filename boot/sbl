@@ -61,7 +61,7 @@ function CUI(m)
     while true do
         term.clear()
         term.setCursorPos(1,2)
-	    cprint("SBL "..VERSION)
+        cprint("SBL "..VERSION)
         cprint("")
         for i=1, l, 1 do
             if i==n then
@@ -117,6 +117,7 @@ function loadkernel(kfile, memory)
     --TODO lineboot: actually make SBL more GRUB-like
     local sbl_env = {}
     local lFile = ''
+    local _CHAINLOADER = false
     if kfile == 'lineboot' then
         while true do
             write("SBL:> ")
@@ -136,7 +137,7 @@ function loadkernel(kfile, memory)
                 sbl_env[location] = set
             elseif k[1] == 'chainloader' then
                 if k[2] == '+1' then
-                    break
+                    _CHAINLOADER = true
                 end
             elseif k[1] == 'halt' then
                 _halt()
@@ -174,7 +175,7 @@ function loadkernel(kfile, memory)
                 sbl_env[location] = set
             elseif k[1] == 'chainloader' then
                 if k[2] == '+1' then
-                    break
+                    _CHAINLOADER = true
                 end
             elseif k[1] == 'halt' then
                 _halt()
@@ -192,7 +193,7 @@ function loadkernel(kfile, memory)
             end
         end
     end
-    print("SBL: loading \""..lFile.."\"")
+    --print("SBL: loading \""..lFile.."\"")
     os.sleep(.5)
     local tArgs = strsplit(lFile, ' ')
     local sCommand = tArgs[1]
@@ -204,6 +205,10 @@ function loadkernel(kfile, memory)
     else
         print("SBL: error parsing root")
         return 0
+    end
+    if _CHAINLOADER then
+        print("sbl: chainloading.")
+        os.run({}, sFrom..'/sstartup')
     end
     print("SBL: loading \""..sFrom..'/'..sCommand.."\"\n")
     if sCommand == '/rom/programs/shell' then
