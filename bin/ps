@@ -20,10 +20,12 @@ end
 function main(args, pipe)
     --TODO: get process from all terminals
     --TODO: get progress of one tty
-    if isin(args[1], 'a') then
-        flag_all_terminals = true
-    elseif isin(args[1], 'x') then
-        flag_all_proc = true
+    if #args > 1 then
+        if isin(args[1], 'a') then
+            flag_all_terminals = true
+        elseif isin(args[1], 'x') then
+            flag_all_proc = true
+        end
     end
     p = os.lib.proc.get_processes()
     os.pprint("PID  PROCESS", pipe)

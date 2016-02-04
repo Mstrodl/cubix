@@ -5,7 +5,13 @@ local shellToken = {}
 --local shell_wd = os.lib.control.get('/sbin/login', 'cwd')
 local shell_wd = nil
 
+if not os.cshell then
+    os.cshell = {}
+end
+os.cshell.PATH = '/bin:/usr/bin'
+
 local function normal_command(cmd)
+    --normal routine to run commands
     local tokens = os.strsplit(cmd, ' ')
     local args = os.tail(tokens)
     local program = tokens[1]
@@ -14,8 +20,11 @@ local function normal_command(cmd)
     if program == 'echo' then
         local message = os.strsplit(cmd, ';')[2]
         print(message)
+        return 0
     elseif program == 'APATH' then
     elseif program == 'PPATH' then
+        print(os.cshell.PATH)
+        return 0
     elseif program == 'getuid' then
         print(os.lib.login.userUID())
         return 0
@@ -24,12 +33,57 @@ local function normal_command(cmd)
         return 0
     end
 
-    local found = false
+    found = false
     --part where we see paths and permissions to run and everything
-    --TODO: the part where we see paths...
+
+    --TODO: permission checks
+
+    --check absolute paths
+    if fs.exists(program) then
+        --security check: check if program is in /sbin
+        local tok = os.strsplit(program, '/')
+        if tok[1] ~= '/sbin' then
+            found = true
+            os.runfile_proc(program, args)
+        end
+        --if its not, continue to other checks
+
+        --(theorical) security check(still not implemented):
+        --to make this possible, os.run needs to be reimplemented with permission checks to run a file
+        -- if fs.checkPerm(program, 'r') then
+        --     os.runfile_proc(program, args)
+        -- end
+
+    --check cwd .. program
+    elseif not found and fs.exists(os.cshell.resolve(program)) then
+        print(current_path)
+        if shell_wd ~= '/sbin' or shell_wd ~= 'sbin' then
+            found = true
+            os.runfile_proc(os.cshell.resolve(program), args)
+        end
+    end
+
+    --check program in PATH
+    local path = os.strsplit(os.cshell.PATH, ':')
+    for _,token in ipairs(path) do
+        local K = fs.combine(token..'/', program)
+        if not found and fs.exists(K) then
+            found = true
+            os.runfile_proc(K, args)
+        end
+    end
+
+    --check /sbin
+    if not found and fs.exists(fs.combine("/sbin/", program)) then
+        if os.lib.login.userUID == 0 then
+            found = true
+            os.runfile_proc(fs.combine("/sbin/", program), args)
+        end
+    end
 
     --not found
     if not found then
+        ferror("csh: "..program..": command not found")
     end
 end
 
@@ -57,11 +111,6 @@ local function shcmd(cmd)
         end
     end
 end
-
-if not os.cshell then
-    os.cshell = {}
-end
-os.cshell.PATH = '/bin:/usr/bin'
 
 os.cshell.change_path = function(newpath)
 end

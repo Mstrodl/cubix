@@ -63,9 +63,9 @@ function main(args)
     --local _cpath = fs.open("/tmp/current_path", 'w')
     --_cpath.write(CURRENT_PATH)
     --_cpath.close()
-    os.lib.comm.register('/bin/cd', 'cd_lock', '1')
+    os.lib.control.register('/bin/cd', 'cd_lock', '1')
     os.cshell.cwd(CURRENT_PATH)
-    os.lib.comm.register('/bin/cd', 'cd_lock', nil)
+    os.lib.control.register('/bin/cd', 'cd_lock', nil)
 end
 
 main({...})

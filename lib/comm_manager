@@ -6,12 +6,18 @@
 local data = {}
 
 function register(process, label, h)
-    local runningproc = os.processes[os.getrunning()]
+    local runningproc = os.lib.proc.get_processes()[os.getrunning()]
+    if h == nil then h = '' end
     if runningproc.file == process then
         if data[runningproc.file] == nil then
             data[runningproc.file] = {}
         end
         data[runningproc.file][label] = h
+    elseif '/'..runningproc.file == process then
+        if data['/'..runningproc.file] == nil then
+            data['/'..runningproc.file] = {}
+        end
+        data['/'..runningproc.file][label] = h
     else
         ferror("comm_manager: running process ~= process")
     end
