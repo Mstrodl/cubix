@@ -40,8 +40,16 @@ function main(args)
             k2.write("/root")
         end
         k2.close()
+        --showing the initial path to csh
         os.lib.control.register('/sbin/login', 'cwd', '/home/'..try_user)
-        os.runfile_proc("/bin/cshell_rewrite")
+
+        --getting itself as a process
+        os.lib.control.register('/sbin/login', 'login_lock', '1')
+        local itself = os.lib.proc.get_by_pid(os.getrunning())
+        os.lib.control.register('/sbin/login', 'login_lock', nil)
+
+        --running csh
+        os.runfile_proc("/bin/cshell_rewrite", nil, itself) --parenting with login
     else
         os.ferror("\nLogin incorrect")
     end

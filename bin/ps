@@ -1,14 +1,6 @@
 #!/usr/bin/env lua
 --/bin/ps
 
-_handler = {}
-_handler.signal_handler = function(sig)
-    if sig == 'kill' then
-        os.debug.debug_write("ps: SIGKILL'd!", false)
-        return 0
-    end
-end
-
 function isin(inputstr, wantstr)
     for i = 1, #inputstr do
         local v = string.sub(inputstr, i, i)
@@ -17,29 +9,24 @@ function isin(inputstr, wantstr)
     return false
 end
 
-function main(args, pipe)
-    --TODO: get process from all terminals
-    --TODO: get progress of one tty
+function main(args)
+    --signal handler code:
     if #args > 1 then
         if isin(args[1], 'a') then
             flag_all_terminals = true
         elseif isin(args[1], 'x') then
             flag_all_proc = true
+        elseif isin(args[1], 'o') then
+            flag_show_ppid = true
         end
     end
-    p = os.lib.proc.get_processes()
-    os.pprint("PID  PROCESS", pipe)
-    for k,v in pairs(p) do
-        if v ~= -1 then
-            if v.parent == nil then
-                os.pprint(k.."   "..(v.file .. ' ' .. v.lineargs), pipe)
-            else
-                if v.parent ~= '/sbin/init' then
-                    os.pprint(k.."   "..(v.parent).." > " .. (v.file .. ' ' .. v.lineargs), pipe)
-                else
-                    os.pprint(k.."   "..(v.file .. ' ' .. v.lineargs), pipe)
-                end
-            end
+    local procs = os.lib.proc.get_processes()
+    --default action: show all processes from the current terminal
+    if not flag_all_terminals and not flag_all_proc then
+        local pcurrent_tty = os.lib.proc.filter_proc(os.lib.proc.FLAG_CTTY)
+        os.pprint("PID  PROC")
+        for _,v in pairs(pcurrent_tty) do
+            os.pprint(v.pid.."    "..(v.file.." "..v.lineargs))
         end
     end
 end

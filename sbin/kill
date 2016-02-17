@@ -12,11 +12,11 @@ end
 function main(args)
     if #args == 1 then
         local pid = args[1]
-        local p = os.processes[tonumber(pid)]
+        local p = os.lib.proc.get_by_pid(tonumber(pid))
         os.send_signal(p, os.signals.SIGKILL)
     elseif #args > 1 then
         for k,v in pairs(args) do
-            local proc = os.processes[tonumber(v)]
+            local proc = os.lib.proc.get_by_pid(v)
             os.send_signal(proc, os.signals.SIGKILL)
         end
     else

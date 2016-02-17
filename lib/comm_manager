@@ -8,6 +8,10 @@ local data = {}
 function register(process, label, h)
     local runningproc = os.lib.proc.get_processes()[os.getrunning()]
     if h == nil then h = '' end
+    if runningproc == nil or runningproc == -1 then
+        ferror("comm: no running process")
+        return false
+    end
     if runningproc.file == process then
         if data[runningproc.file] == nil then
             data[runningproc.file] = {}

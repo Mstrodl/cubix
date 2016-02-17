@@ -6,11 +6,6 @@ _handler.signal_handler = function (sig)
     if sig == 'kill' then
         _G['CANT_HANDLE_THE_FORCE'] = true
         os.ferror("init: SIGKILL")
-        if CUBIX_TURNINGOFF or CUBIX_REBOOTING then
-            return 0
-        else
-            os.shutdown()
-        end
     end
 end
 

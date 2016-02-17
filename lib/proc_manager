@@ -5,10 +5,12 @@
 
 RELOADABLE = false
 
-os.processes = {}
-os.pid_last = 0
+--os.processes = {}
 
-running = 0
+--secutiry fix
+local processes = {}
+os.pid_last = 0
+local running = 0
 
 os.signals = {}
 os.signals.SIGKILL = 0
@@ -30,15 +32,10 @@ os.sys_signal = function (signal)
     return 0
 end
 
-os.call_handle = function(process, handler)
-    if process.rfile ~= nil then
-        r = process.rfile
-        if r._handler then
-            r._handler.signal_handler(handler)
-        else
-            os.debug.debug_write("[proc_handler] "..process.file.." doesnt have a signal handler, ignoring")
-        end
-    end
+os.call_handle = function(process, sig)
+    program_env = {}
+    program_env.__PS_SIGNAL = sig
+    os.run(program_env, process.file)
 end
 
 os.send_signal = function (proc, signal)
@@ -48,7 +45,7 @@ os.send_signal = function (proc, signal)
         os.ferror("proc.send_signal: process was killed")
     elseif signal == os.signals.SIGKILL then
         os.debug.debug_write("[proc_manager] SIGKILL -> "..proc.file, false)
-        os.processes[proc.pid] = -1 --removing anything related to the process in os.processes
+        processes[proc.pid] = -1 --removing anything related to the process in os.processes
         for k,v in pairs(proc.childs) do
             os.terminate(v)
         end
@@ -57,8 +54,7 @@ os.send_signal = function (proc, signal)
 end
 
 function __killallproc()
-    --os.viewTable(os.processes)
-    for k,v in ipairs(os.processes) do
+    for k,v in ipairs(processes) do
         if v ~= -1 then
             os.send_signal(v, os.signals.SIGKILL)
         end
@@ -66,7 +62,14 @@ function __killallproc()
 end
 
 os.terminate = function (p)
-    os.call_handle(p, "kill")
+    --os.call_handle(p, "kill")
+    if p.pid == 1 then
+        if CUBIX_TURNINGOFF or CUBIX_REBOOTING then
+            return 0
+        else
+            os.shutdown()
+        end
+    end
     p = nil
     --os.sleep(1)
 end
@@ -112,25 +115,39 @@ os.run_process = function(process, arguments, pipe)
     since I will use os.run to run them
 
     Issue #1: pipe does not work as old
-    since the programs are running by os.run, the manager will not
+    since the programs are  by os.run, the manager will not
     be able to comunicate
 
     ]]
 
     if arguments == nil then arguments = {} end
     --if pipe == nil then pipe = {} end
-    os.debug.debug_write("[process] running "..process.file.." pid="..tostring(process.pid), false)
+    os.debug.debug_write("[process]  "..process.file.." pid="..tostring(process.pid), false)
     permission.default()
 
-    os.processes[process.pid] = process
     running = process.pid
+    processes[process.pid] = process
+
+    local cu = os.lib.login.currentUser()
+    if cu == '' then
+        process.user = 'root'
+    else
+        process.user = cu
+    end
+
+    local ctty = os.lib.tty.getcurrentTTY()
+    if ctty == nil or ctty == {} or ctty == '' then
+        process.tty = '/dev/ttde'
+    else
+        process.tty = ctty.id
+    end
     local proc_folder = "/proc/"..tostring(process.pid)
     fs.makeDir(proc_folder)
     generate_pfolder(process, proc_folder, arguments)
     process.uid = os.lib.login.userUID()
 
-    _G['pipe'] = pipe
-    os.run({}, process.file, unpack(arguments,1))
+    --_G['pipe'] = pipe
+    os.run({pipe=pipe}, process.file, unpack(arguments,1))
 
     --finish process
     fs.delete(proc_folder)
@@ -156,32 +173,73 @@ os.new_process = function(executable)
     cls.rfile = nil
     cls.uid = -1
     cls.lineargs = ''
+    cls.user = ''
+    cls.tty = ''
     os.debug.debug_write("[proc] new: "..cls.file, false)
     return cls
 end
 
 os.currentUID = function()
-    local runningproc = os.processes[running]
-    if runningproc == nil or runningproc == -1 then
+    local proc = processes[running]
+    if proc == nil or proc == -1 then
         return nil
     else
-        return runningproc.uid
+        return proc.uid
     end
 end
 
+--executable: string
+--arguments: table
+--parent: process
+--pipe: Pipe
 os.runfile_proc = function(executable, arguments, parent, pipe)
     if parent == nil then
-        _parent = os.__parent_init --making sure /sbin/init is parent of all processes
+        _parent = os.__parent_init --making sure /sbin/init is parent of all processes(without parent)
+    else
+        _parent = parent
     end
     if arguments == nil then arguments = {} end
     --if pipe == nil then pipe = pipemngr.new_pipe("empty") end
     _process = os.new_process(executable) --creating
     os.set_parent(_process, _parent) --parenting
-    os.run_process(_process, arguments, pipe) -- running
+    os.run_process(_process, arguments, pipe) --
 end
 
 function get_processes()
-    return deepcopy(os.processes)
+    return deepcopy(processes)
+end
+
+function get_by_pid(pid)
+    --get a process by its PID(not of deepcopy, but the original process) with permission
+    if permission.grantAccess(fs.perms.SYS)
+     or processes[running].file == '/sbin/login'
+     or processes[running] == '/sbin/kill'
+     or processes[running] == 'sbin/kill' then
+        return processes[pid]
+    else
+        ferror("get_by_pid: perm error")
+    end
+end
+
+FLAG_CTTY = 0 --all processes  in the same tty(the  tty)
+
+--filters processes by its flag
+function filter_proc(filter_flag)
+    if filter_flag == FLAG_CTTY then
+        local ctty = os.lib.tty.getcurrentTTY()
+        local filtered = {}
+        for k,v in pairs(processes) do
+            if v ~= -1 then
+                if v.tty == ctty.id then
+                    filtered[v.pid] = v
+                end
+            end
+        end
+        return filtered
+    else
+        ferror("proc.filter_proc: no flag")
+        return nil
+    end
 end
 
 function test_processes()

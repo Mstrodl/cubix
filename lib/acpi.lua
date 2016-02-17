@@ -21,6 +21,7 @@ local __clear_temp = function()
 end
 
 local function acpi_shutdown()
+    os.debug.debug_write("[acpi_shutdown]")
     if permission.grantAccess(fs.perms.SYS) or _G['CANT_HANDLE_THE_FORCE'] then
         os.debug.debug_write("[shutdown] shutting down for system halt")
         _G['CUBIX_TURNINGOFF'] = true
@@ -41,12 +42,14 @@ local function acpi_shutdown()
 end
 
 local function acpi_reboot()
+    os.debug.debug_write("[acpi_reboot]")
     if permission.grantAccess(fs.perms.SYS) then
         os.debug.debug_write("[reboot] shutting down for system reboot")
         _G['CUBIX_REBOOTING'] = true
         os.debug.debug_write("[reboot] sending SIGKILL to all processes")
         if not os.__boot_flag then --still without proper userspace
             os.lib.proc.__killallproc()
+            os.debug.debug_write("[reboot] unmounting drives")
             os.lib.fs_mngr.shutdown_procedure()
         end
         os.sleep(1)

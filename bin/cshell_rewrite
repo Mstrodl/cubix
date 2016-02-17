@@ -5,6 +5,9 @@ local shellToken = {}
 --local shell_wd = os.lib.control.get('/sbin/login', 'cwd')
 local shell_wd = nil
 
+--getting shell process
+local itself = os.lib.proc.get_processes()[os.getrunning()]
+
 if not os.cshell then
     os.cshell = {}
 end
@@ -44,7 +47,7 @@ local function normal_command(cmd)
         local tok = os.strsplit(program, '/')
         if tok[1] ~= '/sbin' then
             found = true
-            os.runfile_proc(program, args)
+            os.runfile_proc(program, args, itself)
         end
         --if its not, continue to other checks
 
@@ -59,7 +62,7 @@ local function normal_command(cmd)
         print(current_path)
         if shell_wd ~= '/sbin' or shell_wd ~= 'sbin' then
             found = true
-            os.runfile_proc(os.cshell.resolve(program), args)
+            os.runfile_proc(os.cshell.resolve(program), args, itself)
         end
     end
 
@@ -69,7 +72,7 @@ local function normal_command(cmd)
         local K = fs.combine(token..'/', program)
         if not found and fs.exists(K) then
             found = true
-            os.runfile_proc(K, args)
+            os.runfile_proc(K, args, itself)
         end
     end
 
@@ -77,7 +80,7 @@ local function normal_command(cmd)
     if not found and fs.exists(fs.combine("/sbin/", program)) then
         if os.lib.login.userUID == 0 then
             found = true
-            os.runfile_proc(fs.combine("/sbin/", program), args)
+            os.runfile_proc(fs.combine("/sbin/", program), args, itself)
         end
     end
 

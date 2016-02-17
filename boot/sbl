@@ -231,6 +231,7 @@ table.insert(oses[2], "lineboot")
 local user_selection = CUI(oses[1]) --only names
 selected_os = user_selection[1]
 
+--load kernel
 loadkernel(oses[2][selected_os], 512)
 
 _halt()

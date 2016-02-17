@@ -82,7 +82,7 @@ function kpanic(message)
         if not os.lib.proc or os.__boot_flag then --how are you in early boot(seriously, how)?
             procname = "name: /boot/cubix"
         else
-            procname = "pname: "..tostring(os.processes[os.getrunning()].file)
+            procname = "pname: "..tostring(os.lib.proc.get_processes()[os.getrunning()].file)
         end
 
         for i=1, #procname do

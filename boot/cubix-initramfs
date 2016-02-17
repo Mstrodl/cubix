@@ -115,10 +115,11 @@ function deepcopy(orig)
             copy[deepcopy(orig_key)] = deepcopy(orig_value)
         end
         setmetatable(copy, deepcopy(getmetatable(orig)))
+        return copy
     else -- number, string, boolean, etc
-        copy = orig
+        return orig
     end
-    return copy
+    --return copy
 end
 os.deepcopy = deepcopy
 _G['deepcopy'] = deepcopy
