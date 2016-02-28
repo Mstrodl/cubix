@@ -97,8 +97,6 @@ function generate_pfolder(proc, folder, arguments)
         line_args = line_args .. v .. ' '
     end
 
-    proc.lineargs = line_args
-
     local cmd_handler = fs.open(fs.combine(folder, 'cmd'), 'w')
     cmd_handler.write(proc.file..' '..line_args)
     cmd_handler.close()
@@ -141,9 +139,18 @@ os.run_process = function(process, arguments, pipe)
     else
         process.tty = ctty.id
     end
+
+    local line_args = ''
+    for k,v in ipairs(arguments) do
+        line_args = line_args .. v .. ' '
+    end
+
+    process.lineargs = line_args
+
     local proc_folder = "/proc/"..tostring(process.pid)
     fs.makeDir(proc_folder)
     generate_pfolder(process, proc_folder, arguments)
+
     process.uid = os.lib.login.userUID()
 
     --_G['pipe'] = pipe
@@ -202,7 +209,7 @@ os.runfile_proc = function(executable, arguments, parent, pipe)
     --if pipe == nil then pipe = pipemngr.new_pipe("empty") end
     _process = os.new_process(executable) --creating
     os.set_parent(_process, _parent) --parenting
-    os.run_process(_process, arguments, pipe) --
+    os.run_process(_process, arguments, pipe) --running.
 end
 
 function get_processes()
@@ -221,18 +228,28 @@ function get_by_pid(pid)
     end
 end
 
-FLAG_CTTY = 0 --all processes  in the same tty(the  tty)
+FLAG_CTTY = 0 --all processes in the same tty(the tty)
+FLAG_ATTY = 1 --all process in all tty
+FLAG_APRC = 2 --all process in the system
 
 --filters processes by its flag
 function filter_proc(filter_flag)
     if filter_flag == FLAG_CTTY then
         local ctty = os.lib.tty.getcurrentTTY()
         local filtered = {}
-        for k,v in pairs(processes) do
+        for k,v in pairs(get_processes()) do
             if v ~= -1 then
                 if v.tty == ctty.id then
                     filtered[v.pid] = v
                 end
+            end
+        end
+        return filtered
+    elseif filter_flag == FLAG_ATTY or filter_flag == FLAG_APRC then
+        local filtered = {}
+        for k,v in pairs(get_processes()) do
+            if v ~= -1 then
+                filtered[v.pid] = v
             end
         end
         return filtered

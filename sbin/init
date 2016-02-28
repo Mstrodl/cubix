@@ -81,6 +81,7 @@ function main(args)
             return 1
         end
     end
+    os.lib.tty.current_tty("/dev/tty1")
     RUNLEVELFUNC[runlevel]()
     return 0
 end

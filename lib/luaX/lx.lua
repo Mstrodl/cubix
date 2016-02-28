@@ -1,7 +1,7 @@
 --/lib/luaX/lx.lua
 --luaX "hardware" access
 
-_G['_LUAX_VERSION'] = '0.0.1'
+_G['_LUAX_VERSION'] = '0.0.2'
 
 --function: manage basic access to CC screen, basic pixels and etc.
 
@@ -77,6 +77,18 @@ function write_letter(letter, locX, locY, color_b, color_letter)
     write(letter)
     term.set_bg_default()
     return true
+end
+
+function write_string(str, locx, locy, color_str, color_b)
+    --print("write_string "..tostring(#str)..' '..str)
+    for i=1, #str do
+        local letter = string.sub(str, i, i)
+        write_letter(letter,
+        locx+(i-1),
+        locy,
+        color_b,
+        color_str)
+    end
 end
 
 colorcodes = {

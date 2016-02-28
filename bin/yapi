@@ -501,6 +501,10 @@ function main(args)
             elseif string.sub(option,2,2) == 'U' then
                 local yfile = os.cshell.resolve(args[2])
                 print("==> [install_yap] "..yfile)
+                if not fs.exists(yfile) then
+                    ferror("-> file does not exist")
+                    return 0
+                end
                 local h = fs.open(yfile, 'r')
                 local _data = h.readAll()
                 h.close()

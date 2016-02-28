@@ -2,7 +2,7 @@
 --/boot/cubix: well, cubix!
 
 AUTHOR = "Lukas Mendes"
-BUILD_DATE = "2016-02-17"
+BUILD_DATE = "2016-02-28"
 
 --  version format: major.revision.minor
 --      major: linear
@@ -35,10 +35,10 @@ term.set_term_color = function (c)
 end
 
 if os.loadAPI("/boot/cubix-initramfs") then
-    print("Yay, loaded initramfs")
+    print("[cubix] loaded initramfs.")
 else
     term.set_term_color(colors.red)
-    print("Sorry, you can't load cubix. (initramfs error)")
+    print("[cubix] initramfs error, can't start kernel.")
     os.system_halt()
 end
 
@@ -76,6 +76,7 @@ if _label == nil then _label = 'generic' end
 pcid.write(_label)
 pcid.close()
 
+--some default things in /proc
 local version = fs.open("/proc/version", 'w')
 version.write(VERSION)
 version.close()
@@ -94,17 +95,13 @@ TTYS = {}
 
 os.list_mfiles = {}
 
+--halting.
 os.system_halt = function()
     while true do sleep(0) end
 end
 
 os._read = read
 os._sleep = os.sleep
-
-os.runfile = function(cmd)
-    os.ferror("[cubix_deprecated] Sorry, os.runfile is marked as bad code and will not be in this cubix")
-    return -1
-end
 
 os.ferror = function(message)
     --TODO: stdin, stdout and stderr
@@ -150,6 +147,7 @@ if kflag.quiet then
     __debug.ferror = function()end
 end
 
+--Welcome message
 term.set_term_color(colors.green)
 os.debug.debug_write("Welcome to Cubix "..VERSION..'!')
 print('\n')
@@ -162,6 +160,7 @@ os.internals._kernel = {}
 
 local isReloadable = {}
 
+--default function to load modules
 function loadmodule(nmodule, path)
     os.debug.debug_write('[mod] loading: '..nmodule)
     if isReloadable[nmodule] ~= nil and isReloadable[nmodule] == false then
@@ -184,16 +183,20 @@ function loadmodule(nmodule, path)
     end
 end
 
+--unload a module
 function unloadmod(mod)
     if os.lib[mod] then
         os.debug.debug_write("[unloadmod] unloading "..mod)
         os.lib[mod] = nil
+        return true
     else
         ferror("unloadmod: module not found")
+        return false
     end
 end
 
 function loadmodule_ret(path)
+    -- instead of putting the library into os.lib, just return it
     os.debug.debug_write('[loadmodule:ret] loading: '..path)
     local ret = {}
     if os.loadAPI(path) then
@@ -208,12 +211,14 @@ function loadmodule_ret(path)
         return ret
     else
         ferror("[loadmodule:ret] not loaded: "..path)
+        return nil
     end
 end
 
 os.internals.loadmodule = loadmodule
 os.internals.unloadmod = unloadmod
 
+--show all loaded modules in the system(shows to stdout)
 os.viewLoadedMods = function()
     for k,v in pairs(os.lib) do
         write(k..' ')
@@ -265,17 +270,21 @@ end
 --filesystem manager
 loadmodule("fs_mngr", "/lib/fs_manager")
 
+--start permission system for kernel boot
 permission.initKernelPerm()
 
+--hibernation detection
 if fs.exists("/dev/ram") and os.lib.acpi then
     os.lib.acpi.acpi_hwake()
 else
 
 --process manager
-function os.internals._kernel.register_mfile(controller)
+function os.internals._kernel.register_mfile(controller) --register Managed Files
     debug.debug_write("[mfile] "..controller.name.." created")
     os.list_mfiles[controller.name] = controller.file
     fs.open(controller.name, 'w', fs.perms.SYS).close()
+    -- debug.debug_Write("[mfile] "..controller.name)
+    -- new_mfile(controller)
 end
 
 loadmodule("proc", "/lib/proc_manager")
@@ -321,24 +330,25 @@ function dev_write(path, data)
 end
 _G['dev_write'] = dev_write
 
-function dev_read(path, bytes)
+--device functions
+function dev_read(path, bytes) --read from devices
     local result = os.list_devices[path].device_read(bytes)
     return result
 end
 _G['dev_read'] = dev_read
 
-function dev_available(path)
+function dev_available(path) --check if device is available
     local av = os.list_devices[path] ~= nil
     return av
 end
 _G['dev_available'] = dev_available
 
-function get_device(pth)
+function get_device(pth) --get the device object from its path
     return os.list_devices[pth]
 end
 _G['get_device'] = get_device
 
-function os.list_dev()
+function os.list_dev() --list all devices(shows to stdout automatically)
     for k,v in pairs(os.list_devices) do
         write(k..' ')
     end
@@ -346,15 +356,14 @@ function os.list_dev()
 end
 
 local perilist = peripheral.getNames()
-os.debug.debug_write("[peripheral] begin detection")
+os.debug.debug_write("[peripheral:st]")
 for i = 1, #perilist do
     os.internals._kernel.new_device("peripheral", tostring(peripheral.getType(perilist[i])))
 end
 
 --tty, login and pipe managers
-function os.internals._kernel.register_tty(path, tty)
+function os.internals._kernel.register_tty(path, tty) --register TTY to the system
     os.debug.debug_write("[tty] new tty: "..path)
-    --TTYS[path] = tty
     fs.open(path, 'w', fs.perms.SYS).close()
 end
 
@@ -434,4 +443,5 @@ else
     cubix.boot_kernel()
 end
 
-print("cubix kernel: the end")
+--if the boot_kernel() returns or something, just print a message saying it
+print("cubix kernel: end of kernel execution.")

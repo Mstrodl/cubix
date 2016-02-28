@@ -14,7 +14,7 @@ so you can have multiple users in the same computer logged at the same time!
 
 RELOADABLE = false
 
-function create_framebuffer()
+function create_multitty()
     --create some form of multitasking between ttys(allowing read() calls to be made)
     --i'm thinking this needs to be in tty manager
 end
@@ -27,7 +27,7 @@ function create_switch()
 end
 
 function run_all_ttys()
-    create_framebuffer()
+    create_multitty()
     create_switch()
     for k,v in pairs(os.lib.tty.get_ttys()) do
         --every active tty running login

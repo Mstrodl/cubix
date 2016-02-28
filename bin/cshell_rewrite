@@ -34,12 +34,24 @@ local function normal_command(cmd)
     elseif program == 'getperm' then
         permission.getPerm()
         return 0
+    elseif program == 'CTTY' then
+        print(os.lib.tty.getcurrentTTY().id)
+        return 0
     end
 
     found = false
     --part where we see paths and permissions to run and everything
 
     --TODO: permission checks
+    --[[
+    if fs.verifyPerm(program, os.currentUser(), 'x') then
+        exec_prog = true
+    end
+    if not exec_proc then
+        ferror("csh: unable to run")
+    end
+
+    ]]
 
     --check absolute paths
     if fs.exists(program) then
@@ -86,7 +98,7 @@ local function normal_command(cmd)
 
     --not found
     if not found then
-        ferror("csh: "..program..": command not found")
+        ferror("csh: "..program..": program not found")
     end
 end
 
