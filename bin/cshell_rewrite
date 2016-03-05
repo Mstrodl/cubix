@@ -7,16 +7,24 @@ local shell_wd = nil
 
 --getting shell process
 local itself = os.lib.proc.get_processes()[os.getrunning()]
+local itself_pid = os.lib.proc.get_by_pid(3)
 
 if not os.cshell then
     os.cshell = {}
 end
 os.cshell.PATH = '/bin:/usr/bin'
 
+local last_command = ''
+
+function register_lcmd(c)
+    os.lib.control.register_proof(itself_pid, 'last_cmd', c)
+end
+
 local function normal_command(cmd)
     --normal routine to run commands
     local tokens = os.strsplit(cmd, ' ')
     local args = os.tail(tokens)
+    if args == nil then args = {} end
     local program = tokens[1]
     --built-in "programs"
     --echo, APATH, PPATH, getuid, getperm, alias, aliases
@@ -60,6 +68,7 @@ local function normal_command(cmd)
         if tok[1] ~= '/sbin' then
             found = true
             os.runfile_proc(program, args, itself)
+            register_lcmd(program .. ' ' .. table.concat(args, ' '))
         end
         --if its not, continue to other checks
 
@@ -75,6 +84,7 @@ local function normal_command(cmd)
         if shell_wd ~= '/sbin' or shell_wd ~= 'sbin' then
             found = true
             os.runfile_proc(os.cshell.resolve(program), args, itself)
+            register_lcmd(os.cshell.resolve(program) .. ' ' .. table.concat(args, ' '))
         end
     end
 
@@ -85,14 +95,16 @@ local function normal_command(cmd)
         if not found and fs.exists(K) then
             found = true
             os.runfile_proc(K, args, itself)
+            register_lcmd(K .. ' ' .. table.concat(args, ' '))
         end
     end
 
     --check /sbin
     if not found and fs.exists(fs.combine("/sbin/", program)) then
-        if os.lib.login.userUID == 0 then
+        if os.lib.login.userUID() == 0 then
             found = true
             os.runfile_proc(fs.combine("/sbin/", program), args, itself)
+            register_lcmd(fs.combine("/sbin/", program) .. ' ' .. table.concat(args, ' '))
         end
     end
 

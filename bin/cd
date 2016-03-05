@@ -45,8 +45,8 @@ function cd(pth)
         CURRENT_PATH = pth_goup(CURRENT_PATH)
     elseif pth == '/' then
         CURRENT_PATH = pth
-    elseif fs.exists(CURRENT_PATH .. '/' .. pth) == true then
-        CURRENT_PATH = CURRENT_PATH .. '/' .. pth
+    elseif fs.exists(fs.combine(CURRENT_PATH, pth)) == true then
+        CURRENT_PATH = fs.combine(CURRENT_PATH, pth)
     elseif fs.exists(pth) == true then
         CURRENT_PATH = pth
     else

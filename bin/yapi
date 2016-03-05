@@ -2,15 +2,7 @@
 --/bin/yapi: Yet Another Package Installer (with a pacman syntax-like)
 
 AUTHOR = 'Lukas Mendes'
-VERSION = '0.1.2'
-
-_handler = {}
-_handler.signal_handler = function (sig)
-    if sig == 'kill' then
-        os.debug.debug_write("yapi: SIGKILL'd!", false)
-        return 0
-    end
-end
+VERSION = '0.1.3'
 
 --defining some things
 local SERVERIP = 'lkmnds.github.io'
@@ -20,7 +12,7 @@ local YAPIDIR = '/var/yapi'
 function download_file(url)
     local cache = os.strsplit(url, '/')
     local fname = cache[#cache]
-    print('requesting ' .. fname)
+    print('request: ' .. fname)
     http.request(url)
     local req = true
     while req do
@@ -197,6 +189,10 @@ function parse_yap(yapf)
             yapobject['email_author'] = splitted[2]
         elseif splitted[1] == 'Description' then
             yapobject['description'] = splitted[2]
+        elseif splitted[1] == 'Url' then
+            yapobject['url'] = splitted[2]
+        elseif splitted[1] == 'License' then
+            yapobject['license'] = splitted[2]
         elseif splitted[1] == 'Folder' then
             table.insert(yapobject['folders'], splitted[2])
         elseif splitted[1] == 'File' then
@@ -527,9 +523,10 @@ function main(args)
                             os.ferror("::! [list -> parse_yap] error (yobj ~= table)")
                             return 1
                         end
-                        print(yobj.name .. ' ' .. yobj.build .. ':' .. yobj.version)
+                        print(yobj.name .. ' b' .. yobj.build .. ' v' .. yobj.version .. ' ('..yobj.license..')')
                         print("Maintainer: "..yobj.author.." <"..yobj['email_author']..">")
                         print("Description: "..yobj.description)
+                        print("URL: "..yobj.url)
                     else
                         os.ferror("::! package not found")
                     end

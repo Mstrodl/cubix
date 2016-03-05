@@ -1,13 +1,6 @@
 #!/usr/bin/env lua
---makeyap:
---based on pkgdata, creates a .yap file to be a package.
+--makeyap: based on pkgdata, creates a .yap file to be a package.
 --compatible with Cubix and CraftOS
-_handler = {}
-_handler.signal_handler = function (sig)
-    if sig == 'kill' then
-        return 0
-    end
-end
 cwd = ''
 local strsplit = function (inputstr, sep)
     if sep == nil then
@@ -71,25 +64,30 @@ function parse_pkgdata(lines)
     for k,v in ipairs(lines) do
         if string.sub(v, 1, 1) ~= '#' then --comments
             local d = strsplit(v, ';')
-            if d[1] == 'pkgName' then
+            if d[1] == 'pkgname' then
                 pkgobj['name'] = d[2]
-            elseif d[1] == 'pkgVersion' then
+            elseif d[1] == 'pkgver' then
                 pkgobj['version'] = d[2]
-            elseif d[1] == 'pkgBuild' then
+            elseif d[1] == 'pkgbuild' then
                 pkgobj['build'] = d[2]
-            elseif d[1] == 'pkgAuthor' then
+            elseif d[1] == 'author' then
                 pkgobj['author'] = d[2]
-            elseif d[1] == 'pkgEAuthor' then
+            elseif d[1] == 'eauthor' then
                 pkgobj['email-author'] = d[2]
-            elseif d[1] == 'pkgDescription' then
+            elseif d[1] == 'desc' then
                 pkgobj['description'] = d[2]
-            elseif d[1] == 'pkgFile' then
+            elseif d[1] == 'url' then
+                pkgobj['url'] = d[2]
+            elseif d[1] == 'license' then
+                pkgobj['license'] = d[2]
+            elseif d[1] == 'file' then
                 table.insert(pkgobj['file_assoc'], {d[2], d[3]})
-            elseif d[1] == 'pkgFolder' then
+            elseif d[1] == 'folder' then
                 table.insert(pkgobj['folders'], d[2])
-            elseif d[1] == 'pkgDep' then
+            elseif d[1] == 'dep' then
                 table.insert(pkgobj['deps'], d[2])
-            elseif d[1] == 'pkgAll' then
+            elseif d[1] == 'all' then
+                pkgobj['SPECIAL_FLAG'] = true
                 local nodes = listAll()
                 for _,v in ipairs(nodes['folders']) do
                     table.insert(pkgobj['folders'], v)
@@ -112,12 +110,23 @@ function create_yap(pkgdata, cwd)
     yapdata['description'] = pkgdata['description']
     yapdata['folders'] = pkgdata['folders']
     yapdata['deps'] = pkgdata['deps']
+    yapdata['url'] = pkgdata['url']
+    yapdata['license'] = pkgdata['license']
     yapdata['files'] = {}
     for k,v in pairs(pkgdata['file_assoc']) do
-        local original_file = fs.combine(cwd, v[1])
+        local original_file = ''
+        if pkgdata['SPECIAL_FLAG'] then
+            original_file = v[1]
+        else
+            original_file = fs.combine(cwd, v[1])
+        end
         local absolute_path = v[2]
         yapdata['files'][absolute_path] = ''
         local handler = fs.open(original_file, 'r')
+        if handler == nil then
+            ferror("[create_yap] file error: "..original_file)
+            return 1
+        end
         local _lines = handler.readAll()
         handler.close()
         local lines = strsplit(_lines, '\n')
@@ -128,9 +137,16 @@ function create_yap(pkgdata, cwd)
     return yapdata
 end
 function write_yapdata(yapdata)
+    if yapdata['name'] == nil then
+        ferror("[write_yapdata] pkgname is nil")
+        return 1
+    end
     local yp = fs.combine(cwd, yapdata['name']..'.yap')
     if fs.exists(yp) then
-        fs.delete(yp)
+        term.setTextColor(colors.red)
+        print("[write_yapdata] yap already exists, should remove to get new one.")
+        term.setTextColor(colors.white)
+        return 0
     end
     local yfile = fs.open(yp, 'w')
     yfile.write('Name;'..yapdata['name']..'\n')
@@ -139,7 +155,9 @@ function write_yapdata(yapdata)
     yfile.write('Author;'..yapdata['author']..'\n')
     yfile.write('Email-Author;'..yapdata['email_author']..'\n')
     yfile.write('Description;'..yapdata['description']..'\n')
-    os.viewTable(yapdata['folders'])
+    yfile.write("Url;"..yapdata['url']..'\n')
+    yfile.write("License;"..yapdata['license']..'\n')
+    --os.viewTable(yapdata['folders'])
     for k,v in pairs(yapdata['folders']) do
         yfile.write("Folder;"..v..'\n')
     end
@@ -154,7 +172,7 @@ function write_yapdata(yapdata)
     yfile.close()
     return yp
 end
-function main()
+function main(args)
     if type(os.cshell) == 'table' then
         cwd = os.cshell.getpwd()
     else
@@ -184,6 +202,4 @@ function main()
     local path = write_yapdata(ydata)
     print("[write_yapdata] "..path)
 end
-if not IS_CUBIX then
-    main()
-end
+main({...})

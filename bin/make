@@ -1,0 +1,160 @@
+#!/usr/bin/env lua
+
+VER = '0.0.1'
+
+function warning_verbose(command)
+    if string.sub(command, 1, 14) == 'rm /tmp/syslog' then
+        return true
+    elseif string.sub(command, 1, 7) == 'rm /dev' then
+        return true
+    end
+    return false
+end
+
+function run_command(c, warning_table)
+    if warning_table['WARN_VERBOSE'] then
+        term.setTextColor(colors.blue)
+        if warning_verbose(c) then
+            print("WARN_VERBOSE: "..c)
+            local c = read()
+        else
+            term.setTextColor(colors.lightBlue)
+            print(": "..c)
+        end
+        term.setTextColor(colors.white)
+        os.cshell.run(c)
+    else
+        term.setTextColor(colors.lightBlue)
+        print(': '..c)
+        term.setTextColor(colors.white)
+        os.cshell.run(c)
+    end
+end
+
+function make_debug(opener, msg)
+    term.setTextColor(colors.green)
+    print('['..opener..'] '..msg)
+    term.setTextColor(colors.white)
+end
+
+function parse_mkfile(mkfdata)
+    local lines = os.strsplit(mkfdata, '\n')
+    local mkdata = {}
+    local actual_target = ''
+    local isTarget = false
+    for _,v in ipairs(lines) do
+        if isTarget then
+            --print(v)
+            if v == 'end-target;' then
+                isTarget = false
+            else
+                mkdata['target:'..actual_target]['data'][#mkdata['target:'..actual_target]['data'] + 1] = v
+            end
+        end
+
+        if string.sub(v, 1, 1) == 'd' then
+            --default target
+            mkdata['default_target'] = os.strsplit(v, ' ')[2]
+        elseif string.sub(v, 1, 1) == 't' then
+            --target
+            isTarget = true
+            target_id = os.strsplit(v, ' ')[2]
+            local s = os.strsplit(target_id, ',')
+            actual_target = s[1]
+            target_deps = os.tail(s)
+
+            --remove the : at the final of line
+            target_deps[#target_deps] = string.sub(target_deps[#target_deps], 1, #target_deps[#target_deps] -1)
+
+            mkdata['target:'..actual_target] = {}
+            mkdata['target:'..actual_target]['data'] = {}
+            mkdata['target:'..actual_target]['deps'] = target_deps
+        end
+    end
+    return mkdata
+end
+
+function do_make(mkdata, target)
+    --os.viewTable(mkdata['target:submit']['deps'])
+    if target == '' then
+        return 0
+    end
+    if target == 'None' then
+        make_debug("do_make", "default target is None, can't do make")
+        return 0
+    end
+    if not mkdata['target:'..target] then
+        ferror("[do_make] target "..target.." not found")
+        return 0
+    end
+    for k,v in pairs(mkdata['target:'..target]['deps']) do
+        do_make(mkdata, v)
+    end
+    make_debug("do_make", target)
+
+    local variables = {}
+    local order_var = false
+    local warnings = {}
+    for k,v in pairs(mkdata['target:'..target]['data']) do
+        if string.sub(v, 1, 2) == 'c ' then
+            cmd = string.sub(v, 3, #v)
+            run_command(cmd, warnings)
+            order_var = False
+        elseif string.sub(v, 1, 3) == 'vc ' then
+            cmd = string.sub(v, 4, #v)
+            local var_count = 1
+            local strfinal = ''
+            for i=1, #cmd do
+                local c = string.sub(cmd, i, i)
+                if c == '$' then
+                    local variable = variables[order_var[var_count]]
+                    if variable == nil then
+                        ferror("syntax error: "..order_var[var_count].." is not defined")
+                        return 0
+                    end
+                    strfinal = strfinal .. variable
+                    var_count = var_count + 1
+                else
+                    strfinal = strfinal .. c
+                end
+            end
+            run_command(strfinal, warnings)
+            order_var = false
+        elseif string.sub(v, 1, 2) == 'v ' then
+            local var_name = os.strsplit(v, ':')[2]
+            variables[var_name] = nil
+        elseif string.sub(v, 1, 2) == 'l ' then
+            order_var = os.strsplit(string.sub(v, 3, #v), ',')
+            --os.viewTable(order_var)
+        elseif string.sub(v, 1, 2) == 'r ' then
+            var_name = os.strsplit(v, ':')[2]
+            variables[var_name] = read()
+        elseif string.sub(v, 1, 2) == 'w ' then
+            warn_name = os.strsplit(v, ' ')[2]
+            warnings[warn_name] = true
+        end
+    end
+end
+
+function main(args)
+    print("make v"..VER)
+    local mpath = os.cshell.resolve("makefile")
+    if not fs.exists(mpath) then
+        ferror("make: makefile not found")
+        return 0
+    end
+
+    local mfile = fs.open(mpath, 'r')
+    local mkfile_data = parse_mkfile(mfile.readAll())
+    mfile.close()
+
+    local target = ''
+    if #args == 1 then
+        target = args[1]
+    else
+        target = mkfile_data['default_target']
+    end
+
+    do_make(mkfile_data, target)
+end
+main({...})

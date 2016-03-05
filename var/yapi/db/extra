@@ -1,3 +1,6 @@
 lx-base;http://lkmnds.github.io/yapi/extra/lx-base.yap
-lx-extra;http://lkmnds.github.io/yapi/extra/lx-extra.yap
-libcubix;http://lkmnds.github.io/yapi/extra/libcubix.yap
+lx-server;http://lkmnds.github.io/yapi/extra/lx-server.yap
+lx-client;http://lkmnds.github.io/yapi/extra/lx-client.yap
+lx-window;http://lkmnds.github.io/yapi/extra/lx-window.yap
+pkg-dev;http://lkmnds.github.io/yapi/extra/pkg-dev.yap
+libcubix-dev;http://lkmnds.github.io/yapi/extra/libcubix-dev.yap

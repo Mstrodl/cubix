@@ -2,7 +2,7 @@
 --libcubix: compatibility for cubix
 
 AUTHOR = 'Lukas Mendes'
-VERSION = '0.1'
+VERSION = '0.2'
 
 --[[
 
@@ -115,11 +115,10 @@ function deepcopy(orig)
             copy[deepcopy(orig_key)] = deepcopy(orig_value)
         end
         setmetatable(copy, deepcopy(getmetatable(orig)))
-        return copy
     else -- number, string, boolean, etc
-        return orig
+        copy = orig
     end
-    --return copy
+    return copy
 end
 os.deepcopy = deepcopy
 _G['deepcopy'] = deepcopy
@@ -190,3 +189,4 @@ function generate_lcubix(type, path)
         h2.close()
     end
 end
+

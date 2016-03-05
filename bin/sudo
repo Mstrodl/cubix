@@ -47,8 +47,20 @@ function run_program(_args)
         found = true
         os.runfile_proc(fs.combine("/sbin/", program), args)
     end
+
+    if program == '!!' then
+        found = true
+        local lst_cmd = os.lib.control.get('/bin/cshell_rewrite', 'last_cmd')
+        local last_command = os.strsplit(lst_cmd, ' ')
+        if lst_cmd == 'sudo !!' or lst_cmd == 'bin/sudo !!' or lst_cmd == '/bin/sudo !!' then
+            ferror("Sorry user, you can't make a infinite loop.")
+            return 1
+        end
+        os.runfile_proc(last_command[1], os.tail(last_command))
+    end
+
     if not found then
-        os.ferror("sudo: Program not found")
+        os.ferror("sudo: "..program.." program not found")
     end
     return 0
 end

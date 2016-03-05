@@ -2,7 +2,7 @@
 --libcubix: compatibility for cubix
 
 AUTHOR = 'Lukas Mendes'
-VERSION = '0.1'
+VERSION = '0.2'
 
 --[[
 

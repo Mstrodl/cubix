@@ -213,19 +213,30 @@ os.runfile_proc = function(executable, arguments, parent, pipe)
 end
 
 function get_processes()
-    return deepcopy(processes)
+    local c = deepcopy(processes)
+    c['CPY_FLAG'] = true --copy flag
+    return c
 end
 
 function get_by_pid(pid)
     --get a process by its PID(not of deepcopy, but the original process) with permission
     if permission.grantAccess(fs.perms.SYS)
+     or processes[running].file == '/bin/cshell_rewrite'
      or processes[running].file == '/sbin/login'
-     or processes[running] == '/sbin/kill'
-     or processes[running] == 'sbin/kill' then
+     or processes[running].file == '/sbin/kill'
+     or processes[running].file == 'sbin/kill' then
         return processes[pid]
     else
         ferror("get_by_pid: perm error")
     end
+end
+
+function check_proof(p)
+    -- check if a process is a original one(not a copy)
+    if p == processes[p.pid] then
+        return true
+    end
+    return false
 end
 
 FLAG_CTTY = 0 --all processes in the same tty(the tty)
@@ -238,7 +249,7 @@ function filter_proc(filter_flag)
         local ctty = os.lib.tty.getcurrentTTY()
         local filtered = {}
         for k,v in pairs(get_processes()) do
-            if v ~= -1 then
+            if type(v) == 'table' then
                 if v.tty == ctty.id then
                     filtered[v.pid] = v
                 end
@@ -248,7 +259,7 @@ function filter_proc(filter_flag)
     elseif filter_flag == FLAG_ATTY or filter_flag == FLAG_APRC then
         local filtered = {}
         for k,v in pairs(get_processes()) do
-            if v ~= -1 then
+            if type(v) == 'table' then
                 filtered[v.pid] = v
             end
         end

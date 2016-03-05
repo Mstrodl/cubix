@@ -34,6 +34,7 @@ function main(args)
     os.runfile("mkdir /usr/lib")
     os.runfile("mkdir /usr/sbin")
     os.runfile("mkdir /var") --variables
+    os.runfile("mkdir /src") --source data
     os.runfile("rm /tmp") --removing temporary because yes
     os.runfile("mkdir /tmp") --temporary, deleted when shutdown/reboot
     os.runfile("mkdir /media") --mounting
