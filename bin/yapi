@@ -2,7 +2,7 @@
 --/bin/yapi: Yet Another Package Installer (with a pacman syntax-like)
 
 AUTHOR = 'Lukas Mendes'
-VERSION = '0.1.3'
+VERSION = '0.1.4'
 
 --defining some things
 local SERVERIP = 'lkmnds.github.io'
@@ -45,6 +45,15 @@ function isin(inputstr, wantstr)
     for i = 1, #inputstr do
         local v = string.sub(inputstr, i, i)
         if v == wantstr then return true end
+    end
+    return false
+end
+
+function inlist(str, list)
+    for k,v in pairs(list) do
+        if v == str then
+            return true
+        end
     end
     return false
 end
@@ -448,6 +457,18 @@ function main(args)
                     if packages == nil then
                         os.ferror("yapi: error getting deps")
                         return 1
+                    end
+                    if inlist('base', packages) then
+                        ferror("WARNING: As Cubix Standards, devs should not install the base package as it will damage existing changes that they made.")
+                        ferror("\nWARNING2: Only users with consent that all personal data will be lost after installation should continue.")
+                        if prompt("Do you really want to go with this?", "Y", "n") then
+                            if prompt("Do you REALLY want to go with this?", "Y", "n") then
+                                print("Ok then...")
+                            end
+                            return false
+                        else
+                            return false
+                        end
                     end
                     write("Packages ("..#packages..") ")
                     for _,pkg in ipairs(packages) do
