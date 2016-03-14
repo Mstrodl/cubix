@@ -42,6 +42,7 @@ os.tail = function(t)
     end
     return newtable
 end
+_G['tail'] = os.tail
 
 os.strsplit = function (inputstr, sep)
     if sep == nil then
@@ -63,6 +64,7 @@ os.strsplit = function (inputstr, sep)
     end
     return t
 end
+_G['strsplit'] = os.strsplit
 
 function strcount(str, char)
     local c = 0

@@ -1,0 +1,14 @@
+Cubix Standards:
+
+Rule #0:
+    * Cubix Standards is a form of defining rules and standards to all programs in Cubix, so nothing can be broken following those.
+    Reason: Just to be nice with devs out there
+
+Rule #1:
+    * No one should install(by yapi or similar) the base package after a sucessful install is made, never.(without user consent)
+    Reason: reinstalling the base package means deleting all modifications in the code so far
+            (I lost all of my work one time when I was testing yapi only because of that.)
+
+Rule #2:
+    * The YAP(Yet Another Package) format is defined at /src/yapi-extradocs/yap_fmt
+    Reason: Unify all YAP information.

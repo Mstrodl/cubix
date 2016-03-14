@@ -178,6 +178,15 @@ end
 os.cshell.complete = function(pth)
 end
 
+os.cshell.exit = function()
+end
+
+os.cshell.dir = function()
+end
+
+os.cshell.setDir = function()
+end
+
 function main(args)
     os.shell = os.cshell
     --get first cwd

@@ -1,13 +1,5 @@
 #!/usr/bin/env lua
---/sbin/init: manages (some part of) the user space
-
-_handler = {}
-_handler.signal_handler = function (sig)
-    if sig == 'kill' then
-        _G['CANT_HANDLE_THE_FORCE'] = true
-        os.ferror("init: SIGKILL")
-    end
-end
+--/sbin/init: manages (stuff of) the user space
 
 local RUNLEVELFUNC = {}
 
@@ -30,7 +22,7 @@ end
 
 function runlevel_2()
     --multiuser(all ttys running login) withtout network service
-    loadmodule("multiuser", "/lib/multiuser/multiuser.lua")
+    os.internals.loadmodule("multiuser", "/lib/multiuser/multiuser.lua")
 end
 
 function runlevel_3()

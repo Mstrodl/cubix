@@ -1,0 +1,62 @@
+#!/usr/bin/env lua
+--pkgsend: theorical program to send packages to repositories in CPS(Cubix Package System)
+
+local BUFSIZE = 1024
+
+function main(args)
+    if args[1] == 'auth' then
+        local k = os.strsplit(args[2], ':')
+        local usr = k[1]
+        local pwd = k[2]
+        local hashed_pwd = os.lib.hash.hash.sha256(pwd)
+        local reqobj = os.lib.http.new_request()
+        reqobj.post("http://cubix.tk/authtoken?usr="..usr..'?hpwd='..hashed_pwd)
+        local auth_token = reqobj.recv()
+        local h = fs.open("/tmp/pkgsend_auth_token", 'w')
+        h.write(auth_token)
+        h.close()
+        print("pkgsend: authentication OK.")
+    elseif args[1] == 'send' then
+        local pkgpath = os.cshell.resolve(args[2])
+        local pkgname = args[3]
+        local pkgrepo = args[4]
+        local h = fs.open("/tmp/pkgsend_auth_token", 'r')
+        local auth_tok = h.readAll()
+        h.close()
+        local s = os.lib.socket.new()
+        s.connect(os.lib.socket.resolvename("cubix.tk"), 8024)
+        s.send("OP_TOKEN;"..auth_tok)
+        local r = s.recv(BUFSIZE)
+        if r == 'AUTH_OK' then
+            s.send("OP_SENDPKG!"..pkgname.."@"..pkgrepo)
+            local req = s.recv(1024)
+            if req == 'SEND_IT' then
+                local h = fs.open(pkgpath, 'r')
+                local file = h.readAll()
+                h.close()
+                local splitted_file = split_bytes(file, BUFSIZE)
+                for i=1,#splitted_file do
+                    local p = splitted_file[i]
+                    s.send(p)
+                end
+                s.send("OP_END_SENDPKG")
+                local r = s.recv(BUFSIZE)
+                if r == 'SENDPKG_OK' then
+                    print("OP_SENDPKG: success at sending "..pkgname..' to '..pkgrepo)
+                    return 0
+                elseif r == 'SENDPKG_ERR_iNTEGRITY' then
+                    ferror("OP_SENDPKG: error in integrity of file")
+                    return 1
+                else
+                    ferror("OP_SENDPKG: r == nil")
+                    return 1
+                end
+            else
+                ferror("OP_SENDPKG: error recieving send flag")
+            end
+        else
+            ferror("pkgsend: error authenticating")
+        end
+    end
+end
+main({...})

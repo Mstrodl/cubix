@@ -1,0 +1,285 @@
+#!/usr/bin/env lua
+--/bin/yapi: Yet Another Package Installer (with a pacman syntax-like)
+
+--[[
+
+This file serves as a refactor of YAPI, so I can compare them later.
+
+Features included:
+    * new YAP format(older YAP files will not be valid by now)
+    * automatic checking on every install procedure
+    * refactor of most code in 0.1.4
+
+]]
+
+--basic data
+AUTHOR = 'Lukas Mendes'
+VERSION = '0.2.0'
+
+--default variables
+local SERVERIP = 'lkmnds.github.io'
+local SERVERDIR = '/yapi'
+
+--default yapi directory
+local YAPIDIR = '/var/yapi'
+
+local YAPIDIR_CACHE = fs.combine(YAPIDIR, '/cache')
+local YAPIDIR_DB = fs.combine(YAPIDIR, '/db')
+
+--independent functions that do not depend on yapi stuff
+
+--success message
+function success_msg(msg)
+    term.set_term_color(colors.green)
+    print(msg)
+    term.set_term_color(colors.white)
+end
+
+--check if a letter is in a string
+function isin(inputstr, wantstr)
+    for i = 1, #inputstr do
+        local v = string.sub(inputstr, i, i)
+        if v == wantstr then return true end
+    end
+    return false
+end
+
+function inlist(str, list)
+    for k,v in pairs(list) do
+        if v == str then
+            return true
+        end
+    end
+    return false
+end
+
+function abort(issuer)
+    error("[abort] "..issuer)
+end
+
+--downloads files
+function download_file(url)
+    local cache = os.strsplit(url, '/')
+    local fname = cache[#cache]
+    print('request: ' .. fname)
+    http.request(url)
+    local req = true
+    while req do
+        local e, url, stext = os.pullEvent()
+        if e == 'http_success' then
+            local rText = stext.readAll()
+            stext.close()
+            return rText
+        elseif e == 'http_failure' then
+            req = false
+            return {false, 'http_failure'}
+        end
+    end
+end
+
+function create_structure()
+    fs.makeDir(YAPIDIR_CACHE)
+    fs.makeDir(YAPIDIR_DB)
+    fs.open(fs.combine(YAPIDIR, 'local'), 'a').close()
+end
+
+function update_repo(repo)
+    local SPATH = 'http://'.. SERVERIP .. SERVERDIR .. '/database/'..repo
+    local k = download_file(SPATH)
+    if type(k) == 'table' then
+        return abort("http_repo:"..repo)
+    end
+    local _h = fs.open(YAPIDIR_DB..'/'..repo, 'w')
+    _h.write(k)
+    _h.close()
+end
+
+function update_repos()
+    --download core, community and extra
+    update_repo("core")
+    update_repo("extra")
+    update_repo("community")
+end
+
+Yapidb = class(function(self)
+    self.path_folder = YAPIDIR_DB
+    self.db_core = {}
+    self.db_extra = {}
+    self.db_community = {}
+    self:update_files()
+end)
+
+function Yapidb:update_db()
+end
+
+--[[
+
+database example:
+
+p base:{
+build 51
+yapfile=default
+}
+
+p base-lat:{
+build 51
+yapfile=http://raw.githubusercontent.com/lkmnds/cubix/cubix-dev/src/base-pkg/base.yap
+}
+
+]]
+
+function get_db(repo)
+    local _h = fs.open(YAPIDIR_DB..'/'..repo, 'r')
+    if h == nil then
+        ferror("error opening repo: "..repo)
+        return nil
+    end
+    local k = _h.readAll()
+    _h.close()
+    return k
+end
+
+function Yapidb:update_files()
+    --get all db files and organize them in their respective self.db_*
+    local coredb = get_db("core")
+    --[[
+
+    Format in code:
+
+    self.db_core[pkgname] = {build=Number, yapfile='default' OR "http://..."}
+
+    ]]
+    local coredb_lines = strsplit(coredb, '\n')
+    for k,v in ipairs(coredb_lines) do
+
+    end
+end
+
+function Yapidb:check_conflicts()
+end
+
+function Yapidb:find(pkg)
+end
+
+function Yapidb:install(pkg)
+end
+
+function Yapidb:get_deps(pkglist)
+end
+
+function Yapidb:check_conflicts(pkgnew)
+    if pkgnew == nil then
+        --default way: check all installed packages
+    else
+        --check new packages(with cache, by default) and compare used files
+    end
+end
+
+function Yapidb:usual_check()
+    self:check_conflicts()
+end
+
+function main(args)
+    if not permission.grantAccess(fs.perms.SYS) then
+        ferror("yapi must be run as root not uid "..tostring(os.lib.login.userUID()))
+        return 1
+    end
+    create_structure()
+    if #args == 0 then
+        print("usage: yapi <mode> ...")
+        return 0
+    end
+
+    local mode = args[1]
+    local arguments = tail(args)
+    if string.sub(mode, 1, 1) == '-' then
+        if string.sub(mode, 2, 2) == 'S' then
+            if arguments ~= nil then
+                local ydb = Yapidb()
+                ydb:usual_check()
+
+                --check if all packages exist
+                for _,pkg in ipairs(arguments) do
+                    if ydb:find(pkg) == false then
+                        return ferror("error: target not found: "..pkg)
+                    end
+                end
+
+                --get deps
+                print("resolving dependencies...")
+                local packages = ydb:get_deps(arguments)
+                print("")
+                if packages == nil then
+                    return ferror("yapi: error getting dependencies")
+                end
+
+                --Cubix Standard rule 1 check
+                if inlist('base', packages) then
+                    ferror("WARNING: As Cubix Standards, devs should not install the base package as it will damage existing changes that they made.")
+                    ferror("\nWARNING2: Only users with consent that all personal data will be lost after installation should continue.")
+                    if prompt("Do you really want to go with this?", "Y", "n") then
+                        if prompt("Do you REALLY want to go with this?", "Y", "n") then
+                            print("Ok then... don't issue this at github, pls.")
+                        end
+                        return abort("base_warning")
+                    else
+                        return abort("base_warning")
+                    end
+                end
+
+                ydb:check_conflicts(packages)
+
+                --user consent
+                write("Packages ("..#packages..") ")
+                for _,pkg in ipairs(packages) do
+                    write(ydb:bscinfo(pkg)..' ')
+                end
+                print("\n")
+                if not prompt(":: Proceed with installation?", "Y", "n") then
+                    abort("install_prompt")
+                end
+
+                --installing.
+                ydb:set_jobs(packages)
+                for _, package in ipairs(packages) do
+                    print(":: Installing ...")
+                    if ydb:install(package) then
+                        ydb:job_status("SUCCESS")
+                        ydb:job_next()
+                    else
+                        abort("install_error")
+                    end
+                end
+            end
+
+            if isin(mode, 'c') then
+                Yapidb():clear_cache()
+            end
+
+            if isin(mode, 'y') then
+                if not http then
+                    return abort("http not enabled")
+                end
+                update_repos()
+            end
+
+            if isin(mode, 'u') then
+                --full system upgrade
+                local ydb = Yapidb()
+                ydb:usual_check()
+                print(":: Starting full system upgrade")
+                if prompt("Confirm full system upgrade", "Y", "n") then
+                    ydb:full_upgrade()
+                else
+                    print("==> Aborted")
+                    return 0
+                end
+            end
+        elseif string.sub(mode, 2, 2) == 'Q' then
+        elseif string.sub(mode, 2, 2) == 'U' then
+        elseif string.sub(mode, 2, 2) == 'F' then
+        end
+    end
+end
+
+main({...})

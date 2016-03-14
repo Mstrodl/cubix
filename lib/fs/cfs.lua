@@ -108,24 +108,18 @@ function open(mountpath, path, mode)
 end
 
 function check(device)
-    --sanity check
-    if dev_available(device) then
-        diskprobe(device, 'hell')
-    else
-        ferror("check: device not found")
-        return false
+    local h = oldfs.open(fs.combine(device, "CFSDATA"), 'r')
+    if h == nil then
+        ferror("cfs.check: error opening cfsdata")
+        return 1
     end
-    --actually, check
-    for i=0, len_blocks(device) do
-        --n sei se eh jornal ou journal
-        if get_block(device, i) ~= get_journal(device, i) then
-            ferror("o shit nigga")
-            correct(device, i)
-        end
-    end
-    print("check: done")
-end
-
-function check_for_terrorists()
-    check("/dev/airplane")
+    local cfsdata = h.readAll()
+    h.close()
+    --local str = strsplit(line, ':')
+    --path = str[1]
+    --uid owner = str[2]
+    --permissions = str[3]
+    --linkto = str[4] || nil
+    --gid owner = str[3]
+    print("cfs.check: done.")
 end

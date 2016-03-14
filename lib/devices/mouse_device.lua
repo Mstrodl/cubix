@@ -5,8 +5,8 @@ dev_mouse = {}
 dev_mouse.name = '/dev/mouse'
 dev_mouse.device = {}
 dev_mouse.device.device_read = function(bytes)
-    local event, button, x, y = os.pullEvent("mouse_click")
-    return x..':'..y..':'..button
+    local event, button, x, y = os.pullEvent('mouse_click')
+    return 'click:'..x..','..y..','..button
 end
 
 dev_mouse.device.device_write = function(s)

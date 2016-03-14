@@ -1,23 +1,15 @@
 #!/usr/bin/env lua
 --/bin/login: login user to its shell access
 
-_handler = {}
-_handler.signal_handler = function (sig)
-    if sig == 'kill' then
-        --print("login: recieved SIGKILL")
-        return 0
-    end
-end
-
 function main(args)
     local user = args[1]
     if user == nil then user = "^" end
-    local PC_LABEL = os.getComputerLabel()
+    local PC_HNAME = gethostname()
     local try_user = ""
     local try_pwd = ""
 
     if user == "^" then
-        write(PC_LABEL.." login: ")
+        write(PC_HNAME.." login: ")
         try_user = read()
         write("Password: ")
         try_pwd = read("")

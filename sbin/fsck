@@ -1,14 +1,6 @@
 #!/usr/bin/env lua
 --/sbin/fsck: file system check
 
-_handler = {}
-_handler.signal_handler = function (sig)
-    if sig == 'kill' then
-        --print("users: recieved SIGKILL")
-        return 0
-    end
-end
-
 VERSION = '0.0.1'
 
 function main(args)

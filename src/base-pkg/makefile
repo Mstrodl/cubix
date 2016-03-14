@@ -30,7 +30,7 @@ c echo ;Password:
 r :USRPWD
 
 l USR,USRPWD
-vc pkgsend auth $;$
+vc pkgsend auth $:$
 l PKGNAME
 vc pkgsend send base.yap $ vote-community
 

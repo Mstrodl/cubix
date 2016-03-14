@@ -4,7 +4,7 @@
 term.clear()
 term.setCursorPos(1,1)
 
-VERSION = '0.20'
+VERSION = '0.21'
 
 function _halt()
     while true do os.sleep(0) end
@@ -65,14 +65,17 @@ function CUI(m)
         cprint("")
         for i=1, l, 1 do
             if i==n then
+                term.set_term_color(colors.lightBlue)
                 cprint(i .. " ["..m[i].."]")
+                term.set_term_color(colors.white)
             else
+                term.set_term_color(colors.white)
                 cprint(i .. " " .. m[i])
             end
         end
         cprint("")
         cprint("Select a OS to load")
-        cprint("[arrow up/arrow down/enter]")
+        cprint("[up/down & enter]")
         local kpress = nil
         a, b= os.pullEventRaw()
         if a == "key" then
@@ -93,7 +96,7 @@ function read_osfile()
     local i = 1
     local detected_oses_name = {}
     local detected_oses_path = {}
-    print("reading systems.cfg...")
+    print("[read_config] systems.cfg")
     for k,v in pairs(systems) do
         local sysdat = strsplit(systems[k], ';')
         detected_oses_name[i] = sysdat[1]

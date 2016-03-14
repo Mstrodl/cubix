@@ -1,15 +1,8 @@
 #!/usr/bin/env lua
 --/sbin/reboot: wrapper to CC shutdown
 
-_handler = {}
-_handler.signal_handler = function (sig)
-    if sig == 'kill' then
-        print("shutdown: recieved SIGKILL")
-        return 0
-    end
-end
-
 function main(args)
+    print("shutdown: turning off...")
     os.shutdown()
 end
 

@@ -1,14 +1,6 @@
 #!/usr/bin/env lua
 --/sbin/adduser: adding new users to cubix
 
-_handler = {}
-_handler.signal_handler = function(sig)
-    if sig == 'kill' then
-        --print("adduser: SIGKILL")
-        return 0
-    end
-end
-
 function main(args)
     if #args == 0 then
         print("usage: adduser <user> <password>")

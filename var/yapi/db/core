@@ -1,8 +1,24 @@
-base;http://lkmnds.github.io/yapi/base.yap
-devscripts;http://lkmnds.github.io/yapi/devscripts.yap
-sbl;http://lkmnds.github.io/yapi/sbl.yap
-netutils;http://lkmnds.github.io/yapi/netutils.yap
-netshell;http://lkmnds.github.io/yapi/netshell.yap
-cshell;http://lkmnds.github.io/yapi/cshell.yap
-bootsplash;http://lkmnds.github.io/yapi/bootsplash.yap
-initramfs-tools;http://lkmnds.github.io/yapi/initramfs-tools.yap
+p base:{
+build 51
+yapfile=default
+}
+
+p base-lat:{
+build 51
+yapfile=http://raw.githubusercontent.com/lkmnds/cubix/cubix-dev/src/base-pkg/base.yap
+}
+
+p devscripts:{
+build 10
+yapfile=default
+}
+
+p bootsplash:{
+build 5
+yapfile=default
+}
+
+p initramfs-tools:{
+build 5
+yapfile=default
+}
