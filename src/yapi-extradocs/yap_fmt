@@ -1,0 +1,15 @@
+YAP Format.
+
+Each package in YAP format must be declared with the following entries
+Form: <entry>=<value>
+
+name=
+build=
+version=
+desc=
+url=
+packager=
+arch=
+license=
+depend=
+optdepend=
