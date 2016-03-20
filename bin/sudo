@@ -1,14 +1,6 @@
 #!/usr/bin/env lua
 --/bin/sudo: grants access to run programs in /sbin
 
-_handler = {}
-_handler.signal_handler = function (sig)
-    if sig == 'kill' then
-        os.debug.debug_write("sudo: SIGKILL'd!", false)
-        return 0
-    end
-end
-
 local __sudo_lock = true
 
 function sudo_error(msg)

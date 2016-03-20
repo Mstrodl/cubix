@@ -11,6 +11,9 @@ function get_tty(id)
 end
 
 function current_tty(id)
+    if id == nil then
+        return false
+    end
     __current_tty = id
     local h = fs.open("/tmp/current_tty", 'w')
     h.write(id)

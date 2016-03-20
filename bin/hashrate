@@ -9,7 +9,7 @@ function hashing_start()
     print("hashing_start here")
     while true do
         local k = os.lib.hash.hash.sha256('constant1' .. 'constant2' .. tostring(hc))
-        write(k..'\n')
+        --write(k..'\n')
         hc = hc + 1
         sleep(0)
     end

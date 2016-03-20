@@ -1,16 +1,8 @@
 #!/usr/bin/env lua
 --/bin/pwd: print working directory
 
-_handler = {}
-_handler.signal_handler = function (sig)
-    if sig == 'kill' then
-        --print("pwd: recieved SIGKILL")
-        return 0
-    end
-end
-
 function main()
-    print(os.cshell.getpwd())
+    print(os.cshell.getwd())
 end
 
 main({...})

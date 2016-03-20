@@ -1,5 +1,6 @@
 #default target
 d base
+const BASE_BUILD=51
 
 # base target
 t base,:
@@ -8,7 +9,7 @@ w WARN_VERBOSE
 
 c rm /tmp/syslog && touch /tmp/syslog
 c rm /dev/hda/CFSDATA
-c yapi -Syc
+c yapi -Sy
 c makeyap
 c sync
 
@@ -32,14 +33,15 @@ r :USRPWD
 l USR,USRPWD
 vc pkgsend auth $:$
 l PKGNAME
-vc pkgsend send base.yap $ vote-community
+vc pkgsend send base.yap $ community-voting
 
 end-target;
 
 #Clean target
 t clean,:
 
-c rm base.yap
+l BASE_BUILD
+vc rm base-$.yap
 
 end-target;
 

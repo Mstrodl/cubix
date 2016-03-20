@@ -1,3 +1,5 @@
+#!/usr/bin/env lua
+--keyboard device
 
 local devname = ''
 local devpath = ''

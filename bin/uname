@@ -1,26 +1,12 @@
 #!/usr/bin/env lua
 --/bin/uname: system information
 
-_handler = {}
-_handler.signal_handler = function (sig)
-    if sig == 'kill' then
-        --print("uname: recieved SIGKILL")
-        return 0
-    end
-end
-
 function main(args)
     local argmt = args[1]
 
-    local fpcid = fs.open("/var/pcid", 'r')
-    local fversion = fs.open("/proc/version", 'r')
-    local fbuilddate = fs.open("/proc/build_date", 'r')
-    local PC_ID = fpcid.readAll()
-    local VERSION = fversion.readAll()
-    local BUILD_DATE = fbuilddate.readAll()
-    fpcid.close()
-    fversion.close()
-    fbuilddate.close()
+    local PC_ID = gethostname()
+    local VERSION = CUBIX_VERSION
+    local BUILD_DATE = CUBIX_BUILDD
 
     function uname(arg)
         args = {0, arg}

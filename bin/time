@@ -1,14 +1,6 @@
 #!/usr/bin/env lua
 --/bin/time: measure time used by a command (in minecraft ticks)
 
-_handler = {}
-_handler.signal_handler = function(sig)
-    if sig == 'kill' then
-        --print("time: SIGKILL")
-        return 0
-    end
-end
-
 function main(args)
     function tail(t)
        if # t <= 1 then
@@ -28,12 +20,13 @@ function main(args)
 
     local starting_ticks = (os.time() * 1000 + 18000)%24000
 
-    if program == nil and arguments == nil then
-    elseif program ~= nil and arguments == nil then
-        os.runfile_proc(os.cshell.resolve(program), {})
-    elseif program ~= nil and arguments ~= nil then
-        os.runfile_proc(os.cshell.resolve(program), arguments)
+    local cmd = program..' '
+    if arguments ~= nil then
+        for _,arg in ipairs(arguments) do
+            cmd = cmd .. arg .. ' '
+        end
     end
+    os.cshell.run(cmd)
 
     local ending_ticks = (os.time() * 1000 + 18000)%24000
 

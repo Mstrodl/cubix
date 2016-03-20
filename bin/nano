@@ -1,15 +1,8 @@
 #!/usr/bin/env lua
 --/bin/nano: an alternative to program a good text editor.
 
-_handler = {}
-_handler.signal_handler = function (sig)
-    if sig == 'kill' then
-        os.debug.debug_write("nano: SIGKILL'd!", false)
-        return 0
-    end
-end
-
 function main(args)
+    --calls edit, but, one time, i might be able to program a full editor like nano.
     os.runfile_proc("/rom/programs/edit", {os.cshell.resolve(args[1])})
 end
 

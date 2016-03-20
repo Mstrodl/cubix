@@ -1,3 +1,5 @@
+#!/usr/bin/env lua
+--urandom device
 function rawread()
     while true do
         local sEvent, param = os.pullEvent("key")

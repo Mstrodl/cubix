@@ -4,12 +4,12 @@ yapfile=default
 }
 
 p base-lat:{
-build 51
+build *
 yapfile=http://raw.githubusercontent.com/lkmnds/cubix/cubix-dev/src/base-pkg/base.yap
 }
 
 p devscripts:{
-build 10
+build 11
 yapfile=default
 }
 
@@ -19,6 +19,6 @@ yapfile=default
 }
 
 p initramfs-tools:{
-build 5
+build 3
 yapfile=default
 }

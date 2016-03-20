@@ -1,3 +1,5 @@
+#!/usr/bin/env lua
+--term device
 
 local devname = ''
 local devpath = ''

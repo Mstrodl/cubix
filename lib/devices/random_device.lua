@@ -1,3 +1,6 @@
+#!/usr/bin/env lua
+--random device
+
 function rawread()
     while true do
         local sEvent, param = os.pullEvent("key")

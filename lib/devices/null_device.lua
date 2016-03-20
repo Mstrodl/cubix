@@ -1,5 +1,3 @@
-
-
 dev_null = {}
 dev_null.name = '/dev/null'
 dev_null.device = {}

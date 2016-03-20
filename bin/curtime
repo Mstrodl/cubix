@@ -1,16 +1,13 @@
 #!/usr/bin/env lua
 --/bin/curtime: shows current time
 
-_handler = {}
-_handler.signal_handler = function(sig)
-    if sig == 'kill' then
-        --print("curtime: SIGKILL")
-        return 0
+function main(args)
+    local t1 = 0
+    local t2 = 0
+    if #args > 0 then
+        t1, t2 = args[1], args[2]
     end
-end
-
-function main()
-    print(os.lib.time.strtime())
+    print(os.lib.time.strtime(t1, t2))
 end
 
 main({...})

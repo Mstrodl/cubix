@@ -1,19 +1,7 @@
 #!/usr/bin/env lua
---/bin/cksum
+--/bin/cksum: checksum of a file(CRC32)
 
-_handler = {}
-_handler.signal_handler = function (sig)
-    if sig == 'kill' then
-        --print("cksum: recieved SIGKILL")
-        return 0
-    end
-end
-
---local string = require("string")
---local bit = require("bit")
 local tostring = tostring
-
---module('crc32')
 
 local CRC32 = {
     0x00000000, 0x77073096, 0xee0e612c, 0x990951ba,

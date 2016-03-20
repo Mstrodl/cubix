@@ -1,0 +1,14 @@
+#Example pkgdata
+
+pkgname=
+pkgver=
+pkgbuild=
+
+author=
+eauthor=
+
+desc=
+url=
+license=
+
+file;testing;/usr/bin/testing

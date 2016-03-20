@@ -163,6 +163,7 @@ os.cshell.getwd = function()
     return shell_wd
 end
 os.cshell.getpwd = os.cshell.getwd
+os.cshell.dir = os.cshell.getwd
 
 os.cshell.resolve = function(pth)
     local wd = os.cshell.getwd()
@@ -181,14 +182,12 @@ end
 os.cshell.exit = function()
 end
 
-os.cshell.dir = function()
-end
-
 os.cshell.setDir = function()
 end
 
 function main(args)
-    os.shell = os.cshell
+    _G['os.shell'] = os.cshell
+    _G['shell'] = os.cshell
     --get first cwd
     shell_wd = os.lib.control.get('/sbin/login', 'cwd')
     --generate a new token.

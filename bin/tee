@@ -1,13 +1,6 @@
 #!/usr/bin/env lua
 --/bin/tee: same as unix tee
 
-_handler = {}
-_handler.signal_handler = function (sig)
-    if sig == 'kill' then
-        return 0
-    end
-end
-
 function main(args, pipe)
     --cmd1 | tee output_file | cmd2
     local hpipe = os.lib.pipe.Pipe.copyPipe(pipe)

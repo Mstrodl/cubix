@@ -1,14 +1,6 @@
 #!/usr/bin/env lua
 --/bin/cd : change directory
 
-_handler = {}
-_handler.signal_handler = function(sig)
-    if sig == 'kill' then
-        --print("cd: SIGKILL")
-        return 0
-    end
-end
-
 CURRENT_PATH = ''
 
 function strsplit(inputstr, sep)
@@ -57,7 +49,7 @@ end
 function main(args)
     local pth = args[1]
 
-    CURRENT_PATH = os.cshell.getpwd()
+    CURRENT_PATH = os.cshell.getwd()
     cd(pth)
 
     --local _cpath = fs.open("/tmp/current_path", 'w')

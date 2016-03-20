@@ -1,13 +1,5 @@
 #!/usr/bin/env lua
---/bin/cp: wrapper to CC cp (absolute paths)
-
-_handler = {}
-_handler.signal_handler = function(sig)
-    if sig == 'kill' then
-        --print("cp: SIGKILL")
-        return 0
-    end
-end
+--/bin/cp: copy nodes
 
 function main(args)
     if #args == 0 then
@@ -17,7 +9,7 @@ function main(args)
     if fs.exists(os.cshell.resolve(from)) then
         fs.copy(os.cshell.resolve(from), os.cshell.resolve(to))
     else
-        os.ferror("cp: input file does not exist")
+        os.ferror("cp: input node does not exist")
         return 1
     end
     return 0

@@ -12,15 +12,8 @@ end
 
 local chars = {}
 for i = 32, 126 do chars[string.char(i)] = i end
---[[ You can redefine this table, but this way the entries will be sorted by ASCII values.
-     So "A" (0x41) will be before "B" (0x42), but "a" (0x61) will be after "C" (0x43) ]]
 
 local function sortingComparsion(valueA, valueB)
-    --[[ This is like strcmp in C++. Not sure if the return values are
-         correct or not though. I mean, not sure if strcmp returns +1
-         or -1 if the first argument is lower.
-
-         The function itself works though... ]]
     local strpos = 0
     local difference = 0
     while strpos < #valueA and strpos < #valueB and difference == 0 do

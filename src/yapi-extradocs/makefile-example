@@ -1,0 +1,31 @@
+#default makefile for packages
+d package
+const PKGNAME=pkgname
+const PKG_BUILD=5
+
+# package target
+t package,:
+
+c makeyap
+
+end-target;
+
+# Clean target
+t clean,:
+
+l PKGNAME,PKG_BUILD
+vc rm $-$.yap
+
+end-target;
+
+# Install yap file
+t install,package:
+
+l PKGNAME,PKG_BUILD
+c sudo yapi -U $-$.yap
+
+end-target;
+
+#redo build
+t rebuild,clean,package:
+end-target;

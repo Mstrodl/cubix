@@ -1,0 +1,21 @@
+Things to do(not in order of priority):
+
+ * (60%) cshell rewrite
+ * (30%) filesystems
+  * cfs (40%)
+  * tmpfs (60%)
+  * ext2 (0%)
+  * ext3 (0%)
+  * ext4 (0%)
+
+ * (0%) Cubix Live Installer rewrite
+
+ * (0%) systemd(modules), systemd(order stuff), journalctl, timectl, ...
+  * systemctl {start,stop,restart,reload,enable,disable,status,list-units}
+  * journalctl
+  * loginctl
+  * daemons (systemd, journald, networkd, logind, timedated, udevd, libudev)
+  * libpam
+
+ * finish luaX(lxWindow, etc.)(20%)
+ * finish recoding of yapi(80%)

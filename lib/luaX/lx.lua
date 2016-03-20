@@ -1,7 +1,7 @@
 --/lib/luaX/lx.lua
 --luaX "hardware" access
 
-_G['_LUAX_VERSION'] = '0.0.2'
+_G['_LUAX_VERSION'] = '0.0.3'
 
 --function: manage basic access to CC screen, basic pixels and etc.
 

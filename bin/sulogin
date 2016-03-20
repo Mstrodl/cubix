@@ -2,7 +2,7 @@
 --/bin/sulogin: logins to root
 
 function main(args)
-    os.runfile_proc("/sbin/login", {"root"})
+    os.runfile_proc("/bin/su")
 end
 
 main({...})

@@ -1,6 +1,6 @@
 #!/usr/bin/env lua
 
-VER = '0.0.1'
+VER = '0.0.2'
 
 function warning_verbose(command)
     if string.sub(command, 1, 14) == 'rm /tmp/syslog' then
@@ -40,11 +40,11 @@ end
 function parse_mkfile(mkfdata)
     local lines = os.strsplit(mkfdata, '\n')
     local mkdata = {}
+    mkdata['constants'] = {}
     local actual_target = ''
     local isTarget = false
     for _,v in ipairs(lines) do
         if isTarget then
-            --print(v)
             if v == 'end-target;' then
                 isTarget = false
             else
@@ -55,6 +55,11 @@ function parse_mkfile(mkfdata)
         if string.sub(v, 1, 1) == 'd' then
             --default target
             mkdata['default_target'] = os.strsplit(v, ' ')[2]
+        elseif string.sub(v, 1, 6) == 'const ' then
+            local s = os.strsplit(v, '=')
+            local q = os.strsplit(v, ' ')
+            local const_name = string.sub(q[2], 0, #q[2] - (#s[2]+1))
+            mkdata['constants'][const_name] = s[2]
         elseif string.sub(v, 1, 1) == 't' then
             --target
             isTarget = true
@@ -92,7 +97,7 @@ function do_make(mkdata, target)
     end
     make_debug("do_make", target)
 
-    local variables = {}
+    local variables = mkdata['constants']
     local order_var = false
     local warnings = {}
     for k,v in pairs(mkdata['target:'..target]['data']) do
@@ -109,8 +114,7 @@ function do_make(mkdata, target)
                 if c == '$' then
                     local variable = variables[order_var[var_count]]
                     if variable == nil then
-                        ferror("syntax error: "..order_var[var_count].." is not defined")
-                        return 0
+                        return ferror("syntax error: "..order_var[var_count].." is not defined")
                     end
                     strfinal = strfinal .. variable
                     var_count = var_count + 1
@@ -123,6 +127,11 @@ function do_make(mkdata, target)
         elseif string.sub(v, 1, 2) == 'v ' then
             local var_name = os.strsplit(v, ':')[2]
             variables[var_name] = nil
+        elseif string.sub(v, 1, 2) == 's ' then
+            local s = os.strsplit(v, '=')
+            local q = os.strsplit(v, ' ')
+            local var_name = string.sub(q[2], 0, #q[2] - (#s[2]+1))
+            variables[var_name] = s[2]
         elseif string.sub(v, 1, 2) == 'l ' then
             order_var = os.strsplit(string.sub(v, 3, #v), ',')
             --os.viewTable(order_var)
@@ -137,7 +146,6 @@ function do_make(mkdata, target)
 end
 
 function main(args)
-    print("make v"..VER)
     local mpath = os.cshell.resolve("makefile")
     if not fs.exists(mpath) then
         ferror("make: makefile not found")
@@ -157,4 +165,5 @@ function main(args)
 
     do_make(mkfile_data, target)
 end
+
 main({...})

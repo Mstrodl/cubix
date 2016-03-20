@@ -5,15 +5,16 @@
 # All files and folders in the given path, btw in base the path is /
 # So it gets all items in / and put them in base.yap, simple.
 
-pkgname;base
-pkgver;0.5.1
-pkgbuild;51
+pkgname=base
+pkgver=0.5.1
+pkgbuild=51
 
-author;Lukas Mendes
-eauthor;lkmnds@gmail.com
+author=Lukas Mendes
+eauthor=lkmnds@gmail.com
 
-desc;Cubix base system
-url;http://github.com/lkmnds/cubix
-license;MIT
+desc=Cubix base system
+url=http://github.com/lkmnds/cubix
+license=MIT
 
-all;/
+all=/
+#file=testing=/usr/bin/testing

@@ -1,7 +1,10 @@
 #!/usr/bin/env lua
 --makeyap: based on pkgdata, creates a .yap file to be a package.
 --compatible with Cubix and CraftOS
+
 cwd = ''
+YAPI_BIN = '/bin/yapi-refactor'
+
 local strsplit = function (inputstr, sep)
     if sep == nil then
         sep = "%s"
@@ -16,17 +19,34 @@ local strsplit = function (inputstr, sep)
     end
     return t
 end
+
 local ferror = function(message)
     term.set_term_color(colors.red)
     print(message)
     term.set_term_color(colors.white)
 end
+
 local viewTable = function (t)
     print(t)
     for k,v in pairs(t) do
         print(k..","..tostring(v).." ("..type(v)..")")
     end
 end
+
+local function extnr(msg)
+    term.setTextColor(colors.green)
+    write('==> ')
+    term.setTextColor(colors.white)
+    write(msg..'\n')
+end
+
+local function nr(msg)
+    term.setTextColor(colors.blue)
+    write('  -> ')
+    term.setTextColor(colors.white)
+    write(msg..'\n')
+end
+
 function listAll(p)
     local starting = '/'
     if p ~= nil then
@@ -56,14 +76,17 @@ function listAll(p)
     end
     return {folders=folders, files=files}
 end
+
 function parse_pkgdata(lines)
     local pkgobj = {}
     pkgobj['file_assoc'] = {}
     pkgobj['folders'] = {}
     pkgobj['deps'] = {}
+    pkgobj['optdep'] = {}
     for k,v in ipairs(lines) do
         if string.sub(v, 1, 1) ~= '#' then --comments
-            local d = strsplit(v, ';')
+            local d = strsplit(v, '=')
+            local p = strsplit(v, ';')
             if d[1] == 'pkgname' then
                 pkgobj['name'] = d[2]
             elseif d[1] == 'pkgver' then
@@ -80,12 +103,14 @@ function parse_pkgdata(lines)
                 pkgobj['url'] = d[2]
             elseif d[1] == 'license' then
                 pkgobj['license'] = d[2]
-            elseif d[1] == 'file' then
-                table.insert(pkgobj['file_assoc'], {d[2], d[3]})
-            elseif d[1] == 'folder' then
-                table.insert(pkgobj['folders'], d[2])
-            elseif d[1] == 'dep' then
-                table.insert(pkgobj['deps'], d[2])
+            elseif p[1] == 'file' then
+                table.insert(pkgobj['file_assoc'], {p[2], p[3]})
+            elseif p[1] == 'folder' then
+                table.insert(pkgobj['folders'], p[2])
+            elseif p[1] == 'optdep' then
+                table.insert(pkgobj['optdep'], p[2])
+            elseif p[1] == 'dep' then
+                table.insert(pkgobj['deps'], p[2])
             elseif d[1] == 'all' then
                 pkgobj['SPECIAL_FLAG'] = true
                 local nodes = listAll()
@@ -98,8 +123,15 @@ function parse_pkgdata(lines)
             end
         end
     end
+    if pkgobj['name'] == nil then
+        return ferror("parse_pkgdata: name not found")
+    else
+        --sanity test
+        nr("Package name is "..pkgobj['name'])
+    end
     return pkgobj
 end
+
 function create_yap(pkgdata, cwd)
     local yapdata = {}
     yapdata['name'] = pkgdata['name']
@@ -113,6 +145,7 @@ function create_yap(pkgdata, cwd)
     yapdata['url'] = pkgdata['url']
     yapdata['license'] = pkgdata['license']
     yapdata['files'] = {}
+    yapdata['optdep'] = pkgdata['optdep']
     for k,v in pairs(pkgdata['file_assoc']) do
         local original_file = ''
         if pkgdata['SPECIAL_FLAG'] then
@@ -124,8 +157,7 @@ function create_yap(pkgdata, cwd)
         yapdata['files'][absolute_path] = ''
         local handler = fs.open(original_file, 'r')
         if handler == nil then
-            ferror("[create_yap] file error: "..original_file)
-            return 1
+            return ferror("[create_yap] file error: "..original_file)
         end
         local _lines = handler.readAll()
         handler.close()
@@ -136,70 +168,102 @@ function create_yap(pkgdata, cwd)
     end
     return yapdata
 end
-function write_yapdata(yapdata)
+
+function write_yapdata(yapdata, path)
     if yapdata['name'] == nil then
-        ferror("[write_yapdata] pkgname is nil")
-        return 1
+        return ferror("[write_yapdata] pkgname is nil")
     end
-    local yp = fs.combine(cwd, yapdata['name']..'.yap')
-    if fs.exists(yp) then
-        term.setTextColor(colors.red)
-        print("[write_yapdata] yap already exists, should remove to get new one.")
-        term.setTextColor(colors.white)
-        return 0
+    if fs.exists(path) then
+        return ferror("[write_yapdata] yap target exists")
     end
-    local yfile = fs.open(yp, 'w')
-    yfile.write('Name;'..yapdata['name']..'\n')
-    yfile.write('Version;'..yapdata['version']..'\n')
-    yfile.write('Build;'..yapdata['build']..'\n')
-    yfile.write('Author;'..yapdata['author']..'\n')
-    yfile.write('Email-Author;'..yapdata['email_author']..'\n')
-    yfile.write('Description;'..yapdata['description']..'\n')
-    yfile.write("Url;"..yapdata['url']..'\n')
-    yfile.write("License;"..yapdata['license']..'\n')
-    --os.viewTable(yapdata['folders'])
+
+    local yfile = fs.open(path, 'w')
+    yfile.write('name='..yapdata['name']..'\n')
+    yfile.write('version='..yapdata['version']..'\n')
+    yfile.write('build='..yapdata['build']..'\n')
+    yfile.write('author='..yapdata['author']..'\n')
+    yfile.write('email-author='..yapdata['email_author']..'\n')
+    yfile.write('description='..yapdata['description']..'\n')
+    yfile.write("url="..yapdata['url']..'\n')
+    yfile.write("license="..yapdata['license']..'\n')
+
     for k,v in pairs(yapdata['folders']) do
-        yfile.write("Folder;"..v..'\n')
+        yfile.write("folder;"..v..'\n')
     end
+
     for k,v in pairs(yapdata['deps']) do
-        yfile.write("Dep;"..v..'\n')
+        yfile.write("depend="..v..'\n')
     end
+
+    for k,v in pairs(yapdata['optdep']) do
+        yfile.write("optdepend="..v..'\n')
+    end
+
     for k,v in pairs(yapdata['files']) do
-        yfile.write("File;"..k..'\n')
+        yfile.write("file;"..k..'\n')
         yfile.write(v)
-        yfile.write("EndFile;\n")
+        yfile.write("END_FILE;\n")
     end
+
     yfile.close()
-    return yp
+    return true --?
 end
+
 function main(args)
-    if type(os.cshell) == 'table' then
-        cwd = os.cshell.getpwd()
-    else
-        cwd = shell.dir()
-    end
+    cwd = shell.dir()
     --black magic goes here
     local pkgdata_path = fs.combine(cwd, 'pkgdata')
-    local handler = {}
+    local handler = nil
+
     if fs.exists(pkgdata_path) and not fs.isDir(pkgdata_path) then
         handler = fs.open(pkgdata_path, 'r')
     else
-        ferror('makeyap: pkgdata needs to exist')
-        return 1
+        return ferror('makeyap: pkgdata needs to exist')
     end
+
+    if handler == nil then
+        return ferror("makeyap: error opening pkgdata")
+    end
+
     local _tLines = handler.readAll()
     handler.close()
+
     if _tLines == nil then
-        ferror("yapdata: file is empty")
-        return 1
+        return ferror("makeyap: pkgdata is empty")
     end
+
     local tLines = strsplit(_tLines, '\n')
+
+    extnr("Parsing pkgdata")
     local pkgdata = parse_pkgdata(tLines)
-    print("[parse_pkgdata]")
-    print("creating yap...")
+    if not pkgdata then
+        return ferror("main: pkgdata == nil")
+    end
+    nr("Done.")
+
+    extnr("Creating yapdata...")
     local ydata = create_yap(pkgdata, cwd)
-    print("[create_yap] created yapdata from pkgdata")
-    local path = write_yapdata(ydata)
-    print("[write_yapdata] "..path)
+    if not ydata then
+        return ferror("main: ydata == nil")
+    end
+    nr("Done.")
+
+    extnr("Writing YAP...")
+    local f = ydata['name']..'-'..ydata['build']..'.yap'
+    local p = fs.combine(cwd, f)
+    if write_yapdata(ydata, p) then
+        nr("Done.")
+    else
+        return ferror("write_yapdata: error")
+    end
+
+    extnr("Finished making: "..f)
+
+    if args[1] == '-i' then
+        extnr("Installing package with yapi -U")
+        os.cshell.run('sudo '..YAPI_BIN.." -U "..p)
+        nr("Done.")
+    end
 end
+
 main({...})

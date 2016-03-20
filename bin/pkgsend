@@ -1,5 +1,5 @@
 #!/usr/bin/env lua
---pkgsend: theorical program to send packages to repositories in CPS(Cubix Package System)
+--pkgsend: [theorical] program to send packages to repositories in CPS(Cubix Package System)
 
 local BUFSIZE = 1024
 

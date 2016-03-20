@@ -2,7 +2,7 @@
 --/boot/cubix: well, cubix!
 
 AUTHOR = "Lukas Mendes"
-BUILD_DATE = "2016-03-14"
+BUILD_DATE = "2016-03-20"
 
 --  version format: major.revision.minor
 --      major: linear
@@ -17,6 +17,10 @@ VERSION_MINOR = 1
 VERSION = VERSION_MAJOR.."."..VERSION_REV.."."..VERSION_MINOR
 
 STABLE = ((VERSION_REV % 2) == 0)
+
+_G["CUBIX_VERSION"] = VERSION
+_G["CUBIX_STABLE"] = STABLE
+_G["CUBIX_BUILDD"] = BUILD_DATE
 
 if STABLE then
     local pullEvent = os.pullEvent
