@@ -12,25 +12,23 @@ Cubix is a unix-like ComputerCraft OS
 
 Cubix works in normal(in theory, not tested) and advanced computers.
 
-```lua
-> pastebin run B1t3L4Uw
+<b>EDIT: Finishing the new installer</b>
 
-loadenv cubixli
-deldisk hdd
-yapstrap cubix
-genfstab /etc/fstab
-setlabel <computer label>
-sethostname <computer hostname>
-timesetup <server 1> <server 2> ...
-sbl-bcfg
-unloadenv
-reboot
+## Information for Developers
+
+Since most of Cubix codebase is on ComputerCraft, you need or a ComputerCraft accesible directory or a emulator(I use ccemuredux.)
+
+#### ccemuredux instructions
+You can clone the repository(the folder needs to have a valid computercraft id) and link that to a computer id in ccemuredux directory
+```
+git clone https://github.com/lkmnds/cubix.git
+ln -s <path_to_repo> .ccemuredux/sessions/<session>/computer/
 ```
 
 ## Features
 
  * Basic coreutils programs(cat, cksum, factor...)
- * Cubix shell(with piping)
+ * Cubix shell(cshell)(piping is in WIP)
  * init and runlevels
    * Graphical manager(luaX, WIP)
  * Own bootloader(SBL)

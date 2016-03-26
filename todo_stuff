@@ -8,7 +8,7 @@ Things to do(not in order of priority):
   * ext3 (0%)
   * ext4 (0%)
 
- * (0%) Cubix Live Installer rewrite
+ * (50%) Cubix Live Installer rewrite
 
  * (0%) systemd(modules), systemd(order stuff), journalctl, timectl, ...
   * systemctl {start,stop,restart,reload,enable,disable,status,list-units}

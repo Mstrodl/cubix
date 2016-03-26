@@ -9,7 +9,7 @@ BUILD_DATE = "2016-03-26"
     Cubix Live Installer, version 2
 ]]
 
-local cubixli_user = 'cubix'
+local cubixli_user = 'root'
 local cubixli_path = '/'
 
 local DEFAULT_SERVICES = {
@@ -205,9 +205,6 @@ function uname(args)
     print('CubixLI '..os.getComputerLabel()..' v'..VERSION..'-ccraft  CubixLI '..VERSION..' ('..BUILD_DATE..') x86 CubixLI')
 end
 
-function httpget(args)
-end
-
 function smallyapi(args)
     VER = '0.0.1'
     print('smallyapi v'..VER)
@@ -374,16 +371,25 @@ function smallyapi(args)
     end
 
     for k,pkg in ipairs(args) do
-        if pkg_install(pkg) then
-            if pkg == 'base' then
-                --post install procedures
-                shell.run("FINISHINSTALL")
-                local handler = fs.open("/tmp/install_lock", 'w')
-                handler.close()
+        if pkg == 'base-latest' then
+            debug_write("Downloading Latest cubix from github", colors.yellow)
+            shell.run('pastebin run W5ZkVYSi lkmnds cubix cubix-dev') --get latest cubix
+            shell.run("FINISHINSTALL")
+            if fs.exists('json') then --remove json library because gitget uses it
+                shell.run("rm json")
             end
-            print("Done.")
         else
-            return ferror("error installing package.")
+            if pkg_install(pkg) then
+                if pkg == 'base' then
+                    --post install procedures
+                    shell.run("FINISHINSTALL")
+                    local handler = fs.open("/tmp/install_lock", 'w')
+                    handler.close()
+                end
+                print("Done.")
+            else
+                return ferror("error installing package.")
+            end
         end
     end
 end
@@ -439,7 +445,7 @@ end
 
 --reboot
 function front_reboot(args)
-    debug_write("[reboot] sending RBT")
+    debug_write("[reboot] sending RBT", colors.yellow)
     os.sleep(1.5)
     os.reboot()
 end
@@ -447,7 +453,7 @@ end
 --sethostname <hostname>
 function sethostname(args)
     local nhostname = tostring(args[1])
-    debug_write("[sethostname] setting hostname to "..nhostname)
+    debug_write("[sethostname] setting hostname to "..nhostname, colors.yellow)
     os.setComputerLabel(nhostname)
     local h = fs.open("/etc/hostname", 'w')
     if h == nil then
@@ -477,7 +483,7 @@ function install_help()
 
     tzselect <timezone1>,<timezone2>
     timesetup -auto
-    mkinitramfs cubix
+    mkinitramfs cubixbase
     sbl-config new
     sethostname <hostname>
     passwd
@@ -486,12 +492,73 @@ function install_help()
 end
 
 function automatic_install()
-    run_command()
+    run_command("mkfs.cbx")
+    run_command("smallyapi base")
+    run_command("genfstab /etc/fstab")
+
+    run_command("tzselect 0,0")
+    run_command("timesetup -auto")
+    run_command("mkinitramfs cubixbase")
+    run_command("sbl-config new")
+    run_command("sethostname cubix-pc")
+    print("Done...?")
 end
 
---chroot / /bin/sh
-function chroot(args)
-    --run the given shell
+function sbl_config(args)
+    if args[1] == 'new' or args[1] == 'blank' then
+        local a = fs.open("/boot/sblcfg/default.cfg", 'r')
+        if a == nil then
+            return ferror("sbl-config: error opening default.cfg")
+        end
+        local default = a.readAll()
+        a.close()
+
+        local b = fs.open("/boot/sblcfg/systems.cfg", 'w')
+        if b == nil then
+            return ferror("sbl-config: error opening systems.cfg")
+        end
+        b.write(default)
+        b.close()
+    end
+    return ferror("sbl-config: target not found: "..tostring(args[1]))
+end
+
+function tzselect(args)
+    local timezone = tostring(args[1])
+    local h = fs.open("/etc/localtime", 'w')
+    if h == nil then
+        return ferror("error opening timezone file.")
+    end
+    h.write(timezone)
+    h.close()
+    return 0
+end
+
+function timesetup(args)
+    if args == '-auto' then
+        --automatic check(5 times) the given servers and use the working ones
+    else
+        --just get given servers and use them
+    end
+end
+
+function cubixenv(args)
+    --set a minimal cubix enviroment and run the given program
+    if #args == 0 then
+        return ferror("cbxenv: no program given")
+    end
+    program = args[1]
+    program_args = tail(args)
+    debug_write("[cubix] starting enviroment", colors.yellow)
+
+    os.lib = {}
+    os.lib.login = {}
+    os.lib.login.currentUser = function() return cubixli_user end
+
+    os.ferror = ferror
+
+    --run the program
+    os.run({}, program, unpack(program_args,1))
 end
 
 -- CUBIXLI SHELL --
@@ -513,6 +580,10 @@ SHCMD['chroot'] = chroot
 SHCMD['mkinitramfs'] = mkinitramfs
 SHCMD['sethostname'] = sethostname
 SHCMD['genfstab'] = genfstab
+SHCMD['tzselect'] = tzselect
+SHCMD['timesetup'] = timesetup
+SHCMD['cubixenv'] = cubixenv
+SHCMD['sbl-config'] = sbl_config
 SHCMD['help'] = install_help
 
 --automatic recommended install of cubix, in one single command(debug purposes)
