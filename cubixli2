@@ -1,0 +1,580 @@
+#!/usr/bin/env lua
+--cubix_live_installer(cubixli): starts a enviroment where the user can install cubix
+
+AUTHOR = "Lukas Mendes"
+VERSION = "0.2.0"
+BUILD_DATE = "2016-03-26"
+
+--[[
+    Cubix Live Installer, version 2
+]]
+
+local cubixli_user = 'cubix'
+local cubixli_path = '/'
+
+local DEFAULT_SERVICES = {
+    'httpcheck',
+    'hdcheck',
+}
+
+--LIBCUBIX FUNCTIONS--
+
+term.set_term_color = function (c)
+    if term.isColor() then
+        term.setTextColor(c)
+    end
+end
+
+ferror = function(message)
+    term.set_term_color(colors.red)
+    print(message)
+    term.set_term_color(colors.white)
+end
+
+viewTable = function (t)
+    if t == nil then print("nil") return 0 end
+    print(t)
+    for k,v in pairs(t) do
+        print(k..","..tostring(v).." ("..type(v)..")")
+    end
+end
+
+strsplit = function (inputstr, sep)
+    if sep == nil then
+        sep = "%s"
+    end
+    if type(inputstr) ~= 'string' then
+        term.set_term_color(colors.red)
+        print("os.strsplit: type(inputstr) == "..type(inputstr))
+        term.set_term_color(colors.white)
+        return 1
+    end
+    if inputstr == nil then
+        return ''
+    end
+    local t={} ; i=1
+    for str in string.gmatch(inputstr, "([^"..sep.."]+)") do
+        t[i] = str
+        i = i + 1
+    end
+    return t
+end
+
+tail = function(t)
+    if # t <= 1 then
+        return nil
+    end
+    local newtable = {}
+    for i, v in ipairs(t) do
+        if i > 1 then
+            table.insert(newtable, v)
+        end
+    end
+    return newtable
+end
+
+prompt = function(message, yes, nope)
+    write(message..'['..yes..'/'..nope..'] ')
+    local result = read()
+    if result == yes then
+        return true
+    else
+        return false
+    end
+end
+
+--END LIBCUBIX FUNCTIONS--
+
+function print_color(msg, c)
+    term.set_term_color(c)
+    print(msg)
+    term.set_term_color(colors.white)
+end
+
+function write_color(msg, c)
+    term.set_term_color(c)
+    write(msg)
+    term.set_term_color(colors.white)
+end
+
+local debug_buffer = ''
+function debug_write(msg, colormsg)
+    debug_buffer = debug_buffer .. msg .. '\n'
+    print_color(msg, colormsg)
+end
+
+msg = function(call, m, type)
+    if type == 'OK' then
+        debug_write('['..call..'] '..m, colors.green)
+    else
+        debug_write('[cubixli:'..call..'] '..m, colors.yellow)
+    end
+end
+
+service_httpcheck = {}
+service_httpcheck.run = function()
+    if not http then
+        return false
+    else
+        return true
+    end
+end
+_G['service_httpcheck'] = service_httpcheck
+
+service_hdcheck = {}
+service_hdcheck.run = function()
+    return true
+end
+_G['service_hdcheck'] = service_hdcheck
+
+function load_service(s)
+    msg("load_service", "loading "..'service_'..s)
+    local sobj = _G['service_'..s]
+    if sobj['config'] ~= nil then
+        sobj.config()
+    end
+    if sobj['run'] then
+        if not sobj.run() then
+            ferror("module failed to load: "..s)
+            return false
+        end
+    end
+    if sobj['finish'] then
+        sobj.finish()
+    end
+    msg("load_service", "loaded "..s, "OK")
+    return true
+end
+
+function load_services()
+    for k,v in ipairs(DEFAULT_SERVICES) do
+        if not load_service(v) then
+            return false
+        end
+    end
+    return true
+end
+
+-- BASIC TOOLCHAIN --
+
+function cd(args)
+end
+
+function ls(args)
+end
+
+function cat(args)
+end
+
+function rm(args)
+end
+
+function mkdir(args)
+    local p = cubixli_path .. '/' .. args[1]
+    print("makeDir: "..p)
+    fs.makeDir(p)
+end
+
+function nano(args)
+    shell.run("/rom/programs/edit", cubixli_path .. '/' .. args[1])
+end
+
+function clear(args)
+    term.clear()
+    term.setCursorPos(1,1)
+end
+
+function dmesg(args)
+    print(debug_buffer)
+end
+
+function journalctl(args)
+    dmesg(args)
+end
+
+function lsmod(args)
+end
+
+function modprobe(args)
+end
+
+function license(args)
+end
+
+function uname(args)
+    print('CubixLI '..os.getComputerLabel()..' v'..VERSION..'-ccraft  CubixLI '..VERSION..' ('..BUILD_DATE..') x86 CubixLI')
+end
+
+function httpget(args)
+end
+
+function smallyapi(args)
+    VER = '0.0.1'
+    print('smallyapi v'..VER)
+
+    --default variables
+    local SERVERIP = 'lkmnds.github.io'
+    local SERVERDIR = '/yapi'
+
+    function download_file(url)
+        local cache = strsplit(url, '/')
+        local fname = cache[#cache]
+        print('request: ' .. fname)
+        http.request(url)
+        local req = true
+        while req do
+            local e, url, stext = os.pullEvent()
+            if e == 'http_success' then
+                local rText = stext.readAll()
+                stext.close()
+                return rText
+            elseif e == 'http_failure' then
+                req = false
+                ferror("request: http_failure")
+                return {false, 'http_failure'}
+            end
+        end
+    end
+
+    function get_repodata(repo, dbdata)
+        local lines = strsplit(dbdata, '\n')
+        local currentpkg = ''
+        local dbdata = {}
+        for _,line in ipairs(lines) do
+            --parse line
+            local spaces = strsplit(line, ' ')
+            local equal = strsplit(line, '=')
+            if string.sub(line, 1, 1) == 'p' then --package entry
+                local tok = strsplit(line, ':')
+                local pkgname = strsplit(tok[1], ' ')[2]
+                local pkgdeps = strsplit(tok[2], ',')
+                --remove {
+                local n = #pkgdeps
+                pkgdeps[n] = string.sub(pkgdeps[n], 0, #pkgdeps[n] - 1)
+
+                dbdata[pkgname] = {
+                    pkgdeps=pkgdeps
+                }
+                currentpkg = pkgname
+            elseif spaces[1] == 'build' then
+                local pkgbuild = spaces[2]
+                dbdata[currentpkg]['build'] = pkgbuild
+            elseif equal[1] == 'yapfile' then
+                local url = equal[2]
+                local yapurl = ''
+                if url == 'default' then
+                    local pbuild = dbdata[currentpkg]['build']
+                    yapurl = 'http://' .. SERVERIP .. SERVERDIR .. '/'..repo..'/' .. currentpkg .. '-' .. pbuild .. '.yap'
+                else
+                    yapurl = url
+                end
+                dbdata[currentpkg]['url'] = yapurl
+            elseif line == '}' then
+                currentpkg = ''
+            end
+        end
+        return dbdata
+    end
+    local coredb = download_file('http://'.. SERVERIP .. SERVERDIR .. '/database/core')
+    local dbdata = get_repodata('core', coredb)
+
+    function yap_parse(data)
+        local yapdata = {}
+        if type(data) ~= 'string' then
+            ferror("yap_parse: error parsing yap(d ~= string)")
+            return false
+        end
+        local lines = strsplit(data, '\n')
+        yapdata['dep'] = {}
+        yapdata['optdep'] = {}
+        yapdata['files'] = {}
+        yapdata['folders'] = {}
+        local isFile = false
+        local rFile = ''
+        for _,line in ipairs(lines) do
+            if isFile then
+                if line ~= 'END_FILE;' then
+                    if yapdata['files'][rFile] == nil then
+                        yapdata['files'][rFile] = line .. '\n'
+                    else
+                        yapdata['files'][rFile] = yapdata['files'][rFile] .. line .. '\n'
+                    end
+                else
+                    isFile = false
+                    rFile = ''
+                end
+            else
+                local p = strsplit(line, '=')
+                local f = strsplit(line, ';')
+                if p[1] == 'name' then
+                    yapdata[p[1]] = p[2]
+                elseif p[1] == 'build' then
+                    yapdata[p[1]] = p[2]
+                elseif p[1] == 'version' then
+                    yapdata[p[1]] = p[2]
+                elseif p[1] == 'description' then
+                    yapdata['desc'] = p[2]
+                elseif p[1] == 'author' then
+                    yapdata[p[1]] = p[2]
+                elseif p[1] == 'email-author' then
+                    yapdata[p[1]] = p[2]
+                elseif p[1] == 'contri' then
+                    yapdata[p[1]] = p[2]
+                elseif p[1] == 'url' then
+                    yapdata[p[1]] = p[2]
+                elseif p[1] == 'packager' then
+                    yapdata[p[1]] = p[2]
+                elseif p[1] == 'arch' then
+                    yapdata[p[1]] = p[2]
+                elseif p[1] == 'license' then
+                    yapdata[p[1]] = p[2]
+                elseif p[1] == 'depend' then
+                    table.insert(yapdata['dep'], p[2])
+                elseif p[1] == 'optdepend' then
+                    table.insert(yapdata['optdep'], p[2])
+                elseif f[1] == 'file' then
+                    isFile = true
+                    rFile = f[2]
+                    yapdata['files'][rFile] = ''
+                elseif f[1] == 'folder' then
+                    table.insert(yapdata['folders'], f[2])
+                end
+            end
+        end
+        return yapdata
+    end
+
+    function yap_install(yapdata)
+        if type(yapdata) ~= 'table' then
+            return ferror("yap_install: yapdata is not table")
+        end
+        print(' -> yap_install: '..yapdata['name'])
+        for k,v in pairs(yapdata['folders']) do
+            fs.makeDir(v)
+        end
+        for k,v in pairs(yapdata['files']) do
+            local h = fs.open(k, 'w')
+            h.write(v)
+            h.close()
+        end
+
+        return true
+    end
+
+    function pkg_install(pkgname)
+        if not dbdata[pkgname] then
+            return ferror("error: target not found: "..pkgname)
+        end
+        print("==> Installing "..pkgname)
+        pkgd = dbdata[pkgname]
+        --viewTable(pkgd)
+        yf = download_file(pkgd.url)
+        yd = yap_parse(yf)
+        return yap_install(yd)
+    end
+
+    for k,pkg in ipairs(args) do
+        if pkg_install(pkg) then
+            if pkg == 'base' then
+                --post install procedures
+                shell.run("FINISHINSTALL")
+                local handler = fs.open("/tmp/install_lock", 'w')
+                handler.close()
+            end
+            print("Done.")
+        else
+            return ferror("error installing package.")
+        end
+    end
+end
+
+--mkinitramfs cubix
+function mkinitramfs(args)
+    if #args == 0 then
+        args[1] = 'foo'
+    end
+
+    local HOOKS = {}
+    HOOKS['base'] = function()
+        if os.loadAPI("/boot/libcubix") then
+            libcubix.generate_lcubix('all', '/boot/cubix-initramfs')
+        else
+            ferror("error loading libcubix.")
+        end
+    end
+
+    function build_hook(hookname)
+        if HOOKS[hookname] then
+            debug_write("==> Hook ["..hookname.."]", colors.green)
+            HOOKS[hookname]()
+        else
+            return ferror("build hook not found: "..hookname)
+        end
+    end
+
+    if args[1] == 'cubixbase' then
+        --run base build hook
+        build_hook('base')
+    else
+        return ferror("preset not found: "..args[1])
+    end
+end
+
+--mkfs.cubix /dev/hda
+function mkfs(args)
+    if prompt("Want to format the disk to install cubix?", "Y", "n") then
+        print("formatting computer.")
+        local k = fs.list('/')
+        local allblocks = (#k - 1)
+        local blocks = 1
+        for k,v in pairs(k) do
+            if v ~= 'rom' then
+                fs.delete(v)
+                print('\rblocks: '..tostring(blocks)..'/'..tostring(allblocks))
+                blocks = blocks + 1
+            end
+        end
+    end
+end
+
+--reboot
+function front_reboot(args)
+    debug_write("[reboot] sending RBT")
+    os.sleep(1.5)
+    os.reboot()
+end
+
+--sethostname <hostname>
+function sethostname(args)
+    local nhostname = tostring(args[1])
+    debug_write("[sethostname] setting hostname to "..nhostname)
+    os.setComputerLabel(nhostname)
+    local h = fs.open("/etc/hostname", 'w')
+    if h == nil then
+        return ferror("error setting hostname.")
+    end
+    h.write(nhostname)
+    h.close()
+    return 0
+end
+
+--genfstab /etc/fstab
+function genfstab(args)
+    local file = args[1]
+    local fh = fs.open(file, 'w')
+    --device;mountpoint;fs;options;\n
+    fh.write("/dev/hda;/;cfs;;\n")
+    fh.write("/dev/loop1;/dev/shm;tmpfs;;\n")
+    fh.close()
+    print("genfstab: generated fstab in "..file)
+end
+
+function install_help()
+    print([[Installing Cubix:
+    mkfs.cbx
+    smallyapi base
+    genfstab /etc/fstab
+
+    tzselect <timezone1>,<timezone2>
+    timesetup -auto
+    mkinitramfs cubix
+    sbl-config new
+    sethostname <hostname>
+    passwd
+    reboot
+    ]])
+end
+
+function automatic_install()
+    run_command()
+end
+
+--chroot / /bin/sh
+function chroot(args)
+    --run the given shell
+end
+
+-- CUBIXLI SHELL --
+
+local SHCMD = {}
+
+--coreutils
+SHCMD['cd'] = cd
+SHCMD['ls'] = ls
+SHCMD['mkdir'] = mkdir
+SHCMD['cat'] = cat
+SHCMD['uname'] = uname
+SHCMD['nano'] = nano
+SHCMD['reboot'] = front_reboot
+
+--cubix install tools
+SHCMD['smallyapi'] = smallyapi
+SHCMD['chroot'] = chroot
+SHCMD['mkinitramfs'] = mkinitramfs
+SHCMD['sethostname'] = sethostname
+SHCMD['genfstab'] = genfstab
+SHCMD['help'] = install_help
+
+--automatic recommended install of cubix, in one single command(debug purposes)
+SHCMD['autoinstall'] = automatic_install
+
+--debug messages
+SHCMD['dmesg'] = dmesg
+SHCMD['journalctl'] = journalctl
+
+--format a computer
+SHCMD['mkfs.cbx'] = mkfs
+SHCMD['mkfs.cubix'] = mkfs
+
+--clear screen
+SHCMD['clear'] = clear
+SHCMD['cls'] = clear
+
+function run_command(cmd)
+    k = strsplit(cmd, ' ')
+    args = tail(k)
+    p = k[1]
+    if not(p == nil and p == '') then
+        if SHCMD[p] then
+            if args == nil then
+                args = {}
+            end
+            SHCMD[p](args)
+        else
+            ferror("clish: binary not found: "..p)
+        end
+    end
+end
+
+function start_shell()
+    msg("start_shell", "starting shell")
+    local HISTORY = {}
+    while true do
+        write(cubixli_user.."@cubixli:"..cubixli_path.."# ")
+        local command = read(nil, HISTORY)
+        if command == 'exit' or command == 'quit' then
+            return 0
+        else
+            if command ~= '' or not command:find(" ") then
+                table.insert(HISTORY, command)
+            end
+            run_command(command)
+        end
+    end
+end
+
+-- MAIN FUNCTION --
+
+function main()
+    if _G["IS_CUBIX"] then
+        if not permission.grantAccess(fs.perms.ROOT) then
+            ferror("cubixli: in cubix, cubixli must run as root")
+            return 0
+        end
+    end
+    if load_services() then
+        start_shell()
+    end
+end
+
+main()

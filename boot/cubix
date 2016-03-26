@@ -2,7 +2,7 @@
 --/boot/cubix: well, cubix!
 
 AUTHOR = "Lukas Mendes"
-BUILD_DATE = "2016-03-20"
+BUILD_DATE = "2016-03-26"
 
 --  version format: major.revision.minor
 --      major: linear
@@ -108,7 +108,6 @@ os._read = read
 os._sleep = os.sleep
 
 os.ferror = function(message)
-    --TODO: stdin, stdout and stderr
     --[[
     device_write("/dev/stderr", message)
     ]]
@@ -181,7 +180,9 @@ function loadmodule(nmodule, path)
         end
         os.lib[nmodule] = _G[fs.getName(path)]
         isReloadable[nmodule] = os.lib[nmodule].RELOADABLE
+        term.set_term_color(colors.green)
         os.debug.debug_write('[mod] loaded: '..nmodule)
+        term.set_term_color(colors.white)
     else
         os.debug.kpanic("[mod] not loaded: "..nmodule)
     end
@@ -189,6 +190,11 @@ end
 
 --unload a module
 function unloadmod(mod)
+    if isReloadable[mod] ~= nil and isReloadable[mod] == false then
+        os.debug.debug_write("[mod] cannot unload "..mod..", please reboot!", nil, true)
+        return 0
+    end
+
     if os.lib[mod] then
         os.debug.debug_write("[unloadmod] unloading "..mod)
         os.lib[mod] = nil
@@ -224,7 +230,7 @@ os.internals.unloadmod = unloadmod
 
 --show all loaded modules in the system(shows to stdout)
 os.viewLoadedMods = function()
-    for k,v in pairs(os.lib) do
+    for k,_ in pairs(os.lib) do
         write(k..' ')
     end
     write('\n')
