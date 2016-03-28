@@ -12,7 +12,20 @@ Cubix is a unix-like ComputerCraft OS
 
 Cubix works in normal(in theory, not tested) and advanced computers.
 
-<b>EDIT: Finishing the new installer</b>
+```lua
+> pastebin run B1t3L4Uw
+
+mkfs.cbx
+smallyapi base
+genfstab /etc/fstab
+
+tzselect <timezone1>,<timezone2>
+timesetup -auto
+mkinitramfs cubixbase
+sbl-config new
+sethostname <hostname>
+reboot
+```
 
 ## Information for Developers
 
