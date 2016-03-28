@@ -388,7 +388,7 @@ function smallyapi(args)
                 end
                 print("Done.")
             else
-                return ferror("error installing package.")
+                return ferror("error installing package:" ..pkg)
             end
         end
     end
@@ -397,7 +397,7 @@ end
 --mkinitramfs cubix
 function mkinitramfs(args)
     if #args == 0 then
-        args[1] = 'foo'
+        args[1] = ''
     end
 
     local HOOKS = {}
@@ -405,14 +405,15 @@ function mkinitramfs(args)
         if os.loadAPI("/boot/libcubix") then
             libcubix.generate_lcubix('all', '/boot/cubix-initramfs')
         else
-            ferror("error loading libcubix.")
+            return ferror("error loading libcubix.")
         end
     end
 
     function build_hook(hookname)
         if HOOKS[hookname] then
-            debug_write("==> Hook ["..hookname.."]", colors.green)
+            debug_write("[mkinitramfs] Hook "..hookname, colors.green)
             HOOKS[hookname]()
+            print("Done.")
         else
             return ferror("build hook not found: "..hookname)
         end
@@ -486,14 +487,17 @@ function install_help()
     mkinitramfs cubixbase
     sbl-config new
     sethostname <hostname>
-    passwd
     reboot
     ]])
 end
 
-function automatic_install()
+function automatic_install(args)
     run_command("mkfs.cbx")
-    run_command("smallyapi base")
+    if args[1] == 'latest' then
+        run_command("smallyapi base-latest")
+    else
+        run_command("smallyapi base")
+    end
     run_command("genfstab /etc/fstab")
 
     run_command("tzselect 0,0")
@@ -501,6 +505,7 @@ function automatic_install()
     run_command("mkinitramfs cubixbase")
     run_command("sbl-config new")
     run_command("sethostname cubix-pc")
+
     print("Done...?")
 end
 
@@ -519,8 +524,12 @@ function sbl_config(args)
         end
         b.write(default)
         b.close()
+
+        debug_write("[sbl-config] systems.cfg = default.cfg", colors.lightBlue)
+        return 1
+    else
+        return ferror("sbl-config: target not found: "..tostring(args[1]))
     end
-    return ferror("sbl-config: target not found: "..tostring(args[1]))
 end
 
 function tzselect(args)
@@ -531,6 +540,7 @@ function tzselect(args)
     end
     h.write(timezone)
     h.close()
+    debug_write("[tzselect] timezone is now "..timezone, colors.yellow)
     return 0
 end
 
@@ -550,6 +560,7 @@ function cubixenv(args)
     program = args[1]
     program_args = tail(args)
     debug_write("[cubix] starting enviroment", colors.yellow)
+    debug_write("[cubix] starting program: "..program, colors.blue)
 
     os.lib = {}
     os.lib.login = {}

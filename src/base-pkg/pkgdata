@@ -6,8 +6,8 @@
 # So it gets all items in / and put them in base.yap, simple.
 
 pkgname=base
-pkgver=0.5.1
-pkgbuild=51
+pkgver=0.5.2
+pkgbuild=52
 
 author=Lukas Mendes
 eauthor=lkmnds@gmail.com
@@ -17,4 +17,3 @@ url=http://github.com/lkmnds/cubix
 license=MIT
 
 all=/
-#file=testing=/usr/bin/testing

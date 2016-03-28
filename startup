@@ -1,19 +1,46 @@
 #!/usr/bin/env lua
---load SBL
+--load any bootloader
 _G['shell'] = shell
 
-term.set_term_color = function (c)
+local MBR = '/mbr_code'
+
+term.clear()
+term.setCursorPos(1,2)
+
+local hlt = function()
+    while true do sleep(0) end
+end
+
+if fs.getSize("mbr_code") > 64 then
+    print(fs.getSize("mbr_code"))
+    print("cbios: error MBRSIZ")
+    hlt()
+end
+
+set_term_color = function (c)
     if term.isColor() then
         term.setTextColor(c)
     end
 end
 
-if fs.exists('/boot/sbl') then
-    print("mbr: loading sbl.")
-    os.run({}, "/boot/sbl")
+if fs.exists(MBR) then
+    set_term_color(colors.lightBlue)
+    print("r1 0x1  -  0x2")
+    print("r2 0x2  -  0x3")
+    print("r3 0x3  -  0x4")
+    print("")
+    print("mov 0, $r1")
+    print("mov 64, $r2")
+    print("load_byte_mbr:")
+    print("    loop #r1,#r2:")
+    print("        call get_byte")
+    print("        jmp run_byte")
+    print("")
+    set_term_color(colors.white)
+    sleep(.25)
+    os.run({}, MBR)
 else
-    term.set_term_color(colors.red)
-    print("error: sbl not found")
-    term.set_term_color(colors.white)
-    return 0
+    print("cbios: MBR not found")
 end
+
+hlt()

@@ -3,7 +3,7 @@
 --compatible with Cubix and CraftOS
 
 cwd = ''
-YAPI_BIN = '/bin/yapi-refactor'
+YAPI_BIN = '/bin/yapi'
 
 local strsplit = function (inputstr, sep)
     if sep == nil then

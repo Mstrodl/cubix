@@ -977,6 +977,39 @@ function main(args)
                 return ferror("[install_yap:error] "..ydata['name'])
             end
         elseif string.sub(mode, 2, 2) == 'F' then
+            --get package yap from cache(if not download it)
+            --and show the files that it owns
+
+            --same code from -Q
+            if isin(mode, 'l') then
+                local ydb = Yapidb()
+                local pkg = args[2]
+
+                if not ydb:find(pkg) then
+                    return ferror("error: target not found: "..pkg)
+                end
+
+                local pkg_repo = ydb:find(pkg)
+                local pkgd = ydb:getd(pkg_repo, pkg)
+
+                --get file from cache, if its not, download and cache again
+                local _c = get_fcache(pkg..'-'..pkgd['build']..'.yap')
+                if not _c then
+                    extnr("Downloading "..pkg..'...')
+                    _c = download_file(ydb['db_'..pkg_repo][pkg]['url'])
+                    if type(_c) ~= 'string' then
+                        return ferror("http_error: error downloading yap.")
+                    end
+                    extnr("Caching "..pkg.."...")
+                    cache_file(pkg..'-'..pkgd['build']..'.yap', _c)
+                end
+
+                local yapdata = yap_parse(_c)
+
+                for k,v in pairs(yapdata['files']) do
+                    print(pkg.." "..k)
+                end
+            end
         end
     else
         return ferror("yapi: sorry, see \"man yapi\" for details")

@@ -4,7 +4,9 @@
 term.clear()
 term.setCursorPos(1,1)
 
-VERSION = '0.21'
+DT = '2016.03.28'
+BUILD = '001a'
+VERSION = '0.30-'..BUILD..'cubix' .. DT
 
 function _halt()
     while true do os.sleep(0) end
@@ -56,13 +58,16 @@ local function cprint(text)
 end
 
 function CUI(m)
-    n=1
-    l=#m
+    local n = 1
+    local l = #m
+    local kpress = nil
     while true do
         term.clear()
         term.setCursorPos(1,2)
-        cprint("SBL "..VERSION)
+
+        cprint("SBL version "..VERSION)
         cprint("")
+
         for i=1, l, 1 do
             if i==n then
                 term.set_term_color(colors.lightBlue)
@@ -73,16 +78,18 @@ function CUI(m)
                 cprint(i .. " " .. m[i])
             end
         end
+
         cprint("")
         cprint("Select a OS to load")
         cprint("[up/down & enter]")
-        local kpress = nil
+
         a, b= os.pullEventRaw()
         if a == "key" then
             if b==200 and n>1 then n=n-1 end
             if b==208 and n<l then n=n+1 end
-            if b==28 then kpress = 'ENTER' break end
-            if b==18 then kpress = 'e' break end
+            if b==28 then break end --break loop
+            if b==46 then kpress = 'c' break end --command line
+            if b==18 then kpress = 'e' break end --edit bootscript
         end
     end
     term.clear()
@@ -113,91 +120,71 @@ local availablemods = {}
 availablemods['kernel'] = true
 
 local loadmods = {}
+local sbl_env = {}
+local lFile = ''
+local _CHAINLOADER = false
 
-function loadkernel(kfile, memory)
-    --loads a .lua kernel file with its main function
-    --TODO lineboot: parse commands, like set, to boot from hdd and from disk!
-    --TODO lineboot: actually make SBL more GRUB-like
-    local sbl_env = {}
-    local lFile = ''
-    local _CHAINLOADER = false
+--general routine to parse bootscripts
+function parse_file(data)
+    local lines = strsplit(data, '\n')
+    for _,v in ipairs(lines) do
+        local k = strsplit(v, ' ')
+        if k[1] == 'kernel' then
+            if loadmods['kernel'] then
+                lFile = table.concat(tail(k), ' ')
+            else
+                print("SBL: kernel not loaded")
+            end
+        elseif k[1] == 'boot' then
+            break
+        elseif k[1] == 'set' then
+            local _d = strsplit(k[2], '=')
+            local location = _d[1]
+            local set = _d[2]
+            sbl_env[location] = set
+        elseif k[1] == 'chainloader' then
+            if k[2] == '+1' then
+                _CHAINLOADER = true
+            end
+        elseif k[1] == 'halt' then
+            _halt()
+        elseif k[1] == 'insmod' then
+            local module = k[2]
+            if availablemods[module] ~= nil then
+                print("SBL: loaded "..module)
+                loadmods[module] = true
+            else
+                print("SBL: module not found")
+            end
+        elseif k[1] == 'load_video' then
+            term.clear()
+            term.setCursorPos(1,1)
+        end
+    end
+end
+
+function loadscript(kfile, memory)
+    --loads a bootscript
+
     if kfile == 'lineboot' then
+        local d = ''
         while true do
             write("SBL:> ")
-            local k = strsplit(read(), ' ')
-            if k[1] == 'kernel' then
-                if loadmods['kernel'] then
-                    lFile = table.concat(tail(k), ' ')
-                else
-                    print("SBL: kernel not loaded")
-                end
-            elseif k[1] == 'boot' then
-                break
-            elseif k[1] == 'set' then
-                local _d = strsplit(k[2], '=')
-                local location = _d[1]
-                local set = _d[2]
-                sbl_env[location] = set
-            elseif k[1] == 'chainloader' then
-                if k[2] == '+1' then
-                    _CHAINLOADER = true
-                end
-            elseif k[1] == 'halt' then
-                _halt()
-            elseif k[1] == 'insmod' then
-                local module = k[2]
-                if availablemods[module] ~= nil then
-                    print("SBL: loaded "..module)
-                    loadmods[module] = true
-                else
-                    print("SBL: module not found")
-                end
-            elseif l[1] == 'load_video' then
-                term.clear()
-                term.setCursorPos(1,1)
-            end
+            local r = read()
+            local k = strsplit(r, ' ')
+            d = d .. r .. "\n"
+            if r == 'boot' then break end
         end
+        parse_file(d)
     else
         local handler = fs.open(kfile, 'r')
         if handler == nil then print("SBL: error opening bootscript") return 0 end
-        local lines = strsplit(handler.readAll(), '\n')
-        for _,v in ipairs(lines) do
-            local k = strsplit(v, ' ')
-            if k[1] == 'kernel' then
-                if loadmods['kernel'] then
-                    lFile = table.concat(tail(k), ' ')
-                else
-                    print("SBL: kernel not loaded")
-                end
-            elseif k[1] == 'boot' then
-                break
-            elseif k[1] == 'set' then
-                local _d = strsplit(k[2], '=')
-                local location = _d[1]
-                local set = _d[2]
-                sbl_env[location] = set
-            elseif k[1] == 'chainloader' then
-                if k[2] == '+1' then
-                    _CHAINLOADER = true
-                end
-            elseif k[1] == 'halt' then
-                _halt()
-            elseif k[1] == 'insmod' then
-                local module = k[2]
-                if availablemods[module] ~= nil then
-                    print("SBL: loaded "..module)
-                    loadmods[module] = true
-                else
-                    print("SBL: module not found")
-                end
-            elseif k[1] == 'load_video' then
-                term.clear()
-                term.setCursorPos(1,1)
-            end
-        end
+        local lines = handler.readAll()
+
+        parse_file(lines)
     end
-    --print("SBL: loading \""..lFile.."\"")
-    os.sleep(.5)
+
+    sleep(.5)
     local tArgs = strsplit(lFile, ' ')
     local sCommand = tArgs[1]
     local sFrom = ''
@@ -209,10 +196,12 @@ function loadkernel(kfile, memory)
         print("SBL: error parsing root")
         return 0
     end
+
     if _CHAINLOADER then
         print("sbl: chainloading.")
         os.run({}, sFrom..'/sstartup')
     end
+
     print("SBL: loading \""..sFrom..'/'..sCommand.."\"\n")
     if sCommand == '/rom/programs/shell' then
         shell.run("/rom/programs/shell")
@@ -234,7 +223,16 @@ table.insert(oses[2], "lineboot")
 local user_selection = CUI(oses[1]) --only names
 selected_os = user_selection[1]
 
---load kernel
-loadkernel(oses[2][selected_os], 512)
+if user_selection[2] == 'c' then
+    loadscript('lineboot', 512)
+elseif user_selection[2] == 'e' then
+    local bootscript_path = oses[2][selected_os]
+
+    shell.run("/rom/programs/edit "..bootscript_path)
+    loadscript(bootscript_path, 512)
+else
+    --load bootscript
+    loadscript(oses[2][selected_os], 512)
+end
 
 _halt()

@@ -1,0 +1,2 @@
+local BL='/boot/sbl'
+os.run({}, BL)
