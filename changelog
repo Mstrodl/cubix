@@ -1,12 +1,43 @@
-0.5.1 - 0.5.2 (17-01-2015) [just writing changes before official release]
-  tl;dr this is not finished
+0.5.1 - 0.5.2 (28-03-2016)
 
   Major changes:
     +login manager rewrited (sudoers, groups, and more)!
     +added better support for devices
+    +proc_manager doesn't load main automatically, using os.run(see 0.2.1 log)
+        pros:
+            +This fixes the discrepancy between Cubix and CC programs
+            +loadAPI doesn't mess around with _G anymore (I think read and sleep can be rewrited and used now.)
+        cons:
+            -Lost control of signals
+    +rewrited cshell
+        pros:
+            +Simpler code(it was a lot of spaghetti code)
+        cons:
+            -Because of proc_manager change, we lost piping
+                Still thinking of a way to pipe programs without mess around
+    +rewrited yapi(almost, missing -Su)
+        pros:
+            +New YAP and pkgdata formats
+            +New databse format
+                It can include the build in the database(less network usage)
+            +YAP checks when installing packages
+            +Added user consent to installing base package
+        cons:
+            -Old YAP files doesn't work (without backwards compatibility)
+
+  New Binaries:
+    +/bin/make
+        Almost like GNU make, with support to makefiles
 
   Devices:
+    +new device handling, with character and block devices
     +changed way /dev/random and /dev/urandom get random seeds(based on os.clock(), not os.time())
+
+  CubixLI 0.2:
+    +refactor of cubixli 0.1 to be simpler and smaller
+    +the major change is smallyapi
+        a small version of yapi with only the basic update and install functions
+        (it can only install packages from core)
 
 0.4.0 - 0.5.1 (12-21-2015)
   tl;dr you should use this now
