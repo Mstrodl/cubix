@@ -12,12 +12,16 @@ local itself_pid = os.lib.proc.get_by_pid(3)
 if not os.cshell then
     os.cshell = {}
 end
-os.cshell.PATH = '/bin:/usr/bin'
+os.cshell.PATH = '/bin:/usr/bin:/usr/games'
 
 local last_command = ''
 
 function register_lcmd(c)
     os.lib.control.register_proof(itself_pid, 'last_cmd', c)
+end
+
+function run_script(pth)
+    --TODO: actually run script
 end
 
 local function normal_command(cmd)
@@ -45,6 +49,10 @@ local function normal_command(cmd)
     elseif program == 'CTTY' then
         print(os.lib.tty.getcurrentTTY().id)
         return 0
+    elseif program == 'source' then
+        if tokens[2] ~= nil then
+            run_script(tokens[2])
+        end
     end
 
     found = false
@@ -193,6 +201,8 @@ function main(args)
     --generate a new token.
     shellToken = os.lib.login.Token.new(os.lib.login.currentUser(), 100)
     local HISTORY = {} --csh history
+    local hostname = gethostname() --avoid multiple calls
+    run_script('$HOME/.cshrc')
     while true do --main loop
         if shellToken.user == 'root' then --always check if user is root
             shell_char = '#'
@@ -200,7 +210,7 @@ function main(args)
             shell_char = '$'
         end
         write(shellToken.user)
-        write("@"..gethostname())
+        write("@"..hostname)
         write(":"..shell_wd)
         write(shell_char..' ')
         local cmd = read(nil, HISTORY, os.cshell.complete)

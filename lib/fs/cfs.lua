@@ -12,12 +12,14 @@ end
 
 function collectFiles(dir, stripPath, table)
     if not table then table = {} end
-    dir = dir
+
     local fixPath = fsmanager.stripPath(stripPath, dir)
     table[dir] = fsmanager.getInformation(dir)
     local files = fs.list(dir)
+
     if dir == '/' then dir = '' end
     if fixPath == '/' then fixPath = '' end
+
     for k, v in pairs(files) do
         if string.sub(v, 1, 1) == '/' then v = string.sub(v, 2, #v) end
         table[fixPath .. "/" .. v] = fsmanager.getInformation(dir .. "/" .. v)

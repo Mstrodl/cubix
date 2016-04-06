@@ -7,6 +7,7 @@ Things to do(not in order of priority):
   * ext2 (0%)
   * ext3 (0%)
   * ext4 (0%)
+  * devfs (0%)
 
  * [0.6.x](0%) systemd(modules), systemd(order stuff), journalctl, timectl, ...
   * systemctl {start,stop,restart,reload,enable,disable,status,list-units}

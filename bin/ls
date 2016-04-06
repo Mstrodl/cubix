@@ -1,15 +1,6 @@
 #!/usr/bin/env lua
 --/bin/ls : wrapper to CC "ls"
 
-_handler = {}
-_handler.signal_handler = function(sig)
-    if sig == 'kill' then
-        --print("ls: SIGKILL")
-        return 0
-    end
-end
-
-
 local chars = {}
 for i = 32, 126 do chars[string.char(i)] = i end
 

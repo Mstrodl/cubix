@@ -148,6 +148,8 @@ function parse_file(data)
             end
         elseif k[1] == 'halt' then
             _halt()
+        elseif k[1] == 'reboot' then
+            os.reboot()
         elseif k[1] == 'insmod' then
             local module = k[2]
             if availablemods[module] ~= nil then
@@ -174,6 +176,7 @@ function loadscript(kfile, memory)
             local k = strsplit(r, ' ')
             d = d .. r .. "\n"
             if r == 'boot' then break end
+            if r == 'reboot' then break end
         end
         parse_file(d)
     else

@@ -3,7 +3,7 @@
 
 AUTHOR = "Lukas Mendes"
 VERSION = "0.2.0"
-BUILD_DATE = "2016-03-26"
+BUILD_DATE = "2016-03-28"
 
 --[[
     Cubix Live Installer, version 2
@@ -161,6 +161,69 @@ function cd(args)
 end
 
 function ls(args)
+
+    local chars = {}
+    for i = 32, 126 do chars[string.char(i)] = i end
+
+    local function sortingComparsion(valueA, valueB)
+        local strpos = 0
+        local difference = 0
+        while strpos < #valueA and strpos < #valueB and difference == 0 do
+            strpos = strpos + 1
+            if chars[string.sub(valueA, strpos, strpos)] > chars[string.sub(valueB, strpos, strpos)] then
+                difference = 1
+            elseif chars[string.sub(valueA, strpos, strpos)] < chars[string.sub(valueB, strpos, strpos)] then
+                difference = -1
+            end
+        end
+        if difference == -1 then
+            return true -- return true if we want valueA to be before valueB
+        else
+            return false -- or return false if we want valueB to be before valueA
+        end
+    end
+
+
+    function ls(pth)
+        local nodes = fs.list(pth)
+        local files = {}
+        local folders = {}
+        for k,v in ipairs(nodes) do
+            if fs.isDir(pth..'/'..v) then
+                table.insert(folders, v)
+            else
+                table.insert(files, v)
+            end
+        end
+        table.sort(folders, sortingComparsion)
+        table.sort(files, sortingComparsion)
+        --printing folders
+        term.set_term_color(colors.green)
+        for k,v in ipairs(folders) do
+            write(v..' ')
+        end
+        term.set_term_color(colors.white)
+        --printing files
+        for k,v in ipairs(files) do
+            write(v..' ')
+        end
+        write('\n')
+    end
+
+    function main(args)
+        local p = args[1]
+        local cpath = cubixli_path
+
+        if p == nil then
+            ls(cpath)
+        elseif fs.exists(cubixli_path .. "/" .. p) then
+            ls(cubixli_path .. "/" .. p)
+        else
+            ferror("ls: node not found")
+        end
+    end
+
+    main(args)
 end
 
 function cat(args)

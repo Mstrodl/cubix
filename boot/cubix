@@ -2,7 +2,7 @@
 --/boot/cubix: well, cubix!
 
 AUTHOR = "Lukas Mendes"
-BUILD_DATE = "2016-03-28"
+BUILD_DATE = "2016-04-06"
 
 --  version format: major.revision.minor
 --      major: linear
@@ -52,7 +52,7 @@ os.__boot_flag = true
 
 kflag = {}
 
-for k,v in ipairs(Args) do
+for _,v in ipairs(Args) do
     if v == 'quiet' then
         kflag.quiet = true
     elseif v == 'splash' then
@@ -439,7 +439,7 @@ end
 
 end
 
-if kflag.splash then
+if kflag.splash then --bootsplash support
     if bootsplash then
         kflag.quiet = true
         bootsplash.load_normal()
