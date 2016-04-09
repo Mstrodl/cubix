@@ -233,7 +233,7 @@ fsmanager.setNode = function(node, owner, perms, linkto, gid)
     perms = perms or nodes[node].perms
     gid = gid or nodes[node].gid
     perms = tonumber(perms)
-    if nodes[node].owner == os.currentUID() then
+    if nodes[node].owner == os.currentUID() or os.lib.login.isSudo() then
         nodes[node].owner = owner
         nodes[node].gid = gid
         nodes[node].perms = perms

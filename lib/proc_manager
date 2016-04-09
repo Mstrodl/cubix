@@ -5,9 +5,7 @@
 
 RELOADABLE = false
 
---os.processes = {}
-
---secutiry fix
+--security fix
 local processes = {}
 os.pid_last = 0
 local running = 0
@@ -123,10 +121,15 @@ os.run_process = function(process, arguments, pipe)
     os.debug.debug_write("[process]  "..process.file.." pid="..tostring(process.pid), false)
     permission.default()
 
+    local cu = os.lib.login.currentUser()
+    if not fs.verifyPerm(process.file, cu, 'x') then
+        ferror("runfile_proc: perm error")
+        return -1
+    end
+
     running = process.pid
     processes[process.pid] = process
 
-    local cu = os.lib.login.currentUser()
     if cu == '' then
         process.user = 'root'
     else
