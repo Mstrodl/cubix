@@ -150,6 +150,7 @@ PERMISSIONS:
 -rwxrwxrwx 	0777 	read, write, & execute
 
 ]]
+
 permission.fileCurPerm = function()
     if os.currentUID() == 0 then
         --root here
@@ -212,7 +213,7 @@ fsmanager.getInformation = function(node)
     if nodes[p] then
         return deepcopy(nodes[p])
     end
-    return {owner = 0, perms = '777', gid = 0}
+    return {owner = 1, perms = '777', gid = 0}
 end
 
 fsmanager.setNode = function(node, owner, perms, linkto, gid)
@@ -225,19 +226,21 @@ fsmanager.setNode = function(node, owner, perms, linkto, gid)
         if fs.verifyPerm(node, os.currentUID(), 'w') then
             nodes[node] = deepcopy(fsmanager.getInformation(node))
         else
-            os.ferror("fsmanager.setNode [perm]: Access denied")
+            os.ferror("fsmanager.setNode [node.perm]: Access denied")
             return false
         end
     end
     owner = owner or nodes[node].owner
     perms = perms or nodes[node].perms
     gid = gid or nodes[node].gid
-    perms = tonumber(perms)
     if nodes[node].owner == os.currentUID() or os.lib.login.isSudo() then
-        nodes[node].owner = owner
+	    if os.lib.login.isSudo() then
+		    nodes[node].owner = 0
+	    end
         nodes[node].gid = gid
         nodes[node].perms = perms
         nodes[node].linkto = linkto
+		return true
     else
         os.ferror("fsmanager.setNode [uid]: Access denied")
         return false

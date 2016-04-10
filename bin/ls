@@ -1,6 +1,16 @@
 #!/usr/bin/env lua
 --/bin/ls : wrapper to CC "ls"
 
+--check if a string exists in a list
+local function isin_str(lst, s)
+    for _,v in ipairs(lst) do
+	    if v == s then
+		    return true
+		end
+	end
+	return false
+end
+
 local chars = {}
 for i = 32, 126 do chars[string.char(i)] = i end
 
@@ -23,7 +33,7 @@ local function sortingComparsion(valueA, valueB)
 end
 
 
-function ls(pth)
+function ls(pth, showperm)
     local nodes = fs.list(pth)
     local files = {}
     local folders = {}
@@ -39,27 +49,52 @@ function ls(pth)
     --printing folders
     term.set_term_color(colors.green)
     for k,v in ipairs(folders) do
-        write(v..' ')
+	    if showperm then
+		    local i = fsmanager.getInformation(p)
+		    local prm = fsmanager.strPerm(i.perms)
+		    term.set_term_color(colors.yellow)
+		    write(prm..' ')
+			term.set_term_color(colors.white)
+			write(v..' ')
+		else
+		    write(v..' ')
+		end
     end
     term.set_term_color(colors.white)
     --printing files
     for k,v in ipairs(files) do
-        write(v..' ')
+        if showperm then
+		    local i = fsmanager.getInformation(p)
+		    local prm = fsmanager.strPerm(i.perms)
+			term.set_term_color(colors.yellow)
+		    write(prm..' ')
+			term.set_term_color(colors.white)
+			write(v..' ')
+		else
+		    write(v..' ')
+		end
     end
     write('\n')
 end
 
 function main(args)
-    local p = args[1]
     local cpath = os.cshell.getpwd()
+	local show_perm = false
 
+	local p = args[1]
+	if isin_str(args, "-la") then
+	    show_perm = true
+		p = args[2]
+	end
+	
     if p == nil then
-        ls(cpath)
+        ls(cpath, show_perm)
     elseif fs.exists(os.cshell.resolve(p)) then
-        ls(os.cshell.resolve(p))
+        ls(os.cshell.resolve(p), show_perm)
     else
         os.ferror("ls: node not found")
     end
+	return 0
 end
 
 main({...})

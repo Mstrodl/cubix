@@ -1,0 +1,17 @@
+#!/usr/bin/env lua
+
+function main(args)
+    node = os.cshell.resolve(args[1])
+    uid = tonumber(os.lib.login.userUID())
+	newperm = args[2]
+    if fsmanager.setNode(node, uid, newperm) then
+	    print("chmod: set "..node.." to "..newperm)
+	else
+	    term.set_term_color(colors.red)
+	    print("chmod: error setting node")
+	    term.set_term_color(colors.white)
+	end
+    return 0
+end
+
+main({...})
