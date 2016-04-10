@@ -1,9 +1,0 @@
-#!/usr/bin/env lua
-
-function main()
-    uid = tonumber(os.userUID())
-    fsmanager.setNode(node, uid, )
-    a
-end
-
-main({...})
