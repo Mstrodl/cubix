@@ -224,7 +224,7 @@ end
 function get_by_pid(pid)
     --get a process by its PID(not of deepcopy, but the original process) with permission
     if permission.grantAccess(fs.perms.SYS)
-     or processes[running].file == '/bin/cshell_rewrite'
+     or processes[running].file == '/bin/cshell'
      or processes[running].file == '/sbin/login'
      or processes[running].file == '/sbin/kill'
      or processes[running].file == 'sbin/kill' then

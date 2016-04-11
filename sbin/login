@@ -41,7 +41,7 @@ function main(args)
         os.lib.control.register('/sbin/login', 'login_lock', nil)
 
         --running csh
-        os.runfile_proc("/bin/cshell_rewrite", nil, itself) --parenting with login
+        os.runfile_proc("/bin/cshell", nil, itself) --parenting with login
     else
         os.ferror("\nLogin incorrect")
     end

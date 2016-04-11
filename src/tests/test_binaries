@@ -1,0 +1,61 @@
+arch
+sleep
+
+cd /home/cubix
+sleep
+
+cat /home/cubix/.cshrc
+sleep
+
+cp /home/cubix/.cshrc /home/cubix/cshrc
+sleep
+
+rm /home/cubix/cshrc
+sleep
+
+curtime
+sleep
+
+factor 25
+sleep
+
+hwclock
+sleep
+
+ls /home/cubix
+sleep
+
+lsmod
+sleep
+
+make
+sleep
+
+mkdir test
+sleep
+
+rm test
+sleep
+
+man manuals
+sleep
+
+ps aux
+sleep
+
+pwd
+sleep
+
+sudo yapi -Syu
+sleep
+
+sync
+sleep
+
+tty
+sleep
+
+who && whoami
+sleep
+
+echo ;Done.

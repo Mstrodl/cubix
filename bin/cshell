@@ -1,46 +1,189 @@
 #!/usr/bin/env lua
---/bin/wshell: cubix shell
+--/bin/cshell_rewrite: rewrite of cubix shell
 
-_handler = {}
-_handler.signal_handler = function (sig)
-    if sig == 'kill' then
-        print("cshell: recieved SIGKILL")
+local shellToken = {}
+--local shell_wd = os.lib.control.get('/sbin/login', 'cwd')
+local shell_wd = nil
+
+--getting shell process
+local itself = os.lib.proc.get_processes()[os.getrunning()]
+local itself_pid = os.lib.proc.get_by_pid(3)
+
+if not os.cshell then
+    os.cshell = {}
+end
+os.cshell.PATH = '/bin:/usr/bin:/usr/games'
+
+local last_command = ''
+
+function register_lcmd(c)
+    os.lib.control.register_proof(itself_pid, 'last_cmd', c)
+end
+
+--TODO: a full language that integrates with the shell
+function tokenize(data)
+end
+
+function parse(tokens)
+end
+
+function transform(ast)
+end
+
+function execute(ast)
+end
+
+local function normal_command(cmd, context)
+    --normal routine to run commands
+    local tokens = os.strsplit(cmd, ' ')
+    local args = os.tail(tokens)
+    if args == nil then args = {} end
+    local program = tokens[1]
+    --built-in "programs"
+    --echo, APATH, PPATH, getuid, getperm, alias, aliases
+    if program == 'echo' then
+        local message = os.strsplit(cmd, ';')[2]
+        print(message)
+        return 0
+    elseif program == 'sleep' then
+        if tokens[2] then
+            os.sleep(tonumber(tokens[2]))
+        else
+            os.sleep(1)
+        end
+        return 0
+    elseif program == 'APATH' then
+    elseif program == 'PPATH' then
+        print(os.cshell.PATH)
+        return 0
+    elseif program == 'getuid' then
+        print(os.lib.login.userUID())
+        return 0
+    elseif program == 'getperm' then
+        permission.getPerm()
+        return 0
+    elseif program == 'CTTY' then
+        print(os.lib.tty.getcurrentTTY().id)
+        return 0
+    elseif program == 'source' then
+        if tokens[2] ~= nil then
+            run_script(tokens[2])
+        end
+        return 0
+    elseif program == 'alias' then
         return 0
     end
-end
 
-function strsplit(inputstr, sep)
-    if sep == nil then
-        sep = "%s"
+    local found = false
+    --part where we see paths and permissions to run and everything
+
+    --check absolute paths
+    if fs.exists(program) then
+        --security check: check if program is in /sbin
+        local tok = os.strsplit(program, '/')
+        if tok[1] ~= '/sbin' then
+            found = true
+            os.runfile_proc(program, args, itself)
+            register_lcmd(program .. ' ' .. table.concat(args, ' '))
+        end
+        --if its not, continue to other checks
+
+        --(theorical) security check(still not implemented):
+        --to make this possible, os.run needs to be reimplemented with permission checks to run a file
+        -- if fs.checkPerm(program, 'r') then
+        --     os.runfile_proc(program, args)
+        -- end
+
+    --check cwd .. program
+    elseif not found and fs.exists(os.cshell.resolve(program)) then
+        print(current_path)
+        if shell_wd ~= '/sbin' or shell_wd ~= 'sbin' then
+            found = true
+            os.runfile_proc(os.cshell.resolve(program), args, itself)
+            register_lcmd(os.cshell.resolve(program) .. ' ' .. table.concat(args, ' '))
+        end
     end
-    local t={} ; i=1
-    for str in string.gmatch(inputstr, "([^"..sep.."]+)") do
-        t[i] = str
-        i = i + 1
+
+    --check program in PATH
+    local path = os.strsplit(os.cshell.PATH, ':')
+    for _,token in ipairs(path) do
+        local K = fs.combine(token..'/', program)
+        if not found and fs.exists(K) then
+            found = true
+            os.runfile_proc(K, args, itself)
+            register_lcmd(K .. ' ' .. table.concat(args, ' '))
+        end
     end
-    return t
+
+    --check /sbin
+    if not found and fs.exists(fs.combine("/sbin/", program)) then
+        if os.lib.login.userUID() == 0 then
+            found = true
+            os.runfile_proc(fs.combine("/sbin/", program), args, itself)
+            register_lcmd(fs.combine("/sbin/", program) .. ' ' .. table.concat(args, ' '))
+        end
+    end
+
+    --not found
+    if not found then
+        ferror("csh: "..program..": program not found")
+    end
 end
 
-local cuser = fs.open("/tmp/current_user", 'r')
-local cpath = fs.open("/tmp/current_path", 'r')
-current_user = cuser.readAll()
-current_path = cpath.readAll()
-cuser.close()
-cpath.close()
-
-os.cshell = {}
-os.cshell.PATH = '/bin:/usr/bin'
-
-os.cshell.getpwd = function()
-    local handler = fs.open("/tmp/current_path", 'r')
-    local result = handler.readAll()
-    handler.close()
-    return result
+local function shcmd(cmd)
+    --parse command
+    --nothing
+    if cmd == nil or cmd == '' then return 0 end
+    --comments
+    if string.sub(cmd, 1, 1) == '#' then return 0 end
+    --parse multiple commands
+    for _, command in pairs(os.strsplit(cmd, "&&")) do
+        if command:find("|") then --piping
+            local count = 1
+            local programs = os.strsplit(command, "|")
+            local main_pipe = os.lib.pipe.Pipe.new('main')
+            for _, prog in pairs(programs) do
+                --[[
+                For each program, run it with pipe support
+                ]]
+            end
+        else
+            --if command does not have |, run program normally
+            --now parse the command, with args and everything
+            normal_command(command)
+        end
+    end
 end
+
+os.cshell.change_path = function(newpath)
+end
+
+os.cshell.resolve = function()
+end
+
+os.cshell.run = function(command)
+    return shcmd(command)
+end
+
+os.cshell.cwd = function(newpwd)
+    --only cd can use this
+    local cdlock = os.lib.control.get('/bin/cd', 'cd_lock')
+    if cdlock == '1' then
+        shell_wd = newpwd
+    else
+        ferror("csh: cwd: cdlock ~= '1'")
+    end
+end
+
+os.cshell.getwd = function()
+    return shell_wd
+end
+os.cshell.getpwd = os.cshell.getwd
+os.cshell.dir = os.cshell.getwd
 
 os.cshell.resolve = function(pth)
-    local current_path = os.cshell.getpwd()
-    function _combine(c) return current_path .. '/' .. c end
+    local wd = os.cshell.getwd()
+    function _combine(c) return wd .. '/' .. c end
     function check_slash(s) return string.sub(s, 1, 1) == '/' end
     if check_slash(pth) then
         return pth
@@ -49,213 +192,73 @@ os.cshell.resolve = function(pth)
     end
 end
 
-aliases = {}
-
-function shell_command(k)
-    --TODO: add support for & (multitasking)
-    --if k == nil or k == "" then return 0 end
-    if k == nil or k == '' then return 0 end
-    if string.sub(k, 1, 1) == '#' then return 0 end
-    for _, k in pairs(os.strsplit(k, "&&")) do
-    if k:find("|") then
-        local count = 1
-        local programs = os.strsplit(k, "|")
-        local npipe = os.lib.pipe.Pipe.new('main')
-        for k,v in pairs(programs) do
-            local c = os.strsplit(v, ' ')
-            local program = c[1]
-            local pargs = {}
-            for k,v in pairs(c) do
-                if v ~= program then
-                    pargs[#pargs+1] = tostring(v)
-                end
-            end
-
-            local found = false
-            if fs.exists(program) then
-                found = true
-                os.runfile_proc(program, pargs, nil, npipe)
-
-            elseif fs.exists(fs.combine(current_path, program)) then
-                found = true
-                os.runfile_proc(fs.combine(current_path, program), pargs, nil, npipe)
-            end
-
-            local _path = os.strsplit(os.cshell.PATH, ':')
-            for k,v in ipairs(_path) do
-                local K = fs.combine(v..'/', program)
-                if fs.exists(K) then
-                    found = true
-                    os.runfile_proc(K, pargs, nil, npipe)
-                end
-            end
-
-            if fs.exists(fs.combine("/sbin/", program)) then
-                if current_user == "root" then
-                    found = true
-                    os.runfile_proc(fs.combine("/sbin/", program), pargs, nil, npipe)
-                end
-            end
-            if not found then
-                os.ferror("cshell: Program not found")
-            end
-        end
-    else
-        local c = strsplit(k, " ")
-        local program = c[1]
-        if program == 'echo' then
-            args = strsplit(k, ';')
-            print(args[2])
-            return 0
-        elseif program == 'APATH' then
-            args = strsplit(k, ' ')
-            os.cshell.PATH = os.cshell.PATH .. ':' .. args[2]
-            return 0
-        elseif program == 'PPATH' then
-            print(os.cshell.PATH)
-            return 0
-        elseif program == "getuid" then
-            print(os.lib.login.currentUser().uid)
-            return 0
-        elseif program == 'getperm' then
-            permission.getPerm()
-            return 0
-        elseif program == 'alias' then
-            local arg = string.sub(k, #program + 1, #k)
-            local spl = os.strsplit(arg, '=')
-            local key = spl[1]
-            local alias = spl[2]
-            aliases[key] = string.sub(alias, 2, #alias - 1)
-            return 0
-        elseif program == 'aliases' then
-            os.viewTable(aliases)
-            return 0
-        end
-        local args = {}
-        for k,v in pairs(c) do
-            if v == program then
-            else
-                args[#args+1] = v
-            end
-        end
-        local found = false
-        if fs.exists(program) then
-            _l = os.strsplit(program, '/')
-            if _l[1] ~= 'sbin' then
-                found = true
-                os.runfile_proc(program, args)
-            end
-
-        elseif not found and fs.exists(fs.combine(current_path, program)) then
-            print(current_path)
-            if current_path ~= '/sbin' or current_path ~= 'sbin' then
-                found = true
-                os.runfile_proc(fs.combine(current_path, program), args)
-            end
-        end
-
-        local _path = os.strsplit(os.cshell.PATH, ':')
-        for k,v in ipairs(_path) do
-            local K = fs.combine(v..'/', program)
-            if not found and fs.exists(K) then
-                found = true
-                os.runfile_proc(K, args)
-            end
-        end
-
-        if not found and fs.exists(fs.combine("/sbin/", program)) then
-            if current_user == "root" then
-                found = true
-                os.runfile_proc(fs.combine("/sbin/", program), args)
-            end
-        end
-
-        if not found then
-            os.ferror("cshell: "..program..": Program not found")
-        end
-    end
-    end
+os.cshell.complete = function(pth)
 end
 
-os.cshell.__shell_command = shell_command
-os.cshell.complete = function()
-    --return fs.complete(current_path)
+os.cshell.exit = function()
 end
 
-local aliases = {}
-
-function new_shcommand(cmd)
-    shell_command(cmd)
+os.cshell.setDir = function()
 end
 
-function run_cshrc(user)
-    if not fs.exists('/home/'..user..'/.cshrc') then
-        os.debug.debug_write("[cshell] .cshrc not found", nil, true)
-        return 1
+function run_script(pth)
+    local p = os.cshell.resolve(pth)
+    k = fs.open(p, 'r')
+    if k == nil then
+        ferror("error opening file: "..p)
     end
-    local cshrc_handler = fs.open('/home/'..user..'/.cshrc', 'r')
-    local _lines = cshrc_handler.readAll()
-    cshrc_handler.close()
-    local lines = os.strsplit(_lines, '\n')
-    for k,v in ipairs(lines) do
-        new_shcommand(v)
+    d = k.readAll()
+    d = strsplit(d, "\n")
+    for k,line in ipairs(d) do
+        if string.sub(line,1,1) ~= '#' then
+            normal_command(line)
+        end
     end
-    return 0
+
+    --[[
+    tokens = tokenize(d)
+    ast = parse(tokens)
+    newAst = transform(ast)
+    execute(newAst)
+    ]]
 end
 
 function main(args)
-    os.shell = os.cshell --compatibility
-    --TODO: -c
-    if fs.exists("/tmp/install_lock") then
-        term.set_term_color(colors.green)
-        print("Hey, it seems that you installed cubix recently, do you know you can create a new user using 'sudo adduser' in the shell, ok?(remember that the default password is 123)")
-        term.set_term_color(colors.white)
-        fs.delete("/tmp/install_lock")
-    end
-    local command = ""
-    local HISTORY = {}
-    if #args > 0 then
-        local ecmd = args[1]
-        print(ecmd)
-        --print(string.sub(ecmd, 1, #ecmd -1))
-        local h = fs.open(os.cshell.resolve(ecmd), 'r')
-        local _l = h.readAll()
-        h.close()
-        local lines = os.strsplit(_l, '\n')
-        for k,v in ipairs(lines) do
-            shell_command(v)
-        end
-        return 0
-    end
-    local cuser = fs.open("/tmp/current_user", 'r')
-    current_user = cuser.readAll()
-    cuser.close()
-    run_cshrc(current_user)
-    while true do
-        local cuser = fs.open("/tmp/current_user", 'r')
-        local cpath = fs.open("/tmp/current_path", 'r')
-        current_user = cuser.readAll()
-        current_path = cpath.readAll()
-        cuser.close()
-        cpath.close()
-        if current_user == 'root' then
-            shell_char = '# '
-        else
-            shell_char = '$ '
-        end
-        write(current_user .. ':' .. current_path .. shell_char)
-        command = read(nil, HISTORY, os.cshell.complete)
-        if command == "exit" then
-            return 0
-        elseif command ~= nil then
-            if command ~= '' or not command:find(" ") then
-                --i dont know why this isnt working, sorry.
-                table.insert(HISTORY, command)
+    _G['os.shell'] = os.cshell
+    _G['shell'] = os.cshell
+    if #args == 0 then
+        --get first cwd
+        shell_wd = os.lib.control.get('/sbin/login', 'cwd')
+        --generate a new token.
+        shellToken = os.lib.login.Token.new(os.lib.login.currentUser(), 100)
+        local HISTORY = {} --csh history
+        local hostname = gethostname() --avoid multiple calls
+        run_script('.cshrc')
+        while true do --main loop
+            if shellToken.user == 'root' then --always check if user is root
+                shell_char = '#'
+            else
+                shell_char = '$'
             end
-            shell_command(command)
+            write(shellToken.user)
+            write("@"..hostname)
+            write(":"..shell_wd)
+            write(shell_char..' ')
+            local cmd = read(nil, HISTORY, os.cshell.complete)
+            if cmd == 'exit' then --hardcoded command
+                return 0
+            elseif cmd ~= nil then
+                if command ~= '' or not command:find(" ") then
+                    table.insert(HISTORY, cmd)
+                end
+                shcmd(cmd)
+            end
         end
+    else
+        --run scripts
+        run_script(os.cshell.resolve(args[1]))
     end
-    return 0
 end
 
+--running
 main({...})

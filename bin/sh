@@ -1,14 +1,6 @@
 #!/usr/bin/env lua
 --/bin/sh: wrapper for /bin/cshell
 
-_handler = {}
-_handler.signal_handler = function (sig)
-    if sig == 'kill' then
-        --print("sh: recieved SIGKILL")
-        return 0
-    end
-end
-
 function main(args)
     os.runfile_proc("/bin/cshell", args)
 end
