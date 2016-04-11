@@ -1,6 +1,6 @@
 # Cubix
 
-Cubix is a unix-like ComputerCraft OS
+Cubix is an unix-like ComputerCraft OS
 
 ## Demos
 

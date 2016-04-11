@@ -1,9 +1,14 @@
 p lx-base:{
-build 1
+build 0
 yapfile=default
 }
 
 p libcubix-dev:{
-build 1
+build 0
+yapfile=default
+}
+
+p devutils:libcubix-dev,devscripts:
+build 0
 yapfile=default
 }

@@ -313,7 +313,6 @@ end
 
 fsmanager.umount_dev = function(dev)
     if not permission.grantAccess(fs.perms.SYS) then
-        --os.ferror("umount: system permission is required to umount")
         return {false, 'system permission is required to umount'}
     end
     if dev == '/dev/hdd' then

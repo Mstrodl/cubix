@@ -80,7 +80,7 @@ function inlist(str, list)
     return false
 end
 
-function checkisin(list, list_old)
+function checkisin(list, list_old) --check if a element is in the two lists
     for k,v in pairs(list_old) do
         for _,el in pairs(list) do
             if el == v then
@@ -459,7 +459,10 @@ function Yapidb:register_pkg(yapdata, itype)
 end
 
 --Install a package with its yapdata, uses yap_install and register_pkg to do it
-function Yapidb:install_yap(ydata)
+function Yapidb:install_yap(ydata, install_type)
+    if install_type == nil then
+	    install_type = 'normal'
+	end
     nr("checking package")
     if not yap_check(ydata) then
         return warning("install_yap: error in YAP checking.")
@@ -468,7 +471,7 @@ function Yapidb:install_yap(ydata)
     yap_install(ydata)
 
     nr("registering "..ydata['name'])
-    self:register_pkg(ydata, 'normal')
+    self:register_pkg(ydata, install_type)
 
     show_optdep(ydata)
 
@@ -697,8 +700,8 @@ function Yapidb:check_conflicts(pkgnew)
                     local lf = yap_list_files(yap_parse(c))
                     local k = checkisin(lfpkg, lf)
                     if k then
-                        ferror("File conflict between "..pkg.."(new) and "..pkgn.."(old)")
-                        ferror("File is "..k)
+                        ferror("Conflict between "..pkg.."(new) and "..pkgn.."(old)")
+                        ferror("File "..k)
                         ferror("Cannot continue with conflicts, aborting")
                         return abort("conflict_error")
                     end
@@ -713,6 +716,55 @@ function Yapidb:usual_check()
     extnr("checking conflicts...")
     return self:check_conflicts()
 end
+
+function Yapidb:full_upgrade()
+    --[[
+        #1: get all installed packages
+        #2: check if new version exists(dtabase comparison)
+        #3: if yes, install new one
+        #4: (don't upgrade base package.)
+    ]]
+    to_upgrade = {}
+    installed = self:get_installed_data()
+    for pkg,pkgd in pairs(installed) do
+        if pkg ~= 'base' then
+            pkgd_db = self:getd(self:find(pkg), pkg)
+            if tonumber(pkgd['build']) < tonumber(pkgd_db['build']) then
+                nr('  '..pkg.." > ("..pkgd['build']..' > '..pkgd_db['build']..')')
+                to_upgrade[#to_upgrade + 1] = pkg
+            end
+        end
+    end
+
+    if #to_upgrade > 0 then
+        print("")
+        write("Packages ("..#to_upgrade..") ")
+        for _,pkg in ipairs(to_upgrade) do
+            local pkgd = self:getd(self:find(pkg), pkg)
+            write(self:bscinfo(pkgd, pkg)..' ')
+        end
+        print("\n")
+        if not prompt(":: Proceed with upgrade?", "Y", "n") then
+            return abort("upgrade_prompt")
+        end
+
+        self:set_jobs(to_upgrade)
+        extnr("Upgrading "..#to_upgrade.." package(s)")
+        for _, package in ipairs(to_upgrade) do
+            if self:install(package) then
+                self:job_status("SUCCESS")
+                self:job_next()
+            else
+                return abort("install_error")
+            end
+        end
+        return true
+    else
+        print("Nothing to do.")
+        return true
+    end
+end
+
 --END DATABASE
 
 function main(args)
@@ -720,6 +772,7 @@ function main(args)
         ferror("yapi must be run as root not uid "..tostring(os.lib.login.userUID()))
         return 1
     end
+
     create_structure()
     if #args == 0 then
         print("usage: yapi <mode> ...")
@@ -765,6 +818,7 @@ function main(args)
                 if inlist('base', packages) then
                     ferror("WARNING: As Cubix Standards, devs should not install the base package as it will damage existing changes that they made.")
                     ferror("\nWARNING2: Only users with consent that all personal data will be lost after installation should continue.")
+					ferror("To upgrade the system, use cubixli.")
                     if prompt("Do you really want to go with this?", "Y", "n") then
                         if prompt("Do you REALLY want to go with this?", "Y", "n") then
                             print("Ok then... don't issue this at github, pls.")
@@ -801,7 +855,7 @@ function main(args)
 
             --clear cache(not a good option)
             if isin(mode, 'c') then
-                if not prompt(":: Proceed with cache clean?", "Y", "n") then
+                if not prompt(":: Proceed with cache clean(not recommended)?", "Y", "n") then
                     return abort("cache_clean_prompt")
                 end
                 Yapidb():clear_cache()
@@ -821,8 +875,8 @@ function main(args)
                 if not ydb:usual_check() then
                     return ferror("error found in usual check, cannot continue")
                 end
-                --print(":: Starting full system upgrade")
-                ydb:full_upgrade() --TODO
+                print(":: Starting full system upgrade")
+                ydb:full_upgrade()
             end
         elseif string.sub(mode, 2, 2) == 'R' then
             --call cache file and remove files based on it
@@ -855,7 +909,7 @@ function main(args)
 
                 --setting jobs and removing each one
                 ydb:set_jobs(packages)
-                nr(":: Removing ")
+                print_color(":: Removing ", colors.yellow)
                 for _,package in ipairs(packages) do
                     if ydb:remove(package) then
                         ydb:job_status("SUCCESS")
@@ -971,7 +1025,7 @@ function main(args)
 
             --setting jobs and installing
             ydb:set_jobs(packages)
-            if ydb:install_yap(ydata) then
+            if ydb:install_yap(ydata, 'manual') then
                 nr("Done.")
             else
                 return ferror("[install_yap:error] "..ydata['name'])
