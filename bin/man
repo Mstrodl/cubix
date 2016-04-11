@@ -1,6 +1,8 @@
 #!/usr/bin/env lua
 --/bin/man: program to open manual pages
 
+MANPATH = "/usr/manuals"
+
 function parse_cmfl(path)
     local h = fs.open(path, 'r')
     if h == nil then
