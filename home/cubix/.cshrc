@@ -7,3 +7,5 @@
 #setting aliases
 alias yapisy='sudo yapi -Sy'
 alias god='su'
+
+#PS1="[%u@%h %w] \$"

@@ -165,14 +165,23 @@ fsmanager.stripPath = function(base, full)
     return string.sub(full, #base + 1, #full)
 end
 
-fsmanager.loadFS = function(mountpath)
+fsmanager.loadFS = function(mountpath, device)
     local x = fsdrivers[mounts[mountpath].fs].loadFS
+    if not device then
+        device = mounts[mountpath].dev
+    end
     if x then
-        local tmp, r = x(mountpath, mounts[mountpath].dev)
+        local tmp, r = x(mountpath, device)
         if not r then return false end
-        if mountpath == '/' then mountpath = '' end
+        --if mountpath == '/' then mountpath = '' end
         for k,v in pairs(tmp) do
-            nodes[mountpath .. k] = v
+            if string.sub(k, 1, 1) == '/' and mountpath == '/' then
+                nodes[k] = v
+            elseif mountpath == '/' then
+                nodes['/' .. k] = v
+            else
+                nodes[mountpath .. k] = v
+            end
         end
     end
     return true
@@ -191,6 +200,7 @@ fsmanager.sync = function()
         os.debug.debug_write('[sync] saveFS: '..k)
         fsmanager.saveFS(k)
     end
+    fsmanager.loadFS('/')
 end
 
 fsmanager.deleteNode = function(node)

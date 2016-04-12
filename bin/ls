@@ -50,12 +50,12 @@ function ls(pth, showperm)
     term.set_term_color(colors.green)
     for k,v in ipairs(folders) do
 	    if showperm then
-		    local i = fsmanager.getInformation(p)
-		    local prm = fsmanager.strPerm(i.perms)
+            local info = fsmanager.getInformation(v)
+		    local prm = fsmanager.strPerm(info.perms)
 		    term.set_term_color(colors.yellow)
 		    write(prm..' ')
-			term.set_term_color(colors.white)
-			write(v..' ')
+			term.set_term_color(colors.green)
+			write(v..'\n')
 		else
 		    write(v..' ')
 		end
@@ -64,12 +64,12 @@ function ls(pth, showperm)
     --printing files
     for k,v in ipairs(files) do
         if showperm then
-		    local i = fsmanager.getInformation(p)
-		    local prm = fsmanager.strPerm(i.perms)
+            local info = fsmanager.getInformation(pth..'/'..v)
+		    local prm = fsmanager.strPerm(info.perms)
 			term.set_term_color(colors.yellow)
 		    write(prm..' ')
 			term.set_term_color(colors.white)
-			write(v..' ')
+			write(v..'\n')
 		else
 		    write(v..' ')
 		end
@@ -86,7 +86,7 @@ function main(args)
 	    show_perm = true
 		p = args[2]
 	end
-	
+
     if p == nil then
         ls(cpath, show_perm)
     elseif fs.exists(os.cshell.resolve(p)) then
