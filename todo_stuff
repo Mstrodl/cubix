@@ -2,7 +2,7 @@ Things to do(not in order of priority):
 
  * [0.6.x](60%) Finish cshell rewrite
  * [0.6.x](30%) Finish filesystems
-  * cfs (40%)
+  * cfs (50%)
   * tmpfs (60%)
   * ext2 (0%)
   * ext3 (0%)

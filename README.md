@@ -1,5 +1,7 @@
 # Cubix
 
+[![Gitter](https://badges.gitter.im/lkmnds/cubix.svg)](https://gitter.im/lkmnds/cubix?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge)
+
 Cubix is an unix-like ComputerCraft OS
 
 ## Demos
@@ -34,8 +36,8 @@ Since most of Cubix codebase is on ComputerCraft, you need or a ComputerCraft ac
 #### ccemuredux instructions
 You can clone the repository(the folder needs to have a valid computercraft id) and link that to a computer id in ccemuredux directory
 ```
-git clone https://github.com/lkmnds/cubix.git
-ln -s <path_to_repo> .ccemuredux/sessions/<session>/computer/
+git clone https://github.com/lkmnds/cubix.git <computer_id>
+ln -s <computer_id> .ccemuredux/sessions/<session>/computer/
 ```
 
 ## Features
