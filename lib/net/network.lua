@@ -119,7 +119,6 @@ function Context:send_packet(p)
 end
 
 function Context:recv(bytes)
-    os.viewTable(self)
     if bytes > #self.recv_buffer then
         bytes = #self.recv_buffer
     end
@@ -175,4 +174,5 @@ function libroutine()
     local ms = pr:getms()
     finish_cxt(c)
     os.debug.debug_write("[net] ping test: "..tostring(ms).."ms")
+    sleep(1)
 end

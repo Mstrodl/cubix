@@ -2,7 +2,7 @@
 --/boot/cubix: well, cubix!(at least the booting is here)
 
 AUTHOR = "Lukas Mendes"
-BUILD_DATE = "2016-04-12"
+BUILD_DATE = "2016-04-13"
 
 --  version format: major.revision.minor
 --      major: linear
@@ -123,6 +123,7 @@ if os.loadAPI("/lib/video_manager") then
     print("loaded video")
 end
 
+--load debug manager
 if os.loadAPI("/lib/debug_manager") then
     __debug = _G["debug_manager"]
     __debug.debug_write("debug: loaded")
@@ -139,7 +140,7 @@ debug = os.debug
 cubix = {}
 _G['cubix'] = cubix
 
-cubix.boot_kernel = function()
+cubix.boot_kernel = function() --the function to load the kernel
 
 if kflag.quiet then
     --if quiet, just make normal debug functions as nothing.
@@ -158,7 +159,7 @@ print('\n')
 term.set_term_color(colors.white)
 os.sleep(.5)
 
-os.lib = {}
+os.lib = {} --interface to most modules
 os.internals = {}
 os.internals._kernel = {}
 
@@ -272,7 +273,7 @@ if kflag.acpi then
     loadmodule("acpi", "/lib/acpi.lua")
 end
 
---another hack
+--hack to load fs, before loding login
 os.lib.login = {}
 os.lib.login.currentUser = function()
     return {uid = 2}
@@ -372,18 +373,21 @@ for i = 1, #perilist do
     os.internals._kernel.new_device("peripheral", tostring(peripheral.getType(perilist[i])))
 end
 
---tty, login and pipe managers
+--tty manager
 function os.internals._kernel.register_tty(path, tty) --register TTY to the system
     os.debug.debug_write("[tty] new tty: "..path)
     fs.open(path, 'w', fs.perms.SYS).close()
 end
 
 loadmodule("tty", "/lib/tty_manager")
+
+--login, pipe, time and control managers
 loadmodule("login", "/lib/login_manager")
 loadmodule("pipe", "/lib/pipe_manager")
 loadmodule("time", "/lib/time")
 loadmodule("control", "/lib/comm_manager")
 
+--print to pipes(doesn't work since the proc change)
 os.pprint = function(message, pipe, double)
     if double == nil then double = false end
     if message == nil then message = '' end
@@ -433,7 +437,7 @@ else
     os.run_process(os.__parent_init)
 end
 
---if something goes wrong in kflag.init(such as kill of a monster), just halt
+--if something goes wrong in kflag.init(such as kill or a monster), just halt
 os.system_halt()
 
 end

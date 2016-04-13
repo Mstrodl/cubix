@@ -75,6 +75,10 @@ function strtime(tz1, tz2)
 end
 
 function libroutine()
+    --install functions in _G
+    _G['localtime'] = localtime
+    _G['asctime'] = asctime
+    _G['strtime'] = strtime
     os.debug.debug_write("[time] testing time")
     os.debug.debug_write("[time] GMT -3: "..asctime(localtime(-3,0)))
     os.debug.debug_write("[time] Greenwich: "..strtime())

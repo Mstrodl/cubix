@@ -1,7 +1,13 @@
 #!/usr/bin/env lua
 --comm_manager: communication and control manager
 
--- This manager makes communication between processes without files(resolving the /tmp/current_path issue)
+--[[
+    The Communication manager is responsible
+    for inter-process communication of data,
+    since it's programmed in code and doesn't
+    depends on any FS, the security issue
+    described in issue #11
+]]
 
 local data = {}
 
