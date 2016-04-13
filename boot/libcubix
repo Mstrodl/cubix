@@ -29,6 +29,7 @@ os.viewTable = function (t)
         print(k..","..tostring(v).." ("..type(v)..")")
     end
 end
+_G['tview'] = os.viewTable
 
 os.tail = function(t)
     if # t <= 1 then

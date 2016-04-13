@@ -1,14 +1,6 @@
 #!/usr/bin/env lua
 --/bin/lx: manages luaX in user(spaaaaaaaaace)
 
-_handler = {}
-_handler.signal_handler = function (sig)
-    if sig == 'kill' then
-        os.debug.debug_write("lx frontend: ded", false)
-        return 0
-    end
-end
-
 function lx_start_default()
     --this is the default routine to start luaX with lxterm
     os.debug.debug_write("[lx] starting")

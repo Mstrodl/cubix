@@ -101,7 +101,7 @@ function generate_pfolder(proc, folder, arguments)
 end
 
 
-os.run_process = function(process, arguments, pipe)
+os.run_process = function(process, arguments, pipe, enviroment)
     --[[
     So, about the issue of non-compatibility with
     "CraftOS" designed programs with
@@ -117,9 +117,11 @@ os.run_process = function(process, arguments, pipe)
     ]]
 
     if arguments == nil then arguments = {} end
+    if enviroment == nil then enviroment = {} end
     --if pipe == nil then pipe = {} end
+
     os.debug.debug_write("[process]  "..process.file.." pid="..tostring(process.pid), false)
-    permission.default()
+    permission.default() --set default permissions
 
     local cu = os.lib.login.currentUser()
     if not fs.verifyPerm(process.file, cu, 'x') then
@@ -157,7 +159,8 @@ os.run_process = function(process, arguments, pipe)
     process.uid = os.lib.login.userUID()
 
     --_G['pipe'] = pipe
-    os.run({pipe=pipe}, process.file, unpack(arguments,1))
+    enviroment['pipe'] = pipe
+    os.run(enviroment, process.file, unpack(arguments,1))
 
     --finish process
     fs.delete(proc_folder)
@@ -202,17 +205,18 @@ end
 --arguments: table
 --parent: process
 --pipe: Pipe
-os.runfile_proc = function(executable, arguments, parent, pipe)
+os.runfile_proc = function(executable, arguments, parent, pipe, env)
     if parent == nil then
         _parent = os.__parent_init --making sure /sbin/init is parent of all processes(without parent)
     else
         _parent = parent
     end
     if arguments == nil then arguments = {} end
+    if env == nil then env = {} end
     --if pipe == nil then pipe = pipemngr.new_pipe("empty") end
     _process = os.new_process(executable) --creating
     os.set_parent(_process, _parent) --parenting
-    os.run_process(_process, arguments, pipe) --running.
+    os.run_process(_process, arguments, pipe, env) --running.
 end
 
 function get_processes()

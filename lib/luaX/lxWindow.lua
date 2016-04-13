@@ -30,6 +30,7 @@ function Window.new(path_lxw)
     inst.actions = {}
     inst.coords = {}
     inst.elements = {}
+    inst.parallel_object = nil
     inst.lxwFile = path_lxw
     return inst
 end
@@ -45,12 +46,15 @@ function Window:call_handler(ev)
         os.lib.lxServer.lxError("lxWindow: no handler set")
         return 0
     end
-    print("call self.handler "..type(ev))
-    self.handler(ev)
+    self:handler(ev)
 end
 
 function Window:set_handler(f)
     self.handler = f
+end
+
+function Window:set_parallel(f)
+    self.parallel_object = f
 end
 
 function Window:set_title(newtitle)
@@ -85,12 +89,16 @@ function Window:show()
         element:_show(sx, sy)
     end
 
-    while true do
-        local e, p1, p2, p3, p4, p5 = os.pullEvent()
-        local event = {e, p1, p2, p3, p4, p5}
-        print(type(event))
-        self:call_handler(event)
+    pobj = self.parallel_object
+
+    function main_loop()
+        while true do
+            local e, p1, p2, p3, p4, p5 = os.pullEvent()
+            local event = {e, p1, p2, p3, p4, p5}
+            self:call_handler(event)
+        end
     end
+    parallel.waitForAny(main_loop, pobj)
 end
 
 function nil_handler(event)
@@ -190,23 +198,115 @@ end)
 
 tf1 = TextField(0, 0)
 
+--basic keytable
+local keytable = {
+  [2] = 1, [3] = 2, [4] = 3, [5] = 4, [6] = 5, [7] = 6, [8] = 7,
+  [9] = 8, [10] = 9, [11] = 0, [16] = "q", [17] = "w", [18] = "e",
+  [19] = "r", [20] = "t", [21] = "y", [22] = "u", [23] = "i",
+  [24] = "o", [25] = "p", [30] = "a", [31] = "s", [32] = "d",
+  [33] = "f", [34] = "g", [35] = "h", [36] = "j", [37] = "k",
+  [38] = "l", [44] = "z", [45] = "x", [46] = "c", [47] = "v",
+  [48] = "b", [49] = "n", [50] = "m",
+  ENTER = 28, [28] = "\n",
+  BACKSPACE = 14, [14] = "BACKSPACE",
+  LSHIFT = 42, [42] = "LSHIFT",
+  RSHIFT = 54, [54] = "RSHIFT",
+  TAB = 15, [15] = "TAB",
+  ESCAPE = 1, [1] = "ESCAPE",
+  DELETE = 211, [211] = "DELETE",
+  UP = 200, [200] = "UP",
+  DOWN = 208, [208] = "DOWN",
+  LEFT = 203, [203] = "LEFT",
+  RIGHT = 205, [205] = "RIGHT",
+  MINUS = 12, [12] = "MINUS",
+  SPACE = 57, [57] = " ",
+  HOME = 199, [199] = "HOME"
+}
+
 --create CommandBox
 CommandBox = class(TextField, function(self, x, y, shellPath)
     TextField.init(self, x, y, x+20, y+20)
     self.spath = shellPath
     self.cmdbuffer = ''
 
+    local rbuffer_char = nil
+
+    local rbuffer = ''
+    local rbuffer_ok = false
+    local rbuffer_cursor = 0
+
+    local outbuffer = ''
+    local outbuffer_ok = false
+
+    --setting the run_shell function
+    self.run_shell = function()
+        filter_env = {}
+        filter_env['oldprint'] = loadstring(string.dump(_G['print']))
+        filter_env['oldwrite'] = loadstring(string.dump(_G['write']))
+
+        filter_env['write'] = function(a)
+            outbuffer = outbuffer .. a
+            outbuffer_ok = true
+            write(outbuffer)
+            outbuffer = ''
+        end
+
+        filter_env['read'] = function(c)
+            term.setCursorBlink(true)
+            rbuffer_char = c
+
+            while not rbuffer_ok do --wait until rbuffer is ready
+                sleep(0)
+            end
+            got_it = rbuffer --get rbuffer
+            rbuffer = '' --clear rbuffer
+            rbuffer_ok = false
+
+            term.setCursorBlink(false)
+            return got_it
+        end
+        os.runfile_proc(shellPath, nil, nil, nil, filter_env)
+    end
+
     local cbox_listener = {} --default event listener
     function cbox_listener:evPerformed(event)
-        print(type(event))
         if event[1] == 'key' then
-            if event[2] == 98 then
-                self.send_command(self.cmdbuffer)
-                output = self.get_data()
-                self.append_text(output)
+            key = event[2]
+            if key == 28 then
+                --[[
+                    Theory:
+
+                     * get buffer and send that command to the cshell process
+                     * get cshell output after the sent command
+                     * redirect output to window
+                     * wait for next event.
+                ]]
+                rbuffer_ok = true
+                rbuffer_char = nil
+                rbuffer_cursor = 0
+
+                --output = self.get_data()
+                --self:append_text(output)
+            else
+                --append to buffer
+                local k = keytable[key]
+                if key == 14 then
+                    local x, y = term.getCursorPos()
+                    term.setCursorPos(x, y-1)
+                    rbuffer = string.sub(rbuffer, 1, #rbuffer - 1)
+                elseif k ~= nil then
+                    rbuffer = rbuffer .. k
+                    rbuffer_cursor = rbuffer_cursor + 1
+                    if not rbuffer_char then
+                        write(k)
+                    else
+                        write(' ')
+                    end
+                end
             end
         end
     end
+    self.parallel_event = run_shell
     self.event_handler = cbox_listener['evPerformed']
     self:addEventListener(cbox_listener)
 end)

@@ -69,11 +69,12 @@ function Packet:parse(data)
         self.data = '0>>>PING~'..tostring(os.clock())
     elseif self.type == TPACKET_PING_RESP then
         self.data = data
-        self.ping_ms = tonumber(os.strsplit(';')[2])
+        self.ping_ms = tonumber(os.strsplit(data, '~')[2])
     end
 end
 
 function Packet:send()
+    os.debug.debug_write("[net] sent packet: "..tostring(self.data))
     default_context:send_packet(self)
 end
 
@@ -92,7 +93,7 @@ end
 CXT_CUBIX_PING = 1
 
 Context = class(function(self, ctype, interf)
-    self.type = type
+    self.type = ctype
     self.interf = interf
     self.FLAG_RECV = false
     self.recv_buffer = ''
@@ -108,7 +109,7 @@ function Context:send_packet(p)
         --automatically handle buffer
         local rdata = ''
         --I need to send packets depending of context type
-        if self.type == CXT_CUBIX_PING and self.dest == '127.0.0.1' then
+        if self.type == CXT_CUBIX_PING and p.dest == '127.0.0.1' then
             local ssp = get_sys_server(SYS_SERVER_PING)
             rdata = ssp:spacket(p)
         end
@@ -169,7 +170,7 @@ function libroutine()
     local p = Packet(TPACKET_PING, 'localhost', nil)
     c:open_recv()
     p:send()
-    local rd = c.recv(1024)
+    local rd = c:recv(1024)
     local pr = Packet(TPACKET_PING_RESP, nil, rd)
     local ms = pr:getms()
     finish_cxt(c)
