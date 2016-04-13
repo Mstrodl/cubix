@@ -292,7 +292,7 @@ CommandBox = class(TextField, function(self, x, y, shellPath)
                 local k = keytable[key]
                 if key == 14 then
                     local x, y = term.getCursorPos()
-                    term.setCursorPos(x, y-1)
+                    term.setCursorPos(x-1, y)
                     rbuffer = string.sub(rbuffer, 1, #rbuffer - 1)
                 elseif k ~= nil then
                     rbuffer = rbuffer .. k
