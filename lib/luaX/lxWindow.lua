@@ -233,7 +233,9 @@ CommandBox = class(TextField, function(self, x, y, shellPath)
 
     local rbuffer = ''
     local rbuffer_ok = false
+
     local rbuffer_cursor = 0
+    local rbuffer_starting = {}
 
     local outbuffer = ''
     local outbuffer_ok = false
@@ -254,6 +256,8 @@ CommandBox = class(TextField, function(self, x, y, shellPath)
         filter_env['read'] = function(c)
             term.setCursorBlink(true)
             rbuffer_char = c
+            local ax, ay = term.getCursorPos()
+            rbuffer_starting = {ax, ay}
 
             while not rbuffer_ok do --wait until rbuffer is ready
                 sleep(0)
@@ -292,8 +296,12 @@ CommandBox = class(TextField, function(self, x, y, shellPath)
                 local k = keytable[key]
                 if key == 14 then
                     local x, y = term.getCursorPos()
-                    term.setCursorPos(x-1, y)
-                    rbuffer = string.sub(rbuffer, 1, #rbuffer - 1)
+                    if not (x <= rbuffer_starting[1]) then
+                        term.setCursorPos(x, y)
+                        write(' ')
+                        term.setCursorPos(x-1, y)
+                        rbuffer = string.sub(rbuffer, 1, #rbuffer - 1)
+                    end
                 elseif k ~= nil then
                     rbuffer = rbuffer .. k
                     rbuffer_cursor = rbuffer_cursor + 1

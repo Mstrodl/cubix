@@ -1,5 +1,5 @@
 #!/usr/bin/env lua
---/bin/cshell_rewrite: rewrite of cubix shell
+--/bin/cshell: the cubix shell
 
 local shellToken = {}
 --local shell_wd = os.lib.control.get('/sbin/login', 'cwd')
@@ -23,10 +23,6 @@ function register_lcmd(c)
 end
 
 --TODO: a full language that integrates with the shell
-local function append(k, v)
-    k[#k + 1] = v
-end
-
 function tokenize(data)
     local i = 0
     local tokens = {}
@@ -49,14 +45,14 @@ end
 function execute(ast)
 end
 
+--normal functions...
 local function normal_command(cmd, context)
     --normal routine to run commands
     local tokens = os.strsplit(cmd, ' ')
     local args = os.tail(tokens)
     if args == nil then args = {} end
     local program = tokens[1]
-    --built-in "programs"
-    --echo, APATH, PPATH, getuid, getperm, alias, aliases
+    --built-in "programs", handled by the shell
     if program == 'echo' then
         local message = os.strsplit(cmd, ';')[2]
         print(message)
@@ -103,12 +99,6 @@ local function normal_command(cmd, context)
             register_lcmd(program .. ' ' .. table.concat(args, ' '))
         end
         --if its not, continue to other checks
-
-        --(theorical) security check(still not implemented):
-        --to make this possible, os.run needs to be reimplemented with permission checks to run a file
-        -- if fs.checkPerm(program, 'r') then
-        --     os.runfile_proc(program, args)
-        -- end
 
     --check cwd .. program
     elseif not found and fs.exists(os.cshell.resolve(program)) then
@@ -171,9 +161,6 @@ local function shcmd(cmd)
     end
 end
 
-os.cshell.change_path = function(newpath)
-end
-
 os.cshell.resolve = function()
 end
 
@@ -212,9 +199,6 @@ os.cshell.complete = function(pth)
 end
 
 os.cshell.exit = function()
-end
-
-os.cshell.setDir = function()
 end
 
 function run_script(pth)

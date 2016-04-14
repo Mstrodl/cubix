@@ -2,39 +2,24 @@
 --multiuser library
 
 --[[
-
-TODO: framebuffers
-TODO: some sort to lock a process to a tty
-TODO: switch of ttys
-
-The task of multiuser is to load /bin/login into all ttys
-so you can have multiple users in the same computer logged at the same time!
-
+    The task of multiuser is to load /bin/login into all ttys
+    so you can have multiple users in the same computer logged at the same time!
 ]]
 
 RELOADABLE = false
 
-function create_multitty()
-    --create some form of multitasking between ttys(allowing read() calls to be made)
-    --i'm thinking this needs to be in tty manager
-end
+local framebuffers = {}
+local current_fb = 1
 
-function create_switch()
-    --create interface to switch between ttys
-    --theory:
-    --create a routing waiting for ctrl calls
-    --see if ctrl+n is pressed
-end
+TERM_X = 51
+TERM_Y = 19
 
-function run_all_ttys()
-    create_multitty()
-    create_switch()
-    for k,v in pairs(os.lib.tty.get_ttys()) do
-        --every active tty running login
-        v:run_process("/sbin/login")
-    end
-end
+--[[
+    Since trying to do this is the hell, I'll just theorize this
+
+    The plan:
+        ?????????????????????????
+]]
 
 function libroutine()
-    run_all_ttys()
 end

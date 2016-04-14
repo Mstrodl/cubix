@@ -30,6 +30,8 @@ function register(process, label, h)
         local_register(runningproc.file, label, h)
     elseif '/'..runningproc.file == process then
         local_register('/'..runningproc.file, label, h)
+    elseif runningproc.file == '/sbin/init' and process == '/sbin/login' then
+        local_register(process, label, h)
     else
         ferror("comm_manager: running process ~= process")
     end

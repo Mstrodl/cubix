@@ -1,6 +1,6 @@
 #LXW data for lxTerm
 
-# maximum is 19x51
+# cc screen(adv computer) = 19x51
 name:lxterm
 hw:9,30
 changeable:false

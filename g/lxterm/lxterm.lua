@@ -11,7 +11,7 @@ function main()
     local Main = windowl[1]
 
     Main:set_title("lxterm")
-    local cbox1 = os.lib.lxWindow.CommandBox(10, 10, '/sbin/login')
+    local cbox1 = os.lib.lxWindow.CommandBox(5, 5, '/sbin/login')
     Main:add(cbox1, 0, 0)
     Main:set_handler(cbox1.event_handler)
     Main:set_parallel(cbox1.run_shell)

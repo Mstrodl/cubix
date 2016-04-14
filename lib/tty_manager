@@ -36,6 +36,7 @@ function TTY.new(tid)
     inst.buffer = ""
     inst.id = tid
     inst.using = false
+    inst.framebuffer = {}
     TTYS[tid] = inst
     return inst
 end
@@ -45,7 +46,6 @@ function TTY:run_process(absolute_path)
 end
 
 function TTY:write(msg)
-    self.buffer = self.buffer .. msg
     write(msg)
 end
 
@@ -58,8 +58,7 @@ function write(message)
 end
 
 function libroutine()
-    --10 ttys by default
-    os.internals._kernel.register_tty("/dev/tty0", TTY.new("/dev/tty0"))
+    --9 ttys by default
     os.internals._kernel.register_tty("/dev/tty1", TTY.new("/dev/tty1"))
     os.internals._kernel.register_tty("/dev/tty2", TTY.new("/dev/tty2"))
     os.internals._kernel.register_tty("/dev/tty3", TTY.new("/dev/tty3"))
