@@ -1,8 +1,13 @@
 #!/usr/bin/env lua
 --pipe manager
---task: support piping, like bash
 
-os.__pipes = {}
+--[[
+    Pipes in Cubix are just a form of communicating data,
+    programatically.
+
+    The csh(will) use this manager to create pipes between processes
+    and their std* channels.
+]]
 
 Pipe = {}
 Pipe.__index = Pipe
@@ -55,4 +60,3 @@ function test_pipe()
 end
 
 function libroutine()end
-

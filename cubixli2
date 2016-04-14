@@ -2,8 +2,8 @@
 --cubix_live_installer(cubixli): starts a enviroment where the user can install cubix
 
 AUTHOR = "Lukas Mendes"
-VERSION = "0.2.0"
-BUILD_DATE = "2016-03-28"
+VERSION = "0.2.1"
+BUILD_DATE = "2016-04-14"
 
 --[[
     Cubix Live Installer, version 2
@@ -421,22 +421,43 @@ function smallyapi(args)
         return true
     end
 
+    function check_files(yapdata)
+        for file,filedata in pairs(yapdata['files']) do
+            if fs.exists(file) then
+                print_color("check_files: file "..file.." exists.", colors.red)
+                if not prompt("Continue checking?", "y", "n") then
+                    return false
+                end
+            end
+        end
+        return true
+    end
+
     function pkg_install(pkgname)
         if not dbdata[pkgname] then
             return ferror("error: target not found: "..pkgname)
         end
         print("==> Installing "..pkgname)
         pkgd = dbdata[pkgname]
-        --viewTable(pkgd)
         yf = download_file(pkgd.url)
         yd = yap_parse(yf)
-        return yap_install(yd)
+        if check_files(yd) then
+            return yap_install(yd)
+        else
+            print_color("check_files returned conflicts.", colors.red)
+            if prompt("Continue with overwrite installation?", "y", "n") then
+                return yap_install(yd)
+            else
+                print("So it is then.")
+            end
+        end
+        return false
     end
 
     for k,pkg in ipairs(args) do
         if pkg == 'base-latest' then
             debug_write("Downloading Latest cubix from github", colors.yellow)
-            shell.run('pastebin run W5ZkVYSi lkmnds cubix cubix-dev') --get latest cubix
+            shell.run('pastebin run W5ZkVYSi lkmnds cubix cubix-dev') --get development cubix
             shell.run("FINISHINSTALL")
             if fs.exists('json') then --remove json library because gitget uses it
                 shell.run("rm json")
@@ -607,7 +628,7 @@ function tzselect(args)
     return 0
 end
 
-function timesetup(args)
+function timesetup(args) --TODO
     if args == '-auto' then
         --automatic check(5 times) the given servers and use the working ones
     else
@@ -717,6 +738,7 @@ function main()
             return 0
         end
     end
+
     if load_services() then
         start_shell()
     end
