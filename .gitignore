@@ -1,9 +1,14 @@
 
 #temporary things that always change
-/dev/hda/CFSDATA
 /tmp/syslog
-/proc/sttime
+
+#/proc stuff
 /proc/build_date
+/proc/cpuinfo
+/proc/partitions
+/proc/sttime
+/proc/temperature
+/proc/version
 
 #uninportant things to overall download of repo
 /var/yapi/cache
