@@ -1,6 +1,6 @@
 
 #temporary things that always change
-/tmp/syslog
+/tmp/*
 
 #/proc stuff
 /proc/build_date

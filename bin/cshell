@@ -6,7 +6,7 @@ local shellToken = {}
 local shell_wd = nil
 
 --getting shell process
-local itself = os.lib.proc.get_processes()[os.getrunning()]
+local itself = os.lib.proc.get_processes()[pget_running()]
 local itself_pid = os.lib.proc.get_itself()
 
 local shell_PS1 = '%u@%h:%w $'
@@ -95,7 +95,7 @@ local function normal_command(cmd, context, _pipe)
         local tok = os.strsplit(program, '/')
         if tok[1] ~= '/sbin' then
             found = true
-            os.runfile_proc(program, args, itself, _pipe)
+            os.runfile(program, args, itself, _pipe)
             register_lcmd(program .. ' ' .. table.concat(args, ' '))
         end
         --if its not, continue to other checks
@@ -105,7 +105,7 @@ local function normal_command(cmd, context, _pipe)
         print(current_path)
         if shell_wd ~= '/sbin' or shell_wd ~= 'sbin' then
             found = true
-            os.runfile_proc(os.cshell.resolve(program), args, itself, _pipe)
+            os.runfile(os.cshell.resolve(program), args, itself, _pipe)
             register_lcmd(os.cshell.resolve(program) .. ' ' .. table.concat(args, ' '))
         end
     end
@@ -116,7 +116,7 @@ local function normal_command(cmd, context, _pipe)
         local K = fs.combine(token..'/', program)
         if not found and fs.exists(K) then
             found = true
-            os.runfile_proc(K, args, itself, _pipe)
+            os.runfile(K, args, itself, _pipe)
             register_lcmd(K .. ' ' .. table.concat(args, ' '))
         end
     end
@@ -125,7 +125,7 @@ local function normal_command(cmd, context, _pipe)
     if not found and fs.exists(fs.combine("/sbin/", program)) then
         if os.lib.login.userUID() == 0 then
             found = true
-            os.runfile_proc(fs.combine("/sbin/", program), args, itself, _pipe)
+            os.runfile(fs.combine("/sbin/", program), args, itself, _pipe)
             register_lcmd(fs.combine("/sbin/", program) .. ' ' .. table.concat(args, ' '))
         end
     end

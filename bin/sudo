@@ -20,10 +20,10 @@ function run_program(_args)
     local found = false
     if fs.exists(program) then
         found = true
-        os.runfile_proc(program, args)
+        os.runfile(program, args)
     elseif fs.exists(fs.combine(current_path, program)) then
         found = true
-        os.runfile_proc(fs.combine(current_path, program), args)
+        os.runfile(fs.combine(current_path, program), args)
     end
 
     local _path = os.strsplit(os.cshell.PATH, ':')
@@ -31,13 +31,13 @@ function run_program(_args)
         local K = fs.combine(v..'/', program)
         if fs.exists(K) then
             found = true
-            os.runfile_proc(K, args)
+            os.runfile(K, args)
         end
     end
 
     if fs.exists(fs.combine("/sbin/", program)) then
         found = true
-        os.runfile_proc(fs.combine("/sbin/", program), args)
+        os.runfile(fs.combine("/sbin/", program), args)
     end
 
     if program == '!!' then
@@ -48,7 +48,7 @@ function run_program(_args)
             ferror("Sorry user, you can't make a infinite loop.")
             return 1
         end
-        os.runfile_proc(last_command[1], os.tail(last_command))
+        os.runfile(last_command[1], os.tail(last_command))
     end
 
     if not found then

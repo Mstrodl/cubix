@@ -179,7 +179,7 @@ local _special_sudo = false
 
 --alert the login module that sudo is running
 function alert_sudo()
-    local runningproc = os.lib.proc.get_processes()[os.getrunning()]
+    local runningproc = os.lib.proc.get_processes()[pget_running()]
     if runningproc.file == '/bin/sudo' or runningproc.file == 'bin/sudo' then
         _special_sudo = true
     else
