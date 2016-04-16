@@ -18,13 +18,15 @@ local pid_last = 0
 local old_run = os.run
 
 local function killproc(p)
-    process[p.pid] = nil
+    processes[p.pid] = -1
 end
 
 function __killallproc()
     if CUBIX_REBOOTING or CUBIX_TURNINGOFF then
         for pid,process in pairs(processes) do
-            killproc(process)
+            if process ~= -1 then
+                killproc(process)
+            end
         end
     else
         return ferror("proc.kapr: not rebooting or turningoff")
@@ -65,7 +67,28 @@ function run(self, arguments, pipe, env)
     running = self.pid
     processes[self.pid] = self
 
+    local ctty = os.lib.tty.getcurrentTTY()
+    if ctty == nil or ctty == {} or ctty == '' then
+        self.tty = '/dev/ttde'
+    else
+        self.tty = ctty.id
+    end
+
+    env['program_pipe'] = pipe
+    if type(pipe) == 'table' then
+        env['write'] = function(a)
+            pipe:write(a)
+        end
+        env['print'] = function(a)
+            pipe:write(a..'\n')
+        end
+        env['read'] = function()
+            return pipe:readLine()
+        end
+    end
     old_run(env, self.file, unpack(arguments, 1))
+
+    killproc(self)
 end
 
 --arguments : table
@@ -77,15 +100,22 @@ local function run_itself(self, arguments, parent_proc, pipe, enviroment)
         Run a process with its arguments, parent, pipe and defined enviroment
     ]]
     local _parent = nil
-    if parent == nil then
-        _parent = __init_process --making sure /sbin/init is parent of all processes(without parent)
+    print(self.parent)
+    if self.parent == nil and self.file ~= '/sbin/init' then
+        _parent = os.__init_process --making sure /sbin/init is parent of all processes(without parent)
     else
-        _parent = parent
+        _parent = parent_proc
     end
 
     --default things
     if arguments == nil then arguments = {} end
     if enviroment == nil then enviroment = {} end
+
+    local line_args = ''
+    for k,v in ipairs(arguments) do
+        line_args = line_args .. v .. ' '
+    end
+    self.lineargs = line_args
 
     --set parent and run process
     set_parent(self, _parent)
@@ -98,9 +128,13 @@ end
 _G['prexec'] = prexec
 
 function set_parent(self, parent)
-    self.parent = parent
-    if parent ~= nil then
+    if parent ~= nil and type(parent) == 'table' then
+        --get parent from file
+        self.parent = parent.file
         parent.childs[ (#parent.childs) + 1 ] = self
+    else
+        self.parent = nil
+        os.debug.debug_write("[proc] parent nil: "..self.file, false)
     end
 end
 
@@ -118,9 +152,7 @@ os.runfile = function(executable, arguments, parent, pipe, env)
 end
 
 function get_processes()
-    local c = deepcopy(processes)
-    c['CPY_FLAG'] = true --copy flag
-    return c
+    return deepcopy(processes)
 end
 
 function get_running()
@@ -151,6 +183,38 @@ function get_itself()
         return processes[running]
     else
         ferror("get_itself: perm error")
+    end
+end
+
+--same from original proc_manager
+
+FLAG_CTTY = 0 --all processes in the same tty(the tty)
+FLAG_ATTY = 1 --all process in all tty
+FLAG_APRC = 2 --all process in the system
+
+function filter_proc(filter_flag)
+    if filter_flag == FLAG_CTTY then
+        local ctty = os.lib.tty.getcurrentTTY()
+        local filtered = {}
+        for k,v in pairs(get_processes()) do
+            if type(v) == 'table' then
+                if v.tty == ctty.id then
+                    filtered[v.pid] = v
+                end
+            end
+        end
+        return filtered
+    elseif filter_flag == FLAG_ATTY or filter_flag == FLAG_APRC then
+        local filtered = {}
+        for k,v in pairs(get_processes()) do
+            if type(v) == 'table' then
+                filtered[v.pid] = v
+            end
+        end
+        return filtered
+    else
+        ferror("proc.filter_proc: no flag")
+        return nil
     end
 end
 

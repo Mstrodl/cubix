@@ -88,14 +88,18 @@ local function normal_command(cmd, context, _pipe)
 
     local found = false
     --part where we see paths and permissions to run and everything
-
+    local pr = nil
     --check absolute paths
     if fs.exists(program) then
         --security check: check if program is in /sbin
         local tok = os.strsplit(program, '/')
         if tok[1] ~= '/sbin' then
             found = true
-            os.runfile(program, args, itself, _pipe)
+            --os.runfile(program, args, itself, _pipe)
+
+            pr = fork(program)
+            prexec(pr, args, nil, _pipe)
+
             register_lcmd(program .. ' ' .. table.concat(args, ' '))
         end
         --if its not, continue to other checks
@@ -105,7 +109,8 @@ local function normal_command(cmd, context, _pipe)
         print(current_path)
         if shell_wd ~= '/sbin' or shell_wd ~= 'sbin' then
             found = true
-            os.runfile(os.cshell.resolve(program), args, itself, _pipe)
+            pr = fork(os.cshell.resolve(program))
+            prexec(pr, args, nil, _pipe)
             register_lcmd(os.cshell.resolve(program) .. ' ' .. table.concat(args, ' '))
         end
     end
@@ -116,7 +121,8 @@ local function normal_command(cmd, context, _pipe)
         local K = fs.combine(token..'/', program)
         if not found and fs.exists(K) then
             found = true
-            os.runfile(K, args, itself, _pipe)
+            pr = fork(K)
+            prexec(pr, args, nil, _pipe)
             register_lcmd(K .. ' ' .. table.concat(args, ' '))
         end
     end
@@ -125,7 +131,8 @@ local function normal_command(cmd, context, _pipe)
     if not found and fs.exists(fs.combine("/sbin/", program)) then
         if os.lib.login.userUID() == 0 then
             found = true
-            os.runfile(fs.combine("/sbin/", program), args, itself, _pipe)
+            pr = fork(fs.combine("/sbin/", program))
+            prexec(pr, args, nil, _pipe)
             register_lcmd(fs.combine("/sbin/", program) .. ' ' .. table.concat(args, ' '))
         end
     end
@@ -143,6 +150,7 @@ local function shcmd(cmd)
     --comments
     if string.sub(cmd, 1, 1) == '#' then return 0 end
     --parse multiple commands
+    local sh_context = {}
     for _, command in pairs(os.strsplit(cmd, "&&")) do
         if command:find("|") then --piping
             local count = 1
@@ -152,12 +160,12 @@ local function shcmd(cmd)
                 --[[
                 For each program, run it with pipe support
                 ]]
-                normal_command(prog, nil, main_pipe)
+                normal_command(prog, sh_context, main_pipe)
             end
         else
             --if command does not have |, run program normally
             --now parse the command, with args and everything
-            normal_command(command, nil)
+            normal_command(command, sh_context)
         end
     end
 end

@@ -20,16 +20,18 @@ function main(args)
             flag_show_ppid = true
         end
     end
-    local procs = os.lib.proc.get_processes()
+
     --default action: show all processes from the current terminal
     if not flag_all_terminals and not flag_all_proc then
         local pcurrent_tty = os.lib.proc.filter_proc(os.lib.proc.FLAG_CTTY)
+
         print("PID  PROC")
         for _,v in pairs(pcurrent_tty) do
             print(v.pid.."  "..(v.file.." "..v.lineargs))
         end
     elseif flag_all_proc and not flag_all_terminals then
         local pallproc = os.lib.proc.filter_proc(os.lib.proc.FLAG_APRC)
+
         print("PID  PRNT  PROC")
         for _,v in pairs(pallproc) do
             if v.parent ~= nil then
@@ -41,6 +43,7 @@ function main(args)
     elseif not flag_all_proc and flag_all_terminals then
         --print('all tty')
         local palltty = os.lib.proc.filter_proc(os.lib.proc.FLAG_ATTY)
+
         print("PID  PRNT  PROC")
         for _,v in pairs(palltty) do
             if v.parent ~= nil then
