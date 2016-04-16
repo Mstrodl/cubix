@@ -20,7 +20,7 @@ local function local_register(proc_name, label, v)
 end
 
 function register(process, label, h)
-    local runningproc = os.lib.proc.get_processes()[os.getrunning()]
+    local runningproc = os.lib.proc.get_processes()[pget_running()]
     if h == nil then h = '' end
     if runningproc == nil or runningproc == -1 then
         os.debug.debug_write("comm: no running process")

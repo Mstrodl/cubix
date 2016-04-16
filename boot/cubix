@@ -299,7 +299,7 @@ function os.internals._kernel.register_mfile(controller) --register Managed File
     -- new_mfile(controller)
 end
 
-loadmodule("proc", "/lib/proc_manager")
+loadmodule("proc", "/lib/proc_manager_rw")
 
 --hash manager
 loadmodule("hash", "/lib/hash_manager")
@@ -429,12 +429,12 @@ os.debug = __debug
 term.clear()
 term.setCursorPos(1,1)
 
---finally, run!
-os.__parent_init = os.new_process(kflag.init)
+--finally, run the init process!
+local init_proc = fork(kflag.init) --create a new process based on the running parent
 if kflag.sRunlevel ~= nil then
-    os.run_process(os.__parent_init, {kflag.sRunlevel})
+    init_proc:run_itself({kflag.sRunlevel})
 else
-    os.run_process(os.__parent_init)
+    init_proc:run_itself()
 end
 
 --if something goes wrong in kflag.init(such as kill or a monster), just halt

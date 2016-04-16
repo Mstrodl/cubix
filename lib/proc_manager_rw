@@ -1,0 +1,133 @@
+#!/usr/bin/env lua
+--proc manager, the rewrite
+
+--[[
+    Process Manager:
+        Primary: Manage Processes and running programs
+        Secondary: manage /proc folder
+]]
+
+RELOADABLE = false
+
+local processes = {}
+local running = 0
+local pid_last = 0
+
+local old_run = os.run
+
+Process = class(function(self, file)
+    pid_last = pid_last + 1
+
+    self.pid = pid_last --PID of process
+    self.file = file --File that the process represent
+    self.parent = nil --Parent of process
+    self.childs = {} --Its childs
+
+    self.uid = -1 --The user(uid) that is running the process
+    self.lineargs = '' --arguments to process
+    self.user = ''
+    self.tty = '' --TTY that is running the process
+
+    os.debug.debug_write("[proc] new: "..self.file, false)
+end)
+
+function Process:set_parent(parent)
+    self.parent = parent
+    if parent ~= nil then
+        parent.childs[ (#parent.childs) + 1 ] = self
+    end
+end
+
+function Process:run(arguments, pipe, env)
+    --[[
+        Actually run a process
+    ]]
+    running = self.pid
+    print('running '..tonumber(self.pid))
+    old_run(env, self.file, unpack(arguments, 1))
+end
+
+--arguments : table
+--parent : Process
+--pipe : Pipe
+--enviroment : table
+function Process:run_itself(arguments, parent_proc, pipe, enviroment)
+    --[[
+        Run a process with its arguments, parent, pipe and defined enviroment
+    ]]
+    local _parent = nil
+    if parent == nil then
+        _parent = __init_process --making sure /sbin/init is parent of all processes(without parent)
+    else
+        _parent = parent
+    end
+
+    --default things
+    if arguments == nil then arguments = {} end
+    if enviroment == nil then enviroment = {} end
+
+    --set parent and run process
+    self:set_parent(_parent)
+    self:run(arguments, pipe, enviroment)
+end
+
+--CC os.run: use CBX processes but only recieve as CC os.run args
+os.run = function(enviroment, executable, ...)
+    local args = {...}
+    local p = Process(executable)
+    return p:run_itself(args, nil, nil, enviroment)
+end
+
+--os.runfile: use CBX processes with all possible arguments
+os.runfile = function(executable, arguments, parent, pipe, env)
+    local p = Process(executable)
+    return p:run_itself(arguments, parent, pipe, env)
+end
+
+function get_processes()
+    return deepcopy(processes)
+end
+
+function get_running()
+    return running
+end
+_G['pget_running'] = get_running
+
+function get_by_pid(pid)
+    --get a process by its PID(not of deepcopy, but the original process) with permission
+    tview(processes[running])
+    print(type(processes[running]))
+    if permission.grantAccess(fs.perms.SYS)
+     or processes[running].file == '/bin/cshell'
+     or processes[running].file == '/sbin/login'
+     or processes[running].file == '/sbin/kill'
+     or processes[running].file == 'sbin/kill' then
+        return processes[pid]
+    else
+        ferror("get_by_pid: perm error")
+    end
+end
+
+--get itself as a process object
+function get_itself()
+    if permission.grantAccess(fs.perms.SYS)
+     or processes[running].file == '/bin/cshell'
+     or processes[running].file == '/sbin/login'
+     or processes[running].file == '/sbin/kill'
+     or processes[running].file == 'sbin/kill' then
+        return processes[running]
+    else
+        ferror("get_itself: perm error")
+    end
+end
+
+function fork(f)
+    local p = Process(f)
+    p:set_parent(processes[running])
+    return p
+end
+_G['fork'] = fork
+
+function libroutine()
+    _G['new_process'] = Process
+end

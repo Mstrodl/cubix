@@ -37,7 +37,7 @@ function main(args)
 
         --getting itself as a process
         os.lib.control.register('/sbin/login', 'login_lock', '1')
-        local itself = os.lib.proc.get_by_pid(os.getrunning())
+        local itself = os.lib.proc.get_by_pid(pget_running())
         os.lib.control.register('/sbin/login', 'login_lock', nil)
 
         --running csh
