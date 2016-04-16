@@ -158,8 +158,18 @@ os.run_process = function(process, arguments, pipe, enviroment)
 
     process.uid = os.lib.login.userUID()
 
-    --_G['pipe'] = pipe
-    enviroment['pipe'] = pipe
+    enviroment['program_pipe'] = pipe
+    if type(pipe) == 'table' then
+        enviroment['write'] = function(a)
+            pipe:write(a)
+        end
+        enviroment['print'] = function(a)
+            pipe:write(a..'\n')
+        end
+        enviroment['read'] = function()
+            return pipe:readLine()
+        end
+    end
     os.run(enviroment, process.file, unpack(arguments,1))
 
     --finish process

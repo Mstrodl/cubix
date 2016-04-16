@@ -46,7 +46,7 @@ function execute(ast)
 end
 
 --normal functions...
-local function normal_command(cmd, context)
+local function normal_command(cmd, context, _pipe)
     --normal routine to run commands
     local tokens = os.strsplit(cmd, ' ')
     local args = os.tail(tokens)
@@ -95,7 +95,7 @@ local function normal_command(cmd, context)
         local tok = os.strsplit(program, '/')
         if tok[1] ~= '/sbin' then
             found = true
-            os.runfile_proc(program, args, itself)
+            os.runfile_proc(program, args, itself, _pipe)
             register_lcmd(program .. ' ' .. table.concat(args, ' '))
         end
         --if its not, continue to other checks
@@ -105,7 +105,7 @@ local function normal_command(cmd, context)
         print(current_path)
         if shell_wd ~= '/sbin' or shell_wd ~= 'sbin' then
             found = true
-            os.runfile_proc(os.cshell.resolve(program), args, itself)
+            os.runfile_proc(os.cshell.resolve(program), args, itself, _pipe)
             register_lcmd(os.cshell.resolve(program) .. ' ' .. table.concat(args, ' '))
         end
     end
@@ -116,7 +116,7 @@ local function normal_command(cmd, context)
         local K = fs.combine(token..'/', program)
         if not found and fs.exists(K) then
             found = true
-            os.runfile_proc(K, args, itself)
+            os.runfile_proc(K, args, itself, _pipe)
             register_lcmd(K .. ' ' .. table.concat(args, ' '))
         end
     end
@@ -125,7 +125,7 @@ local function normal_command(cmd, context)
     if not found and fs.exists(fs.combine("/sbin/", program)) then
         if os.lib.login.userUID() == 0 then
             found = true
-            os.runfile_proc(fs.combine("/sbin/", program), args, itself)
+            os.runfile_proc(fs.combine("/sbin/", program), args, itself, _pipe)
             register_lcmd(fs.combine("/sbin/", program) .. ' ' .. table.concat(args, ' '))
         end
     end
@@ -152,11 +152,12 @@ local function shcmd(cmd)
                 --[[
                 For each program, run it with pipe support
                 ]]
+                normal_command(prog, nil, main_pipe)
             end
         else
             --if command does not have |, run program normally
             --now parse the command, with args and everything
-            normal_command(command)
+            normal_command(command, nil)
         end
     end
 end

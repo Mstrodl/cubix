@@ -1,4 +1,5 @@
 rom/help/textutils:1:777::0
+proc/26:1:777::0
 rom/programs/http/wget:1:777::0
 rom/apis/paintutils:1:777::0
 var/yapi/db:0:777::0
@@ -10,25 +11,22 @@ sbin/adduser:1:777::0
 lib/devices/term.lua:1:777::0
 /:0:755::0
 rom/help/redstoneapi:1:777::0
-proc/4/cmd:1:777::0
 rom/help/time:1:777::0
 sbin/pm-suspend:0:700::0
 lib/acpi.lua:1:777::0
 rom/programs/turtle/tunnel:1:777::0
 src/base-pkg/pkgdata:1:777::0
-proc/4:1:777::0
 bin/pwd:1:777::0
 rom/help/redirection:1:777::0
 tmp/current_tty:1:777::0
 rom/programs/http/pastebin:1:777::0
 rom/help/monitor:1:777::0
+proc/26/stat:1:777::0
 usr/share/doc:0:777::0
 rom/help/tunnel:1:777::0
-proc/5/cmd:1:777::0
 bin/yes:1:777::0
 /changelog:0:777::0
 rom/help/licenses/luaj:1:777::0
-proc/5/stat:1:777::0
 /boot/sblcfg:0:777::0
 rom/help/http:1:777::0
 bin/mount:1:777::0
@@ -67,6 +65,7 @@ usr/manuals/programs.man:1:777::0
 /mbr_code:0:777::0
 rom/programs/fun/advanced/levels/1:1:777::0
 bin/mkdir:1:777::0
+/proc/25:1:777::0
 dev/tty8:1:777::0
 lib/fs_manager:1:777::0
 /dev/hda:0:777::0
@@ -105,6 +104,7 @@ rom/help:0:777::0
 rom/help/hello:1:777::0
 rom/programs/advanced:0:777::0
 src/yapi-extradocs/pkgdata-example:1:777::0
+proc/24/exe:1:777::0
 /etc/rc3.d:0:777::0
 rom/help/changelog:1:777::0
 rom/apis/turtle/turtle:1:777::0
@@ -114,6 +114,7 @@ proc/3/stat:1:777::0
 etc/rc6.d:0:777::0
 dev/tty10:1:777::0
 rom/programs/eject:1:777::0
+proc/25/exe:1:777::0
 bin/lsmod:1:777::0
 /usr/share/doc:0:777::0
 /dev/disk:0:777::0
@@ -125,6 +126,7 @@ dev/disk:0:777::0
 /g:0:777::0
 var/yapi:0:777::0
 rom/help/keys:1:777::0
+proc/26/cmd:1:777::0
 rom/help/credits:1:777::0
 proc/temperature:1:777::0
 rom/help/sleep:1:777::0
@@ -149,14 +151,13 @@ etc/rc1.d:0:777::0
 lib/devices/kbd.lua:1:777::0
 rom/programs/type:1:777::0
 rom/help/paint:1:777::0
-proc/4/stat:1:777::0
 rom/help/worm:1:777::0
 rom/help/wget:1:777::0
 lib/fs/tmpfs.lua:1:777::0
 etc/sudoers:1:777::0
 rom/programs/fun/advanced/levels/8:1:777::0
-etc/rc3.d:0:777::0
 rom/autorun:0:777::0
+etc/rc3.d:0:777::0
 bin/chmod:1:777::0
 /bin:0:777::0
 usr/manuals/wget.man:1:777::0
@@ -175,6 +176,7 @@ dev/loop1:1:777::0
 rom/help/shutdown:1:777::0
 /mnt/tmpfs:0:777::0
 lib/luaX/lxServer.lua:1:777::0
+/proc/26:1:777::0
 dev/tty0:1:777::0
 /FINISHINSTALL:0:777::0
 /etc:0:777::0
@@ -188,6 +190,7 @@ boot/sbl:1:777::0
 bin/cscript:1:777::0
 src/base-pkg:0:777::0
 rom/programs/fun/worm:1:777::0
+proc/24/cmd:1:777::0
 rom/programs/set:1:777::0
 bin/cat:1:777::0
 rom/programs/fun/advanced/levels/11:1:777::0
@@ -294,14 +297,12 @@ src/base-pkg/makeyap:1:777::0
 var/yapi/db/core:1:777::0
 /usr:0:777::0
 usr/manuals/sbl.man:1:777::0
-/rom/programs/pocket:0:777::0
 bin/cd:1:777::0
-g/lxterm/lxterm.lua:1:777::0
-proc/5/exe:1:777::0
 usr/manuals/devicemngr.man:1:777::0
+g/lxterm/lxterm.lua:1:777::0
+/rom/programs/pocket:0:777::0
 rom/apis/keys:1:777::0
 rom/programs/turtle/craft:1:777::0
-/proc/4:1:777::0
 /lib/fs:0:777::0
 g/lxterm:0:777::0
 bin/nano:1:777::0
@@ -350,7 +351,6 @@ dev/loop3:1:777::0
 /rom/programs/advanced:0:777::0
 rom/help/reboot:1:777::0
 rom/help/helpapi:1:777::0
-proc/5:1:777::0
 lib/devices/mouse_device.lua:1:777::0
 home/cubix/.cshrc:1:777::0
 rom/help/licenses:0:777::0
@@ -368,8 +368,8 @@ bin/dd:1:777::0
 lib/proc_manager:1:777::0
 dev/MAKEDEV:1:777::0
 etc/rc5.d:0:777::0
-rom/programs/rednet/chat:1:777::0
 /etc/rc5.d:0:777::0
+rom/programs/rednet/chat:1:777::0
 /tmp:0:777::0
 rom/help/label:1:777::0
 bin/passwd:1:777::0
@@ -380,6 +380,7 @@ dev/tty3:1:777::0
 rom/help/gpsapi:1:777::0
 usr/share:0:777::0
 dev/tty7:1:777::0
+proc/26/exe:1:777::0
 var/yapi/cache/initramfs-tools-3.yap:1:777::0
 dev/hda/CFSDATA:1:777::0
 rom/help/earth:1:777::0
@@ -406,6 +407,7 @@ var/yapi/local:1:777::0
 rom/programs/fun/advanced/levels:0:777::0
 rom/help/monitors:1:777::0
 lib/device_manager:1:777::0
+proc/25/stat:1:777::0
 rom/help/commands:1:777::0
 rom/programs/fun/advanced/levels/4:1:777::0
 rom/programs/shell:1:777::0
@@ -421,8 +423,8 @@ rom/help/intro:1:777::0
 lib/video_manager:1:777::0
 /home:0:777::0
 rom/programs/cd:1:777::0
-rom/programs/turtle/excavate:1:777::0
 rom/help/craft:1:777::0
+rom/programs/turtle/excavate:1:777::0
 boot/sblcfg/systems.cfg:1:777::0
 usr/bin:0:777::0
 var/yapi/cache:0:777::0
@@ -430,6 +432,7 @@ usr/games:0:777::0
 rom/programs/fun/advanced/levels/3:1:777::0
 rom/programs/gps:1:777::0
 bin/sh:1:777::0
+proc/24:1:777::0
 boot/sblcfg/craftos:1:777::0
 /cubix_standards:0:777::0
 proc/version:1:777::0
@@ -467,12 +470,14 @@ usr/manuals/kernel/internals.man:1:777::0
 /rom/apis/command:0:777::0
 lib/hash/md5.lua:1:777::0
 boot/sblcfg/cubixboot:1:777::0
-rom/programs/http:0:777::0
+/proc/24:1:777::0
 boot/sblcfg:0:777::0
+rom/programs/http:0:777::0
 rom/programs/fun/advanced/levels/12:1:777::0
 rom/help/settings:1:777::0
 rom/apis/help:1:777::0
 rom/apis/command/commands:1:777::0
+proc/24/stat:1:777::0
 rom/programs/move:1:777::0
 bin/ps:1:777::0
 /proc/3:1:777::0
@@ -481,9 +486,9 @@ usr/manuals/kernel/a:0:777::0
 /rom/programs/http:0:777::0
 rom/help/commandsapi:1:777::0
 usr/manuals/kernel/a/absikdef:0:777::0
-src/tests/test_binaries:1:777::0
 usr/lib:0:777::0
 rom/apis/term:1:777::0
+src/tests/test_binaries:1:777::0
 proc/2/exe:1:777::0
 rom/help/go:1:777::0
 rom/help/window:1:777::0
@@ -494,6 +499,7 @@ usr/manuals/kernel/api.man:1:777::0
 boot/sblcfg/cbxmultiuser:1:777::0
 bin/umount:1:777::0
 rom/programs/reboot:1:777::0
+proc/25/cmd:1:777::0
 sbin/pm-hibernate:1:777::0
 rom/help/move:1:777::0
 rom/programs:0:777::0
@@ -516,7 +522,6 @@ rom/help/turn:1:777::0
 bin/dmesg:1:777::0
 lib/hash_manager:1:777::0
 rom/programs/fun/advanced/levels/10:1:777::0
-/proc/5:1:777::0
 rom/help/alias:1:777::0
 lib/devices/random_device.lua:1:777::0
 rom/programs/time:1:777::0
@@ -529,6 +534,7 @@ bin/sudo:1:777::0
 rom/programs/peripherals:1:777::0
 rom/programs/fun/advanced/levels/9:1:777::0
 usr/manuals/yapi.man:1:777::0
+proc/25:1:777::0
 dev/tty6:1:777::0
 rom/help/rs:1:777::0
 usr/manuals/procmngr.man:1:777::0
@@ -543,5 +549,4 @@ dev/null:1:777::0
 rom/help/vector:1:777::0
 rom/help/table:1:777::0
 g/lxterm/lxterm.lxw:1:777::0
-proc/4/exe:1:777::0
 src/yapi-extradocs/pkgdata_fmt:1:777::0
