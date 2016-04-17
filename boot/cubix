@@ -435,11 +435,8 @@ term.setCursorPos(1,1)
 --finally, run the init process!
 local init_proc = fork(kflag.init) --create a new process based on the running parent
 os.__init_process = init_proc
-if kflag.sRunlevel ~= nil then
-    prexec(init_proc, {kflag.sRunlevel})
-else
-    prexec(init_proc)
-end
+
+prexec(init_proc, {kflag.sRunlevel}, nil, nil, nil, true)
 
 --if something goes wrong in kflag.init(such as kill or a monster), just halt
 os.system_halt()

@@ -41,7 +41,8 @@ function main(args)
         os.lib.control.register('/sbin/login', 'login_lock', nil)
 
         --running csh
-        os.runfile("/bin/cshell", nil, itself) --parenting with login
+        local cshellproc = fork('/bin/cshell')
+        prexec(cshellproc, nil, nil, nil, nil, true)
     else
         os.ferror("\nLogin incorrect")
     end

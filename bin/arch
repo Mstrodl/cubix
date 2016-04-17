@@ -2,7 +2,7 @@
 --/bin/arch: same as uname -m
 
 function main(args)
-    os.runfile_proc("/bin/uname", {"-m"})
+    os.runfile("/bin/uname", {"-m"})
 end
 
 main({...})

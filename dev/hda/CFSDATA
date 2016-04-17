@@ -97,8 +97,8 @@ rom/programs/pocket:0:777::0
 rom/help:0:777::0
 /rom/programs/rednet:0:777::0
 rom/help/hello:1:777::0
-rom/programs/advanced:0:777::0
 src/yapi-extradocs/pkgdata-example:1:777::0
+rom/programs/advanced:0:777::0
 /etc/rc3.d:0:777::0
 rom/help/changelog:1:777::0
 rom/apis/turtle/turtle:1:777::0
@@ -151,8 +151,8 @@ rom/programs/fun/advanced/levels/8:1:777::0
 bin/chmod:1:777::0
 /bin:0:777::0
 usr/manuals/wget.man:1:777::0
-rom/programs/advanced/bg:1:777::0
 dev/full:1:777::0
+rom/programs/advanced/bg:1:777::0
 rom/help/fs:1:777::0
 /var/yapi/db:0:777::0
 sbin/reboot:1:777::0

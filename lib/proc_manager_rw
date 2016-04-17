@@ -11,14 +11,28 @@ RELOADABLE = false
 
 local libproc = {}
 
+--Process list, running process and last used PID
 local processes = {}
 local running = 0
 local pid_last = 0
 
+--Thread Management
+local threads = {}
+local starting = {}
+local event_filter = nil
+local THREAD_STARTED = false
+
+local fork_pid = nil
+
+--Old os.run(since it will be overwrited with calls to Process methods)
 local old_run = os.run
 
 local function killproc(p)
     processes[p.pid] = -1
+end
+
+local function killpid(pid)
+    processes[pid] = -1
 end
 
 function __killallproc()
@@ -42,16 +56,99 @@ Process = function(file)
     self.parent = nil --Parent of process
     self.childs = {} --Its childs
 
+    self.user = ''
     self.uid = -1 --The user(uid) that is running the process
     self.lineargs = '' --arguments to process
     self.user = ''
     self.tty = '' --TTY that is running the process
 
+    self.thread = nil --Thread representing the process
+
     os.debug.debug_write("[proc] new: "..self.file, false)
     return self
 end
 
-function run(self, arguments, pipe, env)
+local function start_thread(fn, id, pid, bt)
+    thread = {
+        id = id,
+        cr = coroutine.create(fn),
+        blockTerm = bt or false,
+        error = nil,
+        filter = nil,
+        dead = false,
+        pid = pid
+    }
+    table.insert(starting, thread)
+    if not THREAD_STARTED then
+        thread_start_all()
+    end
+    return thread
+end
+
+local function tick(t, evt, ...)
+    if t.dead then return end
+    if t.filter ~= nil and evt ~= t.filter then return end
+    if evt == 'terminate' and t.blockTerm then return end
+
+    coroutine.resume(t.cr, evt, ...)
+    t.dead = (coroutine.status(t.cr) == "dead")
+end
+
+local function tick_all()
+    if #starting > 0 then
+        local c = starting
+        starting = {}
+        for _,v in ipairs(c) do
+            tick(v)
+            table.insert(threads, v)
+        end
+    end
+
+    local evt
+    if event_filter then
+        evt = {event_filter(coroutine.yield())}
+    else
+        evt = {coroutine.yield()}
+    end
+
+    local dead = nil
+    for k,v in ipairs(threads) do --tick all threads once
+        tick(v, unpack(evt))
+        if v.dead then --if ded, remove him from threads list
+            if dead == nil then dead = {} end
+
+            table.insert(dead, k - #dead) --catalogue thread as dead
+            killpid(v.pid) --kill proces related to the thread
+        end
+    end
+
+    if dead ~= nil then
+        for _,v in ipairs(dead) do
+            table.remove(threads, v) --remove all dead threads
+        end
+    end
+end
+
+rawset(os, "setGlobalEventFilter", function(fn)
+    if event_filter ~= nil then error("This can only be set once!") end
+    event_filter = fn
+    rawset(os, "setGlobalEventFilter", nil)
+end)
+
+function thread_start_all()
+    if not THREAD_STARTED then
+        THREAD_STARTED = true
+        while #threads > 0 or #starting > 0 do
+            tick_all()
+        end
+        ferror("all threads terminated")
+        return ferror("exiting thread_man")
+    else
+        return ferror("start_all: already started")
+    end
+end
+
+function run(self, arguments, pipe, env, normal_run)
     --[[
         Actually run a process
     ]]
@@ -64,7 +161,13 @@ function run(self, arguments, pipe, env)
         return -1
     end
 
-    running = self.pid
+    if cu == '' then
+        self.user = 'root'
+    else
+        self.user = cu
+    end
+
+    self.uid = os.lib.login.userUID()
     processes[self.pid] = self
 
     local ctty = os.lib.tty.getcurrentTTY()
@@ -74,33 +177,42 @@ function run(self, arguments, pipe, env)
         self.tty = ctty.id
     end
 
-    env['program_pipe'] = pipe
-    if type(pipe) == 'table' then
-        env['write'] = function(a)
-            pipe:write(a)
+    local function handler()
+        env['program_pipe'] = pipe
+        if type(pipe) == 'table' then
+            env['write'] = function(a)
+                pipe:write(a)
+            end
+            env['print'] = function(a)
+                pipe:write(a..'\n')
+            end
+            env['read'] = function()
+                return pipe:readLine()
+            end
         end
-        env['print'] = function(a)
-            pipe:write(a..'\n')
-        end
-        env['read'] = function()
-            return pipe:readLine()
-        end
+        old_run(env, self.file, unpack(arguments, 1))
     end
-    old_run(env, self.file, unpack(arguments, 1))
 
-    killproc(self)
+    running = self.pid
+    if normal_run == true then
+        handler()
+        killproc(self)
+    else
+        self.thread = start_thread(handler, tostring(self.pid)..':'..tostring(self.file), self.pid)
+    end
+    --killproc(self)
 end
 
 --arguments : table
 --parent : Process
 --pipe : Pipe
 --enviroment : table
-local function run_itself(self, arguments, parent_proc, pipe, enviroment)
+local function run_itself(self, arguments, parent_proc, pipe, enviroment, normal_run)
     --[[
         Run a process with its arguments, parent, pipe and defined enviroment
     ]]
     local _parent = nil
-    print(self.parent)
+    --print('parent of '..tostring(self.pid)..':'..self.file..': ' .. tostring(self.parent))
     if self.parent == nil and self.file ~= '/sbin/init' then
         _parent = os.__init_process --making sure /sbin/init is parent of all processes(without parent)
     else
@@ -119,11 +231,11 @@ local function run_itself(self, arguments, parent_proc, pipe, enviroment)
 
     --set parent and run process
     set_parent(self, _parent)
-    run(self, arguments, pipe, enviroment)
+    run(self, arguments, pipe, enviroment, normal_run)
 end
 
-function prexec(process, args, prt, pipe, env)
-    return run_itself(process, args, prt, pipe, env)
+function prexec(process, args, prt, pipe, env, normal_run)
+    return run_itself(process, args, prt, pipe, env, normal_run)
 end
 _G['prexec'] = prexec
 
@@ -159,6 +271,16 @@ function get_running()
     return running
 end
 _G['pget_running'] = get_running
+
+os.currentUID = function()
+    local proc = processes[running]
+    if proc == nil or proc == -1 then
+        ferror("proc.currentUID: proc == (nil or -1)")
+        return nil
+    else
+        return proc.uid
+    end
+end
 
 function get_by_pid(pid)
     --get a process by its PID(not of deepcopy, but the original process) with permission
@@ -218,9 +340,19 @@ function filter_proc(filter_flag)
     end
 end
 
+local function chair_reg(pid)
+    fork_pid = pid
+end
+libproc.chair_register = chair_reg
+
 function fork(f)
     local p = Process(f)
-    set_parent(p, processes[running])
+    local fpid = fork_pid
+    if fpid == nil then
+        fpid = running
+    end
+    set_parent(p, processes[fork_pid])
+    print('p '..tostring(p.parent)..' -> '..p.file)
     return p
 end
 _G['fork'] = fork

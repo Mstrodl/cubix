@@ -86,6 +86,12 @@ local function normal_command(cmd, context, _pipe)
         return 0
     end
 
+    local prl = context['shell']['thread']
+    --prl = true => normal run(without final &)
+    --prl = false or nil => threading run(with final &)
+
+    libproc.chair_register(pget_running())
+
     local found = false
     --part where we see paths and permissions to run and everything
     local pr = nil
@@ -98,7 +104,10 @@ local function normal_command(cmd, context, _pipe)
             --os.runfile(program, args, itself, _pipe)
 
             pr = fork(program)
-            prexec(pr, args, nil, _pipe)
+            if not prl then
+                print("[T] "..tostring(pr.pid))
+            end
+            prexec(pr, args, nil, _pipe, nil, prl)
 
             register_lcmd(program .. ' ' .. table.concat(args, ' '))
         end
@@ -110,7 +119,10 @@ local function normal_command(cmd, context, _pipe)
         if shell_wd ~= '/sbin' or shell_wd ~= 'sbin' then
             found = true
             pr = fork(os.cshell.resolve(program))
-            prexec(pr, args, nil, _pipe)
+            if not prl then
+                print("[T] "..tostring(pr.pid))
+            end
+            prexec(pr, args, nil, _pipe, nil, prl)
             register_lcmd(os.cshell.resolve(program) .. ' ' .. table.concat(args, ' '))
         end
     end
@@ -122,7 +134,10 @@ local function normal_command(cmd, context, _pipe)
         if not found and fs.exists(K) then
             found = true
             pr = fork(K)
-            prexec(pr, args, nil, _pipe)
+            if not prl then
+                print("[T] "..tostring(pr.pid))
+            end
+            prexec(pr, args, nil, _pipe, nil, prl)
             register_lcmd(K .. ' ' .. table.concat(args, ' '))
         end
     end
@@ -132,7 +147,10 @@ local function normal_command(cmd, context, _pipe)
         if os.lib.login.userUID() == 0 then
             found = true
             pr = fork(fs.combine("/sbin/", program))
-            prexec(pr, args, nil, _pipe)
+            if not prl then
+                print("[T] "..tostring(pr.pid))
+            end
+            prexec(pr, args, nil, _pipe, nil, prl)
             register_lcmd(fs.combine("/sbin/", program) .. ' ' .. table.concat(args, ' '))
         end
     end
@@ -151,6 +169,14 @@ local function shcmd(cmd)
     if string.sub(cmd, 1, 1) == '#' then return 0 end
     --parse multiple commands
     local sh_context = {}
+    sh_context['shell'] = {}
+    sh_context['shell']['thread'] = true
+
+    local c = cmd
+    if string.sub(c,#c,#c) == '&' and string.sub(c,#c - 1,#c) ~= '&&' then
+        sh_context['shell']['thread'] = false
+    end
+
     for _, command in pairs(os.strsplit(cmd, "&&")) do
         if command:find("|") then --piping
             local count = 1
@@ -214,7 +240,7 @@ function run_script(pth)
     local p = os.cshell.resolve(pth)
     k = fs.open(p, 'r')
     if k == nil then
-        ferror("error opening file: "..p)
+        return ferror("error opening file: "..p)
     end
     d = k.readAll()
     d = strsplit(d, "\n")

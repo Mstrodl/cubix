@@ -16,7 +16,8 @@ function runlevel_1()
         shell.run(fs.combine("/etc/rc1.d",v))
     end
     while true do
-        os.runfile("/sbin/login")
+        local init_proc = fork('/sbin/login')
+        prexec(init_proc, nil, nil, nil, nil, true)
     end
 end
 

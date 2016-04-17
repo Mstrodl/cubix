@@ -18,12 +18,17 @@ function run_program(_args)
     h.close()
 
     local found = false
+
+    __THREAD_SAFE = true
+
     if fs.exists(program) then
         found = true
-        os.runfile(program, args)
+        local p = fork(program)
+        prexec(p, args, nil, nil, nil, true)
     elseif fs.exists(fs.combine(current_path, program)) then
         found = true
-        os.runfile(fs.combine(current_path, program), args)
+        local p = fork(fs.combine(current_path, program))
+        prexec(p, args, nil, nil, nil, true)
     end
 
     local _path = os.strsplit(os.cshell.PATH, ':')
@@ -31,13 +36,15 @@ function run_program(_args)
         local K = fs.combine(v..'/', program)
         if fs.exists(K) then
             found = true
-            os.runfile(K, args)
+            local p = fork(K)
+            prexec(p, args, nil, nil, nil, true)
         end
     end
 
     if fs.exists(fs.combine("/sbin/", program)) then
         found = true
-        os.runfile(fs.combine("/sbin/", program), args)
+        local p = fork(fs.combine("/sbin/", program))
+        prexec(p, args, nil, nil, nil, true)
     end
 
     if program == '!!' then
@@ -48,8 +55,11 @@ function run_program(_args)
             ferror("Sorry user, you can't make a infinite loop.")
             return 1
         end
-        os.runfile(last_command[1], os.tail(last_command))
+        local p = fork(last_command[1])
+        prexec(p, os.tail(last_command), nil, nil, nil, true)
     end
+
+    __THREAD_SAFE = false
 
     if not found then
         os.ferror("sudo: "..program.." program not found")
