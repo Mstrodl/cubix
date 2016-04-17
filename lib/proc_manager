@@ -90,6 +90,8 @@ local function tick(t, evt, ...)
     if t.filter ~= nil and evt ~= t.filter then return end
     if evt == 'terminate' and t.blockTerm then return end
 
+    print(#starting)
+    print(#threads)
     coroutine.resume(t.cr, evt, ...)
     t.dead = (coroutine.status(t.cr) == "dead")
 end
@@ -117,6 +119,7 @@ local function tick_all()
         if v.dead then --if ded, remove him from threads list
             if dead == nil then dead = {} end
 
+            print("ded "..tostring(v.pid))
             table.insert(dead, k - #dead) --catalogue thread as dead
             killpid(v.pid) --kill proces related to the thread
         end
@@ -211,12 +214,11 @@ local function run_itself(self, arguments, parent_proc, pipe, enviroment, normal
     --[[
         Run a process with its arguments, parent, pipe and defined enviroment
     ]]
-    local _parent = nil
-    --print('parent of '..tostring(self.pid)..':'..self.file..': ' .. tostring(self.parent))
-    if self.parent == nil and self.file ~= '/sbin/init' then
-        _parent = os.__init_process --making sure /sbin/init is parent of all processes(without parent)
+
+    if self.parent == nil or self.parent == '' then
+        set_parent(self, os.__init_process)
     else
-        _parent = parent_proc
+        print("s.prt already set: "..tostring(self.parent))
     end
 
     --default things
@@ -229,8 +231,6 @@ local function run_itself(self, arguments, parent_proc, pipe, enviroment, normal
     end
     self.lineargs = line_args
 
-    --set parent and run process
-    set_parent(self, _parent)
     run(self, arguments, pipe, enviroment, normal_run)
 end
 
@@ -241,11 +241,11 @@ _G['prexec'] = prexec
 
 --set a parent process for a process
 function set_parent(self, parent)
-    print('set_p: '..tostring(parent))
     if parent ~= nil and type(parent) == 'table' then
         --get parent from file
+        print('s.prt = '..tostring(parent))
         self.parent = parent.file
-        parent.childs[ (#parent.childs) + 1 ] = self
+        parent.childs[ (#parent.childs) + 1 ] = self.pid
     else
         self.parent = nil
         os.debug.debug_write("[proc] parent nil: "..self.file)
@@ -354,7 +354,6 @@ function fork(f)
         fpid = running
     end
     set_parent(p, processes[fpid])
-    print('p '..tostring(p.parent)..' -> '..p.file)
     return p
 end
 _G['fork'] = fork
