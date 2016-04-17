@@ -90,8 +90,6 @@ local function normal_command(cmd, context, _pipe)
     --prl = true => normal run(without final &)
     --prl = false or nil => threading run(with final &)
 
-    libproc.chair_register(pget_running())
-
     local found = false
     --part where we see paths and permissions to run and everything
     local pr = nil
@@ -261,6 +259,8 @@ end
 function main(args)
     _G['os.shell'] = os.cshell
     _G['shell'] = os.cshell
+    libproc.chair_register(pget_running())
+    
     if #args == 0 then
         --get first cwd
         shell_wd = os.lib.control.get('/sbin/login', 'cwd')

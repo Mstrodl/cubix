@@ -20,8 +20,8 @@ rom/help/redirection:1:777::0
 tmp/current_tty:1:777::0
 rom/programs/http/pastebin:1:777::0
 rom/help/monitor:1:777::0
-usr/share/doc:0:777::0
 rom/help/tunnel:1:777::0
+usr/share/doc:0:777::0
 bin/yes:1:777::0
 /changelog:0:777::0
 rom/help/licenses/luaj:1:777::0
@@ -193,9 +193,9 @@ rom/help/falling:1:777::0
 lib/devices:0:777::0
 rom/help/bundled:1:777::0
 rom/help/chat:1:777::0
-rom/programs/delete:1:777::0
 rom/help/io:1:777::0
 rom/help/bit:1:777::0
+rom/programs/delete:1:777::0
 dev/mouse:1:777::0
 /rom/apis/turtle:0:777::0
 rom/help/edit:1:777::0
@@ -251,8 +251,8 @@ rom/help/rednet:1:777::0
 usr/bin/helloworld:1:777::0
 bin/uname:1:777::0
 /rom:0:777::0
-rom/programs/mkdir:1:777::0
 bin/cshell:1:777::0
+rom/programs/mkdir:1:777::0
 lib/devices/full_device.lua:1:777::0
 rom/programs/fun/dj:1:777::0
 rom/help/turtle:1:777::0
@@ -314,7 +314,6 @@ rom/programs/turtle/turn:1:777::0
 /src:0:777::0
 rom/help/list:1:777::0
 bin/eject:1:777::0
-lib/proc_manager_rw:1:777::0
 rom/help/workbench:1:777::0
 var/yapi/installedpkg:1:777::0
 lib/devices/urandom_device.lua:1:777::0
@@ -404,8 +403,8 @@ rom/help/intro:1:777::0
 /src/yapi-extradocs:0:777::0
 lib/video_manager:1:777::0
 /home:0:777::0
-rom/programs/cd:1:777::0
 rom/help/craft:1:777::0
+rom/programs/cd:1:777::0
 rom/programs/turtle/excavate:1:777::0
 boot/sblcfg/systems.cfg:1:777::0
 usr/bin:0:777::0
@@ -415,6 +414,7 @@ rom/programs/fun/advanced/levels/3:1:777::0
 rom/programs/gps:1:777::0
 bin/sh:1:777::0
 boot/sblcfg/craftos:1:777::0
+lib/proc_manager.old:1:777::0
 /cubix_standards:0:777::0
 proc/version:1:777::0
 usr/share/manuals:0:777::0

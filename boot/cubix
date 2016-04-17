@@ -2,7 +2,7 @@
 --/boot/cubix: well, cubix!(at least the booting is here)
 
 AUTHOR = "Lukas Mendes"
-BUILD_DATE = "2016-04-16"
+BUILD_DATE = "2016-04-17"
 
 --  version format: major.revision.minor
 --      major: linear
@@ -302,7 +302,7 @@ function os.internals._kernel.register_mfile(controller) --register Managed File
     -- new_mfile(controller)
 end
 
-loadmodule("proc", "/lib/proc_manager_rw")
+loadmodule("proc", "/lib/proc_manager")
 
 --hash manager
 loadmodule("hash", "/lib/hash_manager")

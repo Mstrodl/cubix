@@ -1,0 +1,389 @@
+#!/usr/bin/env lua
+--proc manager
+--task: manage /proc, creating its special files;
+--manage processes, threads and signals to processes.
+
+RELOADABLE = false
+
+--security fix
+local processes = {}
+os.pid_last = 0
+local running = 0
+
+os.signals = {}
+os.signals.SIGKILL = 0
+os.signals.SIGINT = 2
+os.signals.SIGQUIT = 3
+os.signals.SIGILL = 4 --illegal instruction
+os.signals.SIGFPE = 8
+os.signals.SIGTERM = 15 --termination
+
+os.sys_signal = function (signal)
+    --this just translates the recieved signal to a printable string
+    local signal_str = ''
+    if signal == os.signals.SIGILL then
+        signal_str = 'Illegal instruction'
+    elseif signal == os.signals.SIGFPE then
+        signal_str = 'Floating Point Exception'
+    end
+    ferror(signal_str)
+    return 0
+end
+
+os.call_handle = function(process, sig)
+    program_env = {}
+    program_env.__PS_SIGNAL = sig
+    os.run(program_env, process.file)
+end
+
+os.send_signal = function (proc, signal)
+    if proc == nil then
+        os.ferror("proc.send_signal: process == nil")
+    elseif proc == -1 then
+        os.ferror("proc.send_signal: process was killed")
+    elseif signal == os.signals.SIGKILL then
+        os.debug.debug_write("[proc_manager] SIGKILL -> "..proc.file, false)
+        processes[proc.pid] = -1 --removing anything related to the process in os.processes
+        for k,v in pairs(proc.childs) do
+            os.terminate(v)
+        end
+        os.terminate(proc)
+    end
+end
+
+function __killallproc()
+    for k,v in ipairs(processes) do
+        if v ~= -1 then
+            os.send_signal(v, os.signals.SIGKILL)
+        end
+    end
+end
+
+os.terminate = function (p)
+    --os.call_handle(p, "kill")
+    if p.pid == 1 then
+        if CUBIX_TURNINGOFF or CUBIX_REBOOTING then
+            return 0
+        else
+            os.shutdown()
+        end
+    end
+    p = nil
+    --os.sleep(1)
+end
+
+os.getrunning = function()
+    return running
+end
+
+function generate_pfolder(proc, folder, arguments)
+    --[[
+    exe - executable
+    stat - status
+    status - status (human readable)
+    ]]
+    local exe_handler = fs.open(fs.combine(folder, 'exe'), 'w')
+    exe_handler.write(proc.file)
+    exe_handler.close()
+
+    local stat_handler = fs.open(fs.combine(folder, 'stat'), 'w')
+    stat_handler.write("stat working")
+    stat_handler.close()
+
+    local line_args = ''
+    for k,v in ipairs(arguments) do
+        line_args = line_args .. v .. ' '
+    end
+
+    local cmd_handler = fs.open(fs.combine(folder, 'cmd'), 'w')
+    cmd_handler.write(proc.file..' '..line_args)
+    cmd_handler.close()
+end
+
+
+os.run_process = function(process, arguments, pipe, enviroment)
+    --[[
+    So, about the issue of non-compatibility with
+    "CraftOS" designed programs with
+    "Cubix" programs, mostly because of the main() function
+    this new os.run_process is able to solve this
+    all "Cubix" programs must run the main function by themselves,
+    since I will use os.run to run them
+
+    Issue #1: pipe does not work as old
+    since the programs are  by os.run, the manager will not
+    be able to comunicate
+
+    ]]
+
+    if arguments == nil then arguments = {} end
+    if enviroment == nil then enviroment = {} end
+    --if pipe == nil then pipe = {} end
+
+    os.debug.debug_write("[process]  "..process.file.." pid="..tostring(process.pid), false)
+    permission.default() --set default permissions
+
+    local cu = os.lib.login.currentUser()
+    if not fs.verifyPerm(process.file, cu, 'x') then
+        ferror("runfile_proc: perm error")
+        return -1
+    end
+
+    running = process.pid
+    processes[process.pid] = process
+
+    if cu == '' then
+        process.user = 'root'
+    else
+        process.user = cu
+    end
+
+    local ctty = os.lib.tty.getcurrentTTY()
+    if ctty == nil or ctty == {} or ctty == '' then
+        process.tty = '/dev/ttde'
+    else
+        process.tty = ctty.id
+    end
+
+    local line_args = ''
+    for k,v in ipairs(arguments) do
+        line_args = line_args .. v .. ' '
+    end
+
+    process.lineargs = line_args
+
+    local proc_folder = "/proc/"..tostring(process.pid)
+    fs.makeDir(proc_folder)
+    generate_pfolder(process, proc_folder, arguments)
+
+    process.uid = os.lib.login.userUID()
+
+    enviroment['program_pipe'] = pipe
+    if type(pipe) == 'table' then
+        enviroment['write'] = function(a)
+            pipe:write(a)
+        end
+        enviroment['print'] = function(a)
+            pipe:write(a..'\n')
+        end
+        enviroment['read'] = function()
+            return pipe:readLine()
+        end
+    end
+    os.run(enviroment, process.file, unpack(arguments,1))
+
+    --finish process
+    fs.delete(proc_folder)
+    os.send_signal(process, os.signals.SIGKILL)
+end
+
+os.set_child = function(prnt, proc)
+    prnt.childs[#prnt.childs + 1] = proc
+end
+
+os.set_parent = function(proc, parent)
+    os.set_child(parent, proc)
+    proc.parent = parent.file
+end
+
+os.new_process = function(executable)
+    local cls = {}
+    os.pid_last = os.pid_last + 1
+    cls.pid = os.pid_last
+    cls.file = executable
+    cls.parent = nil
+    cls.childs = {}
+    cls.rfile = nil
+    cls.uid = -1
+    cls.lineargs = ''
+    cls.user = ''
+    cls.tty = ''
+    os.debug.debug_write("[proc] new: "..cls.file, false)
+    return cls
+end
+
+os.currentUID = function()
+    local proc = processes[running]
+    if proc == nil or proc == -1 then
+        return nil
+    else
+        return proc.uid
+    end
+end
+
+--executable: string
+--arguments: table
+--parent: process
+--pipe: Pipe
+os.runfile_proc = function(executable, arguments, parent, pipe, env)
+    if parent == nil then
+        _parent = os.__parent_init --making sure /sbin/init is parent of all processes(without parent)
+    else
+        _parent = parent
+    end
+    if arguments == nil then arguments = {} end
+    if env == nil then env = {} end
+    --if pipe == nil then pipe = pipemngr.new_pipe("empty") end
+    _process = os.new_process(executable) --creating
+    os.set_parent(_process, _parent) --parenting
+    os.run_process(_process, arguments, pipe, env) --running.
+end
+
+function get_processes()
+    local c = deepcopy(processes)
+    c['CPY_FLAG'] = true --copy flag
+    return c
+end
+
+function get_by_pid(pid)
+    --get a process by its PID(not of deepcopy, but the original process) with permission
+    if permission.grantAccess(fs.perms.SYS)
+     or processes[running].file == '/bin/cshell'
+     or processes[running].file == '/sbin/login'
+     or processes[running].file == '/sbin/kill'
+     or processes[running].file == 'sbin/kill' then
+        return processes[pid]
+    else
+        ferror("get_by_pid: perm error")
+    end
+end
+
+--get itself as a process object
+function get_itself()
+    if permission.grantAccess(fs.perms.SYS)
+     or processes[running].file == '/bin/cshell'
+     or processes[running].file == '/sbin/login'
+     or processes[running].file == '/sbin/kill'
+     or processes[running].file == 'sbin/kill' then
+        return processes[running]
+    else
+        ferror("get_itself: perm error")
+    end
+end
+
+function check_proof(p)
+    -- check if a process is a original one(not a copy)
+    if p == processes[p.pid] then
+        return true
+    end
+    return false
+end
+
+FLAG_CTTY = 0 --all processes in the same tty(the tty)
+FLAG_ATTY = 1 --all process in all tty
+FLAG_APRC = 2 --all process in the system
+
+--filters processes by its flag
+function filter_proc(filter_flag)
+    if filter_flag == FLAG_CTTY then
+        local ctty = os.lib.tty.getcurrentTTY()
+        local filtered = {}
+        for k,v in pairs(get_processes()) do
+            if type(v) == 'table' then
+                if v.tty == ctty.id then
+                    filtered[v.pid] = v
+                end
+            end
+        end
+        return filtered
+    elseif filter_flag == FLAG_ATTY or filter_flag == FLAG_APRC then
+        local filtered = {}
+        for k,v in pairs(get_processes()) do
+            if type(v) == 'table' then
+                filtered[v.pid] = v
+            end
+        end
+        return filtered
+    else
+        ferror("proc.filter_proc: no flag")
+        return nil
+    end
+end
+
+function test_processes()
+    p1 = os.new_process("/sbin/init")
+    os.run_process(p1)
+    os.send_signal(p1, os.signals.SIGKILL)
+end
+
+--test_processes()
+
+cinfo = [[processor       : 0
+vendor_id       : ComputerCraft
+cpu family      : -1
+model           : 17
+model name      : ComputerCraft CraftCPU @ TickGHZ
+stepping        : 0
+microcode       : 0x17
+cpu MHz         : 1
+cache size      : 0 KB
+physical id     : 0
+siblings        : 1
+core id         : 0
+cpu cores       : 1
+apicid          : 0
+initial apicid  : 0
+fpu             : yes
+fpu_exception   : yes
+cpuid level     : -1
+wp              : yes
+flags           : fpu vme de pse tsc msr pae mce cx8 apic sep mtrr pge mca cmov pat pse36 clflush dts acpi mmx fxsr sse sse2 ss ht tm pbe syscall nx rdtscp lm constant_tsc arch_perfmon pebs bts rep_good nopl xtopology nonstop_tsc aperfmperf eagerfpu pni pclmulqdq dtes64 monitor ds_cpl vmx est tm2 ssse3 cx16 xtpr pdcm pcid sse4_1 sse4_2 x2apic popcnt tsc_deadline_timer xsave avx f16c rdrand lahf_lm ida arat epb xsaveopt pln pts dtherm tpr_shadow vnmi flexpriority ept vpid fsgsbase smep erms
+bogomips        : 0
+clflush size    : 0
+cache_alignment : 32
+address sizes   : 36 bits physical, 48 bits virtual
+power management:
+]]
+
+function CPUINFO()
+    return cinfo
+end
+
+cpuinfo_file = {}
+cpuinfo_file.name = "/proc/cpuinfo"
+cpuinfo_file.file = {}
+cpuinfo_file.file.write = function(data)
+    os.ferror("cannot write to /proc/cpuinfo")
+end
+
+cpuinfo_file.file.read = function(bytes)
+    if bytes == nil then
+        return CPUINFO()
+    else
+        return string.sub(CPUINFO(), 0, bytes)
+    end
+end
+
+temperature_file = {}
+temperature_file.name = "/proc/temperature"
+temperature_file.file = {}
+temperature_file.file.write = function(data)
+    os.ferror("cannot write to /proc/temperature")
+end
+
+temperature_file.file.read = function(bytes)
+    return 'computer: 30C'
+end
+
+partitions_file = {}
+partitions_file.name = "/proc/partitions"
+partitions_file.file = {}
+partitions_file.file.write = function(data)
+    os.ferror("cannot write to /proc/partitions")
+end
+
+partitions_file.file.read = function(bytes)
+    k = [[major minor  #blocks name
+8      0      1024876  hdd]]
+    if bytes == nil then
+        return k
+    else
+        return string.sub(k, 0, bytes)
+    end
+end
+
+function libroutine()
+    os.internals._kernel.register_mfile(cpuinfo_file)
+    os.internals._kernel.register_mfile(temperature_file)
+    os.internals._kernel.register_mfile(partitions_file)
+end

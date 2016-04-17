@@ -41,7 +41,6 @@ function main(args)
             end
         end
     elseif not flag_all_proc and flag_all_terminals then
-        --print('all tty')
         local palltty = os.lib.proc.filter_proc(os.lib.proc.FLAG_ATTY)
 
         print("PID  PRNT  PROC")
