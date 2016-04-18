@@ -85,6 +85,7 @@ local function create_thread(fn, id, pid, bt)
         nd_time = 0.0,
         delta = 0.0
     }
+    print("c "..thread.id)
     table.insert(starting, thread)
     return thread
 end
@@ -122,8 +123,8 @@ local function tick_all()
         local c = starting
         starting = {}
         for _,v in ipairs(c) do
-            tick(v)
             table.insert(threads, v)
+            tick(v)
         end
     end
 
@@ -135,16 +136,17 @@ local function tick_all()
         evt = {coroutine.yield()}
     end
 
-    math.randomseed(os.time())
-
     --The scheduler algorithim.
     local dead = nil
     local ticked = 0
     local ticked_threads = {}
     local ticked_all = false
 
+    math.randomseed(os.clock())
+
+    --[[
     while ticked < #threads do
-        --run all threads using Completly fair scheduler
+        --run all threads using Completly Fair Scheduler (kind of)
         for k, thread in pairs(threads) do
             local r = math.random()
 
@@ -162,13 +164,29 @@ local function tick_all()
                 --if ded, remove him from threads list
                 if thread.dead then
                     if dead == nil then dead = {} end
+
                     table.insert(dead, k - #dead) --catalogue thread as dead
                     killpid(thread.pid) --kill proces related to the thread
+                    ticked = ticked + 1 -- btw
                 else
                     --calculate thread.prob from thread.delta
                     thread.prob = (1 - thread.delta)
                 end
             end
+        end
+    end
+    ]]
+
+    --using old method while it works
+    for k, thread in pairs(threads) do
+        --tick thread with unpacked event
+        tick(thread, unpack(evt))
+
+        --if ded, remove him from threads list
+        if thread.dead then
+            if dead == nil then dead = {} end
+            table.insert(dead, k - #dead) --catalogue thread as dead
+            killpid(thread.pid) --kill proces related to the thread
         end
     end
 
