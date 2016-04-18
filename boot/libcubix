@@ -182,6 +182,14 @@ function class(base, init)
 end
 _G['class'] = class
 
+function tmerge(t1, t2)
+    for k,v in pairs(t2) do
+        t1[k] = v
+    end
+    return t1
+end
+_G['tmerge'] = tmerge
+
 function generate_lcubix(type, path)
     if type == 'all' then
         local h = fs.open("/boot/libcubix", 'r')

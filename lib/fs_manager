@@ -397,6 +397,10 @@ fs.getDrive = oldfs.getDrive --???
 fs.getDir = oldfs.getDir
 
 fs.exists = function(path)
+    if path == nil then
+        ferror("fs.exists: path == nil")
+        return oldfs.exists(path)
+    end
     for k,v in pairs(mounts) do
         if string.sub(path, 1, #k) == k and k ~= '/' then
             --mounted path ahead

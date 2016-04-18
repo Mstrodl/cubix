@@ -1,0 +1,11 @@
+#!/usr/bin/env lua
+
+function main(args)
+    local threads = libproc.thread.copy_threads()
+    print("K  PID  ID")
+    for k,v in pairs(threads) do
+        print(k.."  "..v.pid.."  "..v.id)
+    end
+end
+
+main({...})

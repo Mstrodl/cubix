@@ -52,6 +52,11 @@ local function normal_command(cmd, context, _pipe)
     local args = os.tail(tokens)
     if args == nil then args = {} end
     local program = tokens[1]
+    if program == nil then
+        --reproduction of error: "ps aux & && threadlist"
+        return ferror("csh: parse error(prg == nil)")
+    end
+
     --built-in "programs", handled by the shell
     if program == 'echo' then
         local message = os.strsplit(cmd, ';')[2]
@@ -260,7 +265,7 @@ function main(args)
     _G['os.shell'] = os.cshell
     _G['shell'] = os.cshell
     libproc.chair_register(pget_running())
-    
+
     if #args == 0 then
         --get first cwd
         shell_wd = os.lib.control.get('/sbin/login', 'cwd')

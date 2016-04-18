@@ -432,11 +432,27 @@ os.debug = __debug
 term.clear()
 term.setCursorPos(1,1)
 
---finally, run the init process!
-local init_proc = fork(kflag.init) --create a new process based on the running parent
-os.__init_process = init_proc
+--idle thread
+local idle_function = function()
+    while true do
+        sleep(0)
+    end
+end
 
-prexec(init_proc, {kflag.sRunlevel}, nil, nil, nil, true)
+--finally, run the init process!
+function init_fun()
+    local init_proc = fork(kflag.init) --create a new process based on the running parent
+    os.__init_process = init_proc
+
+    prexec(init_proc, {kflag.sRunlevel}, nil, nil, nil, true)
+end
+
+--create threads and allocate them in starting list
+local idle_thread = libproc.thread.create_thread(idle_function, '-1:idle', -1)
+local init_thread = libproc.thread.create_thread(init_fun, '1:init', 1)
+
+--start all threads(using a dummy thread because yeah)
+libproc.thread.start_thread(function()end, '-1:dummy', -1)
 
 --if something goes wrong in kflag.init(such as kill or a monster), just halt
 os.system_halt()

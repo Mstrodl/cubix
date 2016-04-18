@@ -10,6 +10,7 @@
 RELOADABLE = false
 
 local libproc = {}
+libproc.thread = {}
 
 --Process list, running process and last used PID
 local processes = {}
@@ -84,14 +85,28 @@ local function start_thread(fn, id, pid, bt)
     end
     return thread
 end
+libproc.thread.start_thread = start_thread
+
+local function create_thread(fn, id, pid, bt)
+    thread = {
+        id = id,
+        cr = coroutine.create(fn),
+        blockTerm = bt or false,
+        error = nil,
+        filter = nil,
+        dead = false,
+        pid = pid
+    }
+    table.insert(starting, thread)
+    return thread
+end
+libproc.thread.create_thread = create_thread
 
 local function tick(t, evt, ...)
     if t.dead then return end
     if t.filter ~= nil and evt ~= t.filter then return end
     if evt == 'terminate' and t.blockTerm then return end
 
-    print(#starting)
-    print(#threads)
     coroutine.resume(t.cr, evt, ...)
     t.dead = (coroutine.status(t.cr) == "dead")
 end
@@ -119,12 +134,12 @@ local function tick_all()
         if v.dead then --if ded, remove him from threads list
             if dead == nil then dead = {} end
 
-            print("ded "..tostring(v.pid))
             table.insert(dead, k - #dead) --catalogue thread as dead
             killpid(v.pid) --kill proces related to the thread
         end
     end
 
+    --remove all dead threads
     if dead ~= nil then
         for _,v in ipairs(dead) do
             table.remove(threads, v) --remove all dead threads
@@ -144,10 +159,9 @@ function thread_start_all()
         while #threads > 0 or #starting > 0 do
             tick_all()
         end
-        ferror("all threads terminated")
-        return ferror("exiting thread_man")
+        return ferror("thread_man: all threads ended")
     else
-        return ferror("start_all: already started")
+        return ferror("thread_start_all: already started")
     end
 end
 
@@ -216,9 +230,8 @@ local function run_itself(self, arguments, parent_proc, pipe, enviroment, normal
     ]]
 
     if self.parent == nil or self.parent == '' then
+        --If the parent is not set, set it to init
         set_parent(self, os.__init_process)
-    else
-        print("s.prt already set: "..tostring(self.parent))
     end
 
     --default things
@@ -241,14 +254,21 @@ _G['prexec'] = prexec
 
 --set a parent process for a process
 function set_parent(self, parent)
+    --[[
+        set_parent(
+            self : Process,
+            parent : Process
+        )
+
+        Set a process parent.
+    ]]
     if parent ~= nil and type(parent) == 'table' then
         --get parent from file
-        print('s.prt = '..tostring(parent))
         self.parent = parent.file
         parent.childs[ (#parent.childs) + 1 ] = self.pid
     else
         self.parent = nil
-        os.debug.debug_write("[proc] parent nil: "..self.file)
+        os.debug.debug_write("[proc] parent nil: "..self.file, false)
     end
 end
 
@@ -283,6 +303,7 @@ os.currentUID = function()
         return proc.uid
     end
 end
+libproc.procUID = os.currentUID
 
 function get_by_pid(pid)
     --get a process by its PID(not of deepcopy, but the original process) with permission
@@ -357,6 +378,7 @@ function fork(f)
     return p
 end
 _G['fork'] = fork
+libproc.fork = fork
 
 function kill(pid, sig)
     local p = process[pid]
@@ -373,6 +395,11 @@ function check_proof(p)
     return false
 end
 libproc.check_proof = check_proof
+
+local function copy_threads()
+    return deepcopy(tmerge(threads, starting))
+end
+libproc.thread.copy_threads = copy_threads
 
 function libroutine()
     _G['new_process'] = Process
