@@ -69,24 +69,6 @@ Process = function(file)
     return self
 end
 
-local function start_thread(fn, id, pid, bt)
-    thread = {
-        id = id,
-        cr = coroutine.create(fn),
-        blockTerm = bt or false,
-        error = nil,
-        filter = nil,
-        dead = false,
-        pid = pid
-    }
-    table.insert(starting, thread)
-    if not THREAD_STARTED then
-        thread_start_all()
-    end
-    return thread
-end
-libproc.thread.start_thread = start_thread
-
 local function create_thread(fn, id, pid, bt)
     thread = {
         id = id,
@@ -95,23 +77,47 @@ local function create_thread(fn, id, pid, bt)
         error = nil,
         filter = nil,
         dead = false,
-        pid = pid
+        pid = pid,
+        prob = prb or 0.5, --50% by default
+
+        --clock stuff
+        st_time = 0.0,
+        nd_time = 0.0,
+        delta = 0.0
     }
     table.insert(starting, thread)
     return thread
 end
 libproc.thread.create_thread = create_thread
 
+local function start_thread(fn, id, pid, bt, prb)
+    thread = create_thread(fn, id, pid, bt, prb)
+
+    if not THREAD_STARTED then
+        thread_start_all()
+    end
+    return thread
+end
+libproc.thread.start_thread = start_thread
+
 local function tick(t, evt, ...)
     if t.dead then return end
     if t.filter ~= nil and evt ~= t.filter then return end
     if evt == 'terminate' and t.blockTerm then return end
 
+    t.st_time = os.clock()
     coroutine.resume(t.cr, evt, ...)
+
+    --calculate time that the thread made to execute
+    t.nd_time = os.clock()
+    t.delta = t.nd_time - t.st_time
+
+    --set dead status
     t.dead = (coroutine.status(t.cr) == "dead")
 end
 
 local function tick_all()
+    --All starting threads recieve a tick and are transformed normal threads
     if #starting > 0 then
         local c = starting
         starting = {}
@@ -121,6 +127,7 @@ local function tick_all()
         end
     end
 
+    --If I got an event, use that event in all threads(by tick)
     local evt
     if event_filter then
         evt = {event_filter(coroutine.yield())}
@@ -128,14 +135,40 @@ local function tick_all()
         evt = {coroutine.yield()}
     end
 
-    local dead = nil
-    for k,v in ipairs(threads) do --tick all threads once
-        tick(v, unpack(evt))
-        if v.dead then --if ded, remove him from threads list
-            if dead == nil then dead = {} end
+    math.randomseed(os.time())
 
-            table.insert(dead, k - #dead) --catalogue thread as dead
-            killpid(v.pid) --kill proces related to the thread
+    --The scheduler algorithim.
+    local dead = nil
+    local ticked = 0
+    local ticked_threads = {}
+    local ticked_all = false
+
+    while ticked < #threads do
+        --run all threads using Completly fair scheduler
+        for k, thread in pairs(threads) do
+            local r = math.random()
+
+            --control fairness
+            if r < thread.prob then
+                --tick thread with unpacked event
+                tick(thread, unpack(evt))
+
+                --if not registered as a ticked thread, register
+                if not texists(thread, ticked_threads) then
+                    ticked_threads[k] = thread
+                    ticked = ticked + 1
+                end
+
+                --if ded, remove him from threads list
+                if thread.dead then
+                    if dead == nil then dead = {} end
+                    table.insert(dead, k - #dead) --catalogue thread as dead
+                    killpid(thread.pid) --kill proces related to the thread
+                else
+                    --calculate thread.prob from thread.delta
+                    thread.prob = (1 - thread.delta)
+                end
+            end
         end
     end
 

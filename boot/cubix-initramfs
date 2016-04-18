@@ -190,6 +190,15 @@ function tmerge(t1, t2)
 end
 _G['tmerge'] = tmerge
 
+function texists(el, tbl)
+    for k,v in pairs(tbl) do
+        if v == el then
+            return true
+        end
+    end
+end
+_G['texists'] = texists
+
 function generate_lcubix(type, path)
     if type == 'all' then
         local h = fs.open("/boot/libcubix", 'r')

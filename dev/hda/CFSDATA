@@ -40,6 +40,7 @@ rom/help/dj:1:777::0
 sbin/sbl-mkconfig:1:777::0
 usr/manuals/cshell.man:1:777::0
 rom/apis/colors:1:777::0
+usr/bin/threadlist:1:777::0
 rom/help/term:1:777::0
 rom/programs/fun/adventure:1:777::0
 src/yapi-extradocs/makefile-example:1:777::0
@@ -53,10 +54,10 @@ rom/programs/rename:1:777::0
 rom/help/refuel:1:777::0
 rom/help/clear:1:777::0
 dev/stdout:1:777::0
-rom/help/events:1:777::0
 rom/help/coroutine:1:777::0
 tmp/syslog:1:777::0
 tmp/current_path:1:777::0
+rom/help/events:1:777::0
 usr/manuals/programs.man:1:777::0
 /mbr_code:0:777::0
 rom/programs/fun/advanced/levels/1:1:777::0
@@ -64,9 +65,9 @@ bin/mkdir:1:777::0
 dev/tty8:1:777::0
 lib/fs_manager:1:777::0
 /dev/hda:0:777::0
-rom/help/printers:1:777::0
 rom/help/apis:1:777::0
 usr/sbin:0:777::0
+rom/help/printers:1:777::0
 lib/hash:0:777::0
 lib/tty_manager:1:777::0
 home/root:1:777::0
@@ -77,9 +78,9 @@ rom/help/multishell:1:777::0
 rom/programs/lua:1:777::0
 rom/apis/textutils:1:777::0
 rom/help/mkdir:1:777::0
-rom/help/paintutils:1:777::0
 sbin/init:1:777::0
 bin/man:1:777::0
+rom/help/paintutils:1:777::0
 bin/whoami:1:777::0
 /lib/modules:1:777::0
 rom/help/bg:1:777::0
@@ -329,8 +330,8 @@ usr/manuals/debugmngr.man:1:777::0
 rom/apis/pocket:0:777::0
 rom/help/shell:1:777::0
 /var/yapi:0:777::0
-rom/help/parallel:1:777::0
 /rom/apis/pocket:0:777::0
+rom/help/parallel:1:777::0
 dev/loop3:1:777::0
 /rom/programs/advanced:0:777::0
 rom/help/reboot:1:777::0
@@ -380,8 +381,8 @@ rom/programs/copy:1:777::0
 rom/programs/help:1:777::0
 lib/login_manager:1:777::0
 etc/shadow.safecopy:1:777::0
-rom/help/peripheral:1:777::0
 rom/apis/command:0:777::0
+rom/help/peripheral:1:777::0
 lib/modules:1:777::0
 rom/programs/fun:0:777::0
 /home/cubix:0:777::0
@@ -479,11 +480,11 @@ bin/umount:1:777::0
 rom/programs/reboot:1:777::0
 sbin/pm-hibernate:1:777::0
 rom/help/move:1:777::0
-rom/programs:0:777::0
 bin/mv:1:777::0
 rom/apis/io:1:777::0
 proc/partitions:1:777::0
 usr/manuals/time-server.man:1:777::0
+rom/programs:0:777::0
 rom/help/os:1:777::0
 lib/fs/cfs.lua:1:777::0
 /sstartup:0:777::0

@@ -2,9 +2,10 @@
 
 function main(args)
     local threads = libproc.thread.copy_threads()
-    print("K  PID  ID")
+    print("K  PID  ID  PROB  DELTA")
     for k,v in pairs(threads) do
-        print(k.."  "..v.pid.."  "..v.id)
+        print(k.."  "..v.pid.."  "..v.id.."  "
+        ..tostring(v.prob).."  "..tostring(v.delta))
     end
 end
 
