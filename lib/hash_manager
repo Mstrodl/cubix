@@ -1,10 +1,13 @@
 #!/usr/bin/env lua
---hash manager
---task: automate hash management, using a global object "hash"
+
+--Hash Manager.
+
+hash_sha256 = nil
+hash_md5 = nil
 
 hash = {}
 
-function libroutine()
+function load_sha256()
     if os.loadAPI("/lib/hash/sha256.lua") then
         sha256 = _G["sha256.lua"]
         os.debug.debug_write("[hash] sha256: loaded")
@@ -18,7 +21,29 @@ function libroutine()
     else
         os.debug.kpanic("[hash] sha256: not loaded")
     end
+end
 
+function load_sha256()
+    testcase = {
+        [1] = "hell",
+        [2] = "0ebdc3317b75839f643387d783535adc360ca01f33c75f7c1e7373adcd675c0b",
+    }
+
+    sha256_object = os.internals.loadmodule_ret('/lib/hash/sha256.lua')
+    if sha256_object == nil then
+        os.debug.kpanic('[hash] sha256: not loaded')
+    end
+    hash_sha256 = sha256_object.hash_sha256
+
+    local H = hash_sha256(testcase[1])
+    if H == testcase[2] then
+        os.debug.testcase("[hash] sha256('michigan') test = PASS")
+    else
+        os.debug.kpanic("[hash] sha256('michigan') test = NOT PASS")
+    end
+end
+
+function load_md5()
     if os.loadAPI("/lib/hash/md5.lua") then
         md5 = _G["md5.lua"]
         os.debug.debug_write("[hash] md5: loaded")
@@ -32,4 +57,34 @@ function libroutine()
     else
         os.debug.kpanic("[hash] md5: not loaded")
     end
+end
+
+function load_md5()
+    testcase = {
+        [1] = "hell",
+        [2] = "4229d691b07b13341da53f17ab9f2416",
+    }
+
+    md5_object = os.internals.loadmodule_ret('/lib/hash/md5.lua')
+    if md5_object == nil then
+        os.debug.kpanic('[hash] md5: not loaded')
+    end
+    hash_md5 = md5_object.md5_sumhexa
+
+    local H = hash_md5(testcase[1])
+    if H == testcase[2] then
+        os.debug.testcase("[hash] md5('michigan') test = PASS")
+    else
+        os.debug.kpanic("[hash] md5('michigan') test = NOT PASS")
+    end
+
+end
+
+function libroutine()
+    load_sha256()
+    load_md5()
+
+    --compatibility purposes
+    hash.sha256 = hash_sha256
+    hash.md5 = hash_md5
 end

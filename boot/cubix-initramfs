@@ -199,6 +199,42 @@ function texists(el, tbl)
 end
 _G['texists'] = texists
 
+function table_gen(el, len)
+    r = {}
+    for i=1,len do
+        r[i] = el
+    end
+    return r
+end
+_G['table_gen'] = table_gen
+
+function tlength(tbl)
+    local k = 0
+    for i=1,#tbl do
+        k = k + 1
+    end
+    return k
+end
+_G['tlength'] = tlength
+
+function tsum(tbl)
+    local r = 0
+    for k,v in pairs(tbl) do
+        r = r + v
+    end
+    return r
+end
+_G['tsum'] = tsum
+
+function tviewnum(tbl)
+    write('{')
+    for k,v in ipairs(tbl) do
+        write(" "..tonumber(v)..',')
+    end
+    write("}\n")
+end
+_G['tviewnum'] = tviewnum
+
 function generate_lcubix(type, path)
     if type == 'all' then
         local h = fs.open("/boot/libcubix", 'r')

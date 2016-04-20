@@ -47,7 +47,7 @@ if os.loadAPI("/boot/cubix-initramfs") then
 else
     term.set_term_color(colors.red)
     print("[cubix] initramfs error, can't start kernel.")
-    os.system_halt()
+    while true do sleep(0) end
 end
 
 local Args = {...} --arguments to cubix
@@ -169,8 +169,8 @@ os.internals._kernel = {}
 local isReloadable = {}
 
 --default function to load modules
-function loadmodule(nmodule, path)
-    os.debug.debug_write('[mod] loading: '..nmodule)
+function loadmodule(nmodule, path, dflag)
+    os.debug.debug_write('[mod] loading: '..nmodule, dflag)
     if isReloadable[nmodule] ~= nil and isReloadable[nmodule] == false then
         os.debug.debug_write("[mod] cannot reload "..nmodule..", please reboot!", nil, true)
         return 0
@@ -180,16 +180,16 @@ function loadmodule(nmodule, path)
         if _G[nmodule].libroutine ~= nil then
             _G[nmodule].libroutine()
         else
-            os.debug.debug_write("[mod] libroutine() not found", nil, true)
+            os.debug.debug_write("[mod] libroutine() not found", dflag, true)
             sleep(.3)
         end
         os.lib[nmodule] = _G[fs.getName(path)]
         isReloadable[nmodule] = os.lib[nmodule].RELOADABLE
         term.set_term_color(colors.green)
-        os.debug.debug_write('[mod] loaded: '..nmodule)
+        os.debug.debug_write('[mod] loaded: '..nmodule, dflag)
         term.set_term_color(colors.white)
     else
-        os.debug.kpanic("[mod] not loaded: "..nmodule)
+        os.debug.kpanic("[mod] not loaded: "..nmodule, dflag)
     end
 end
 
@@ -212,6 +212,9 @@ end
 
 function loadmodule_ret(path)
     -- instead of putting the library into os.lib, just return it
+    if path == nil then
+        return ferror("[loadmodule_ret] path == nil")
+    end
     os.debug.debug_write('[loadmodule:ret] loading: '..path)
     local ret = {}
     if os.loadAPI(path) then
@@ -231,6 +234,7 @@ function loadmodule_ret(path)
 end
 
 os.internals.loadmodule = loadmodule
+os.internals.loadmodule_ret = loadmodule_ret
 os.internals.unloadmod = unloadmod
 
 --show all loaded modules in the system(shows to stdout)
@@ -389,6 +393,7 @@ loadmodule("login", "/lib/login_manager")
 loadmodule("pipe", "/lib/pipe_manager")
 loadmodule("time", "/lib/time")
 loadmodule("control", "/lib/comm_manager")
+loadmodule("mtrand", "/lib/random/mt_rand.lua")
 
 --print to pipes(doesn't work since the proc change)
 os.pprint = function(message, pipe, double)
@@ -447,9 +452,14 @@ function init_fun()
     prexec(init_proc, {kflag.sRunlevel}, nil, nil, nil, true)
 end
 
+function entropy_loader()
+    loadmodule("entropyman", "/lib/random/entropyman.lua", false)
+end
+
 --create threads and allocate them in starting list
 local idle_thread = libproc.thread.create_thread(idle_function, '-1:idle', -1, nil, 0.01)
 local init_thread = libproc.thread.create_thread(init_fun, '1:init', 1, nil, 0.8)
+local entropy_thread = libproc.thread.create_thread(entropy_loader, '0:entropy', 0, nil, 0.5)
 
 --start all threads(using a dummy thread because yeah)
 libproc.thread.start_thread(function()end, '-1:dummy', -1, nil, 0.005) --very low probability so it couldn't run a lot
