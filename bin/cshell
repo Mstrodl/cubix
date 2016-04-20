@@ -247,9 +247,13 @@ function run_script(pth)
     end
     d = k.readAll()
     d = strsplit(d, "\n")
+    local sh_context = {}
+    sh_context['shell'] = {}
+    sh_context['shell']['thread'] = true
+    
     for k,line in ipairs(d) do
         if string.sub(line,1,1) ~= '#' then
-            normal_command(line)
+            normal_command(line, sh_context)
         end
     end
 

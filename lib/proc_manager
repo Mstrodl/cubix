@@ -16,11 +16,11 @@ libproc.thread = {}
 local processes = {}
 local running = 0
 local pid_last = 0
+local tid_last = 0
 
 --Thread Management
 local threads = {}
 local starting = {}
-local event_filter = nil
 local THREAD_STARTED = false
 
 local fork_pid = nil
@@ -71,6 +71,7 @@ end
 
 local function create_thread(fn, id, pid, bt)
     thread = {
+        tid = tid_last + 1,
         id = id,
         cr = coroutine.create(fn),
         blockTerm = bt or false,
@@ -78,14 +79,13 @@ local function create_thread(fn, id, pid, bt)
         filter = nil,
         dead = false,
         pid = pid,
-        prob = prb or 0.5, --50% by default
 
         --clock stuff
         st_time = 0.0,
         nd_time = 0.0,
         delta = 0.0
     }
-    print("c "..thread.id)
+    tid_last = tid_last + 1
     table.insert(starting, thread)
     return thread
 end
@@ -117,6 +117,12 @@ local function tick(t, evt, ...)
     t.dead = (coroutine.status(t.cr) == "dead")
 end
 
+function view_threads(t)
+    for k,thread in ipairs(t) do
+        print("tr " .. k.." "..thread.delta.." " .. thread.id)
+    end
+end
+
 local function tick_all()
     --All starting threads recieve a tick and are transformed normal threads
     if #starting > 0 then
@@ -128,13 +134,8 @@ local function tick_all()
         end
     end
 
-    --If I got an event, use that event in all threads(by tick)
-    local evt
-    if event_filter then
-        evt = {event_filter(coroutine.yield())}
-    else
-        evt = {coroutine.yield()}
-    end
+    --If I get an event, use that event in all threads(by tick)
+    local evt = {coroutine.yield()}
 
     --The scheduler algorithim.
     local dead = nil
@@ -144,38 +145,12 @@ local function tick_all()
 
     math.randomseed(os.clock())
 
-    --[[
-    while ticked < #threads do
-        --run all threads using Completly Fair Scheduler (kind of)
-        for k, thread in pairs(threads) do
-            local r = math.random()
-
-            --control fairness
-            if r < thread.prob then
-                --tick thread with unpacked event
-                tick(thread, unpack(evt))
-
-                --if not registered as a ticked thread, register
-                if not texists(thread, ticked_threads) then
-                    ticked_threads[k] = thread
-                    ticked = ticked + 1
-                end
-
-                --if ded, remove him from threads list
-                if thread.dead then
-                    if dead == nil then dead = {} end
-
-                    table.insert(dead, k - #dead) --catalogue thread as dead
-                    killpid(thread.pid) --kill proces related to the thread
-                    ticked = ticked + 1 -- btw
-                else
-                    --calculate thread.prob from thread.delta
-                    thread.prob = (1 - thread.delta)
-                end
-            end
-        end
+    function compare_ttime(t1, t2)
+        return t1.delta < t2.delta
     end
-    ]]
+
+    --threads with less time to execute come first
+    table.sort(threads, compare_ttime)
 
     --using old method while it works
     for k, thread in pairs(threads) do
@@ -198,21 +173,15 @@ local function tick_all()
     end
 end
 
-rawset(os, "setGlobalEventFilter", function(fn)
-    if event_filter ~= nil then error("This can only be set once!") end
-    event_filter = fn
-    rawset(os, "setGlobalEventFilter", nil)
-end)
-
 function thread_start_all()
     if not THREAD_STARTED then
         THREAD_STARTED = true
         while #threads > 0 or #starting > 0 do
             tick_all()
         end
-        return ferror("thread_man: all threads ended")
+        return ferror("thread_man: all threads ended(shouldn't happen)")
     else
-        return ferror("thread_start_all: already started")
+        return ferror("thread_man: already started")
     end
 end
 

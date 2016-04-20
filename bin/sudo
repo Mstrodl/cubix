@@ -83,7 +83,6 @@ function main(args)
     else
         if os.lib.login.sudoers_verify_user(current_user, 'root') then
             if os.lib.login.front_login('sudo', current_user) then
-                --os.lib.login.use_ctok()
                 run_program(args)
             else
                 sudo_error("sudo: Login incorrect")

@@ -2,7 +2,8 @@
 --/bin/sh: wrapper for /bin/cshell
 
 function main(args)
-    os.runfile_proc("/bin/cshell", args)
+    local editproc = fork("/bin/cshell")
+    prexec(editproc, {os.cshell.resolve(args[1])}, nil, nil, nil, true)
 end
 
 main({...})

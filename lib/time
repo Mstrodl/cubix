@@ -39,16 +39,35 @@ local function getTimeData()
     return nil
 end
 
+local function default_tz()
+    local h = fs.open("/etc/timezone", 'r')
+    if h == nil then return ferror('deafult_tz: error opening timezone') end
+    local d = h.readAll()
+    h.close()
+
+    local data = strsplit(d, ':')
+    return {data[1], data[2]}
+end
+
 function getTime_fmt(_tZoneH, _tZoneM)
     readServers()
-    local tZoneH = _tZoneH or 0
-    local tZoneM = _tZoneM or 0
+    local dtz = default_tz()
+    if dtz == nil then
+        ferror("getTime_fmt: default timezone is nil")
+        return {0,0,0,0,0,0,0}
+    end
+    local tZoneH = _tZoneH or dtz[1]
+    local tZoneM = _tZoneM or dtz[2]
     local d = getTimeData()
     if d == nil then
-        os.debug.debug_write("getTime_fmt: getTimeData returned nil, returning time zero", true, true)
+        os.debug.debug_write("getTime_fmt: getTimeData returned nil", true, true)
         return {0,0,0,0,0,0,0}
     end
     local t = textutils.unserialise(d)
+    if t == nil then
+        os.debug.debug_write("getTime_fmt: error unserializing data", true, true)
+        return {0,0,0,0,0,0,0}
+    end
     local gh = t[4]
     local gm = t[5]
     local s = t[6]

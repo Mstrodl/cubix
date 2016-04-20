@@ -1,24 +1,15 @@
-p base:{
-build 52
-yapfile=default
-}
-
-p base-lat:{
-build *
-yapfile=http://raw.githubusercontent.com/lkmnds/cubix/cubix-dev/src/base-pkg/base.yap
-}
-
-p devscripts:{
-build 11
-yapfile=default
-}
-
-p bootsplash:{
-build 5
-yapfile=default
-}
-
-p initramfs-tools:{
-build 3
-yapfile=default
-}
+<HTML><!--
+<?xml version="1.0" encoding="UTF-8"?>
+<WISPAccessGatewayParam xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+xsi:noNamespaceSchemaLocation="http://www.acmewisp.com/WISPAccessGatewayParam.xsd">
+<Redirect>
+<AccessProcedure>1.0</AccessProcedure>
+<AccessLocation>12</AccessLocation>
+<LocationName>FonTEL:AU</LocationName>
+<LoginURL>https://telstra.portal.fon.com/jcp/telstra?res=login&uamip=192.168.20.1&uamport=3990&nasid=C4-EA-1D-A6-19-4B&challenge=13ca6fe9fe517fface09fa6cbe2b3d4e&mac=DC-85-DE-79-69-22&ip=192.168.20.18&userurl=http%3A%2F%2Flkmnds.github.io%2Fyapi%2Fdatabase%2Fcore&cap=</LoginURL>
+<AbortLoginURL>http://192.168.20.1:3990/logoff</AbortLoginURL>
+<MessageType>100</MessageType>
+<ResponseCode>0</ResponseCode>
+</Redirect>
+</WISPAccessGatewayParam>
+--></HTML>

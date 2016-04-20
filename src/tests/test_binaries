@@ -43,10 +43,10 @@ sleep
 ps aux
 sleep
 
-pwd
+threadlist
 sleep
 
-sudo yapi -Syu
+pwd
 sleep
 
 sync
@@ -58,4 +58,7 @@ sleep
 who && whoami
 sleep
 
-echo ;Done.
+threadlist &
+sleep
+
+echo ;test_binaries: Done.

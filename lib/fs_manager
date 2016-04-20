@@ -70,6 +70,7 @@ permission.grantAccess = function(perm)
     end
     return false
 end
+permission.access = permission.grantAccess
 
 permission.initKernelPerm = function()
     if not __afterkperm then
@@ -525,6 +526,7 @@ function libroutine()
     _G["permission"] = permission
     _G["fsmanager"] = fsmanager
     _G['oldfs'] = oldfs
+    _G['perms'] = fs.perms
     load_filesystems()
     run_fstab()
 end
