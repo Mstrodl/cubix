@@ -2,7 +2,7 @@
 --/boot/cubix: well, cubix!(at least the booting is here)
 
 AUTHOR = "Lukas Mendes"
-BUILD_DATE = "2016-04-19"
+BUILD_DATE = "2016-04-23"
 
 --  version format: major.revision.minor
 --      major: linear
@@ -237,6 +237,8 @@ os.internals.loadmodule = loadmodule
 os.internals.loadmodule_ret = loadmodule_ret
 os.internals.unloadmod = unloadmod
 
+cubix.loadmodule_ret = loadmodule_ret
+
 --show all loaded modules in the system(shows to stdout)
 os.viewLoadedMods = function()
     for k,_ in pairs(os.lib) do
@@ -393,7 +395,9 @@ loadmodule("login", "/lib/login_manager")
 loadmodule("pipe", "/lib/pipe_manager")
 loadmodule("time", "/lib/time")
 loadmodule("control", "/lib/comm_manager")
+
 loadmodule("mtrand", "/lib/random/mt_rand.lua")
+loadmodule("cbxctr", "/lib/cbxctr/cbxctr.lua")
 
 --print to pipes(doesn't work since the proc change)
 os.pprint = function(message, pipe, double)
