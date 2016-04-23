@@ -4,7 +4,7 @@ function main(args)
     local threads = libproc.thread.copy_threads()
     print("TID  K  PID  ID  DELTA")
     for k,v in pairs(threads) do
-        print(v.tid.."  "..k.."  "..v.pid.."  "..v.id.."  "..tostring(v.delta))
+        print(v.tid.."    "..k.."  "..v.pid.."   "..v.id.."   "..tostring(v.delta))
     end
 end
 

@@ -139,11 +139,6 @@ local function tick_all()
 
     --The scheduler algorithim.
     local dead = nil
-    local ticked = 0
-    local ticked_threads = {}
-    local ticked_all = false
-
-    math.randomseed(os.clock())
 
     function compare_ttime(t1, t2)
         return t1.delta < t2.delta
@@ -152,12 +147,11 @@ local function tick_all()
     --threads with less time to execute come first
     table.sort(threads, compare_ttime)
 
-    --using old method while it works
     for k, thread in pairs(threads) do
         --tick thread with unpacked event
         tick(thread, unpack(evt))
 
-        --if ded, remove him from threads list
+        --if dead, remove him from threads list
         if thread.dead then
             if dead == nil then dead = {} end
             table.insert(dead, k - #dead) --catalogue thread as dead
@@ -237,7 +231,6 @@ function run(self, arguments, pipe, env, normal_run)
     else
         self.thread = start_thread(handler, tostring(self.pid)..':'..tostring(self.file), self.pid)
     end
-    --killproc(self)
 end
 
 --arguments : table
@@ -260,7 +253,7 @@ local function run_itself(self, arguments, parent_proc, pipe, enviroment, normal
 
     local line_args = ''
     for k,v in ipairs(arguments) do
-        line_args = line_args .. v .. ' '
+        line_args = line_args .. tostring(v) .. ' '
     end
     self.lineargs = line_args
 

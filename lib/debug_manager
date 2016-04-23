@@ -1,9 +1,12 @@
 #!/usr/bin/env lua
---debug manager
---task: simplify debug information from program to user
+--Debug Manager
 
-__debug_buffer = ''
-__debug_counter = 0
+--[[
+    Task: Manage debug information from the kernel and any other program
+]]
+
+local __debug_buffer = ''
+local __debug_counter = 0
 
 function debug_write_tobuffer(dmessage)
     __debug_buffer = __debug_buffer .. '[' .. __debug_counter ..']' .. dmessage
@@ -48,6 +51,7 @@ end
 
 function kpanic(message)
     if _G['LX_SERVER_LOADED'] == nil or _G['LX_SERVER_LOADED'] == false then
+        --LuaX not loaded
         term.set_term_color(colors.yellow)
         debug_write("[cubix] Kernel Panic!")
         if os.__boot_flag then --early kernel
@@ -59,30 +63,34 @@ function kpanic(message)
         debug_write(message)
         term.set_term_color(colors.white)
         os.system_halt()
+
     else
+        --luaX enabled, use it to write the kpanic
         os.lib.lxServer.write_solidRect(3,3,25,7,colors.red)
         os.lib.lxServer.write_rectangle(3,3,25,7,colors.black)
         local kpanic_title = 'Kernel Panic!'
         for i=1, #kpanic_title do
-            os.lib.lx.write_letter(string.sub(kpanic_title,i,i), 9+i, 3, colors.red, colors.white)
+            local letter = string.sub(kpanic_title,i,i)
+            lx.wletter(letter, 9+i, 3, lx.red, lx.white)
         end
 
         local process_line = ''
-        if not os.lib.proc or os.__boot_flag then --how are you in early boot?
+        if not os.lib.proc or os.__boot_flag then --how are you in early boot and with luaX?
             process_line = "proc: /boot/cubix"
         else
-            process_line = "pid: "..tostring(os.getrunning())
+            process_line = "pid: "..tostring(os.lib.proc.get_running())
         end
 
         for i=1, #process_line do
-            os.lib.lx.write_letter(string.sub(process_line,i,i), 4+i, 5, colors.red, colors.white)
+            local letter = string.sub(process_line,i,i)
+            lx.wletter(letter, 4+i, 5, lx.red, lx.white)
         end
 
         local procname = ''
         if not os.lib.proc or os.__boot_flag then --how are you in early boot(seriously, how)?
             procname = "name: /boot/cubix"
         else
-            procname = "pname: "..tostring(os.lib.proc.get_processes()[os.getrunning()].file)
+            procname = "pname: "..tostring(os.lib.proc.get_processes()[os.lib.proc.get_running()].file)
         end
 
         for i=1, #procname do

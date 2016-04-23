@@ -16,7 +16,7 @@ Features included:
 
 --basic data
 AUTHOR = 'Lukas Mendes'
-VERSION = '0.2.1'
+VERSION = '0.2.2'
 
 --default variables
 local SERVERIP = 'lkmnds.github.io'
@@ -137,8 +137,8 @@ function create_structure()
     fs.open(fs.combine(YAPIDIR, 'local'), 'a').close()
 end
 
-function update_repo(repo)
-    local SPATH = 'http://'.. SERVERIP .. SERVERDIR .. '/database/'..repo
+function update_repo(repo, httpurl)
+    local SPATH = 'http://'.. httpurl .. repo
     local k = download_file(SPATH)
     if type(k) == 'table' then
         return abort("http_repo:"..repo)
@@ -148,11 +148,44 @@ function update_repo(repo)
     _h.close()
 end
 
+function get_sources()
+    local h = fs.open("/var/yapi/sources", 'r')
+    if h == nil then
+        return ferror("get_sources: error opening sources")
+    end
+    local fdata = h.readAll()
+    h.close()
+
+    local lines = strsplit(fdata, '\n')
+
+    local repos = {}
+    local parsing = ''
+    for k,line in ipairs(lines) do
+        local tokens = strsplit(line, ' ')
+        if tokens[1] == 'repo' then
+            parsing = tokens[2]
+            repos[parsing] = {}
+        elseif tokens[1] == 'end' then
+            parsing = ''
+        elseif tokens[1] == 'server' then
+            repos[parsing]['url'] = tokens[2]
+        elseif tokens[1] == 'type' then
+            repos[parsing]['type'] = tonumber(tokens[2])
+        end
+    end
+    return repos
+end
+
 function update_repos()
-    --download core, community and extra
-    update_repo("core")
-    update_repo("extra")
-    update_repo("community")
+    --get repos to download
+    local repos = get_sources()
+    if not repos then
+        return ferror("update_repos: error getting sources")
+    end
+
+    for repo,rdata in pairs(repos) do
+        update_repo(repo, rdata['url'])
+    end
 end
 
 function get_db(repo)

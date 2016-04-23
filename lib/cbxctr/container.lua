@@ -21,7 +21,7 @@ end)
 function NormalContainer:extract()
     self.func_run = function()
         p = fork(self.file)
-        return prexec(p)
+        return prexec(p, nil, nil, nil, nil, true)
     end
     return self:run()
 end

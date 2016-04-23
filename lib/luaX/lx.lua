@@ -1,9 +1,8 @@
 --/lib/luaX/lx.lua
---luaX "hardware" access
 
-_G['_LUAX_VERSION'] = '0.0.3'
+_G['_LUAX_VERSION'] = '0.0.4'
 
---function: manage basic access to CC screen, basic pixels and etc.
+--Task: the luaX backend
 
 --[[Maximum dimensions of CCscreen -> 19x51]]
 
@@ -12,13 +11,16 @@ local curX = 1
 local curY = 1
 local startColor = colors.lightBlue
 
+lx = {}
+
+lx = tmerge(lx, colors)
+
 function term.set_bg_default()
     term.setBackgroundColor(colors.black)
     term.setTextColor(colors.white)
 end
 
 local _oldcursorpos = term.setCursorPos
-
 function _setCursorPos(x,y)
     curX = x
     curY = y
@@ -78,9 +80,9 @@ function write_letter(letter, locX, locY, color_b, color_letter)
     term.set_bg_default()
     return true
 end
+lx.wletter = write_letter
 
 function write_string(str, locx, locy, color_str, color_b)
-    --print("write_string "..tostring(#str)..' '..str)
     for i=1, #str do
         local letter = string.sub(str, i, i)
         write_letter(letter,
@@ -167,4 +169,5 @@ end
 
 function libroutine()
     _G['LX_LUA_LOADED'] = true
+    _G['lx'] = lx
 end

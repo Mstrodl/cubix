@@ -1,0 +1,10 @@
+BROKERFILE
+
+IMAGE ;cubix
+
+RUN ;sudo yapi -Syu
+RUN ;yes | sudo yapi -S initramfs-tools
+
+RUN ;make run
+
+FINISH

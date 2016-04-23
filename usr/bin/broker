@@ -26,9 +26,19 @@ function main(args)
         local fdata = h.readAll()
         h.close()
         print("Broker running "..f)
-        local c = os.lib.cbxctr.NormalContainer('broker_nctr', fdata)
+        local c = os.lib.cbxctr.NormalContainer('broker_nctr', f)
         c:extract()
         print("Done.")
+    elseif args[1] == 'initctr' then
+        local f = shell.resolve('Brokerfile')
+        local h = fs.open(f, 'r')
+        if h == nil then
+            return ferror("Error opening Brokerfile")
+        end
+        local fdata = h.readAll()
+        h.close()
+
+        os.lib.cbxctr.brokerParser(fdata)
     end
 end
 

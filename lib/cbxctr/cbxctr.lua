@@ -8,20 +8,15 @@
     VERY. HARD.
 ]]
 
+RELOADABLE = false
+
 local libctr = cubix.loadmodule_ret('/lib/cbxctr/container.lua')
 
 if libctr then
     Container = libctr.Container
     NormalContainer = libctr.NormalContainer
 else
-    error("cbxctr: error loading libctr")
-end
-
-if libctrimg then
-    Image = libctrimg.Image
-    ImagedContainer = libctrimg.ImagedContainer
-else
-    error("cbxctr: error loading libctrimg")
+    error("error loading libctr")
 end
 
 function libroutine()

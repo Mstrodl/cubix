@@ -269,7 +269,7 @@ CommandBox = class(TextField, function(self, x, y, shellPath)
             term.setCursorBlink(false)
             return got_it
         end
-        os.runfile_proc(shellPath, nil, nil, nil, filter_env)
+        os.runfile(shellPath, nil, nil, nil, filter_env)
     end
 
     local cbox_listener = {} --default event listener

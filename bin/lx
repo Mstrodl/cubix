@@ -31,7 +31,7 @@ function usage()
 end
 
 function main(args)
-    if os.lib.lx then
+    if os.lib.lx or lx then
         print("lx ".._LUAX_VERSION)
     else
         print("lx frontend (backend not loaded)")

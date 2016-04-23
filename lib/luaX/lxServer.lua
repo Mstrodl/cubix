@@ -76,7 +76,7 @@ function lxError(lx_type, emsg)
     if dev_available("/dev/stderr") then
         dev_write("/dev/stderr", message)
     else
-        os.ferror(message)
+        ferror(message)
     end
 end
 
@@ -97,7 +97,6 @@ function sv_demo()
 
     write_vline(10, 10, 5, colors.green)
     os.sleep(1)
-
     write_hline(11, 11, 10, colors.yellow)
     os.sleep(1)
 
@@ -105,14 +104,14 @@ function sv_demo()
     demo_printMark()
 
     write_rectangle(5, 5, 10, 5, colors.red)
-
     os.sleep(1)
+
     os.lib.lx.blank()
     demo_printMark()
 
     write_square(5, 5, 5, colors.red)
-
     os.sleep(1)
+
     os.lib.lx.blank()
     demo_printMark()
 
@@ -121,12 +120,12 @@ function sv_demo()
         sleep(.5)
     end
 
-    sleep(3.5)
+    sleep(3)
 
     os.lib.lx.blank()
     demo_printMark()
 
-    os.debug.kpanic('lx kpanic test')
+    os.debug.kpanic('kpanic using lx!')
 end
 
 function libroutine()

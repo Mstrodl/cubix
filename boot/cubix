@@ -390,13 +390,22 @@ end
 
 loadmodule("tty", "/lib/tty_manager")
 
---login, pipe, time and control managers
+--Login Manager
 loadmodule("login", "/lib/login_manager")
+
+--Pipe manager
 loadmodule("pipe", "/lib/pipe_manager")
+
+--Time module
 loadmodule("time", "/lib/time")
+
+--Communication Manager // Control Manager
 loadmodule("control", "/lib/comm_manager")
 
+--Mersenne Twister implementation
 loadmodule("mtrand", "/lib/random/mt_rand.lua")
+
+--Cubix Containers
 loadmodule("cbxctr", "/lib/cbxctr/cbxctr.lua")
 
 --print to pipes(doesn't work since the proc change)
@@ -466,7 +475,7 @@ local init_thread = libproc.thread.create_thread(init_fun, '1:init', 1, nil, 0.8
 local entropy_thread = libproc.thread.create_thread(entropy_loader, '0:entropy', 0, nil, 0.5)
 
 --start all threads(using a dummy thread because yeah)
-libproc.thread.start_thread(function()end, '-1:dummy', -1, nil, 0.005) --very low probability so it couldn't run a lot
+libproc.thread.start_thread(function()end, '-1:dummy', -1, nil, 0.005) --very low probability so it shouldn't run a lot
 
 --if something goes wrong in kflag.init(such as kill or a monster), just halt
 os.system_halt()
