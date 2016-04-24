@@ -4,7 +4,7 @@ _G['_LUAX_VERSION'] = '0.0.4'
 
 --Task: the luaX backend
 
---[[Maximum dimensions of CCscreen -> 19x51]]
+--[[Maximum dimensions of CCscreen -> 51x19]]
 
 local SPECIAL_CHAR = ' '
 local curX = 1

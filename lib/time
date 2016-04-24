@@ -46,7 +46,7 @@ local function default_tz()
     h.close()
 
     local data = strsplit(d, ':')
-    return {data[1], data[2]}
+    return {tonumber(data[1]), tonumber(data[2])}
 end
 
 function getTime_fmt(_tZoneH, _tZoneM)
@@ -68,6 +68,7 @@ function getTime_fmt(_tZoneH, _tZoneM)
         os.debug.debug_write("getTime_fmt: error unserializing data", true, true)
         return {0,0,0,0,0,0,0}
     end
+    local day,month,year = t[1],t[2],t[3]
     local gh = t[4]
     local gm = t[5]
     local s = t[6]
@@ -75,18 +76,21 @@ function getTime_fmt(_tZoneH, _tZoneM)
     local h = gh + tZoneH + math.floor(m/60)
     local m = m%60
     h = h%24
-    return {h,m,s}
+    return {day,month,year,h,m,s}
 end
 
 function localtime(tz1, tz2)
     local k = getTime_fmt(tz1, tz2)
-    return {hours=k[1], minutes=k[2], seconds=k[3]}
+    return {day=k[1], month=k[2], year=k[3],
+            hours=k[4], minutes=k[5], seconds=k[6]}
 end
 
 function asctime(tm)
     local h,m,s = tm.hours, tm.minutes, tm.seconds
+    local d,mon,y = tm.day, tm.month, tm.year
+    local formatted_1 = string.format("%d-%d-%d",d,mon,y)
     local formatted = string.format("%2d:%2d:%2d",h,m,s):gsub(" ","0")
-    return formatted
+    return formatted_1 .. ' '..formatted
 end
 
 function strtime(tz1, tz2)
@@ -99,6 +103,6 @@ function libroutine()
     _G['asctime'] = asctime
     _G['strtime'] = strtime
     os.debug.debug_write("[time] testing time")
-    os.debug.debug_write("[time] GMT -3: "..asctime(localtime(-3,0)))
-    os.debug.debug_write("[time] Greenwich: "..strtime())
+    os.debug.debug_write("[time] time at tz 0,0: "..strtime(0,0))
+    os.debug.debug_write("[time] time at default tz: "..strtime())
 end

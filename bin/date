@@ -1,0 +1,8 @@
+#!/usr/bin/env lua
+--/bin/date
+
+function main(args)
+    print(os.lib.time.asctime(os.lib.time.localtime()))
+end
+
+main({...})

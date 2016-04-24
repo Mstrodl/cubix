@@ -46,7 +46,7 @@ function execute(ast)
 end
 
 --normal functions...
-local function normal_command(cmd, context, _pipe)
+local function normal_command(cmd, sh_context, _pipe)
     --normal routine to run commands
     local tokens = os.strsplit(cmd, ' ')
     local args = os.tail(tokens)
@@ -54,50 +54,57 @@ local function normal_command(cmd, context, _pipe)
     local program = tokens[1]
     if program == nil then
         --reproduction of error: "ps aux & && threadlist"
-        return ferror("csh: parse error(prg == nil)")
+        ferror("csh: parse error(prg == nil)")
+        return sh_context
     end
 
     --built-in "programs", handled by the shell
     if program == 'echo' then
-        local message = os.strsplit(cmd, ';')[2]
+        local message = strsplit(cmd, ';')[2]
         print(message)
-        return 0
+        return sh_context
     elseif program == 'sleep' then
         if tokens[2] then
             os.sleep(tonumber(tokens[2]))
         else
             os.sleep(1)
         end
-        return 0
+        return sh_context
     elseif program == 'APATH' then
     elseif program == 'PPATH' then
         print(os.cshell.PATH)
-        return 0
+        return sh_context
     elseif program == 'getuid' then
         print(os.lib.login.userUID())
-        return 0
+        return sh_context
     elseif program == 'getperm' then
         permission.getPerm()
-        return 0
+        return sh_context
     elseif program == 'CTTY' then
         print(os.lib.tty.getcurrentTTY().id)
-        return 0
+        return sh_context
     elseif program == 'source' then
         if tokens[2] ~= nil then
-            run_script(tokens[2])
+            sh_context = run_script(tokens[2], sh_context)
         end
-        return 0
+        return sh_context
     elseif program == 'alias' then
-        return 0
+        return sh_context
+    elseif program == 'set' then
+        local var = tokens[2]
+        local val = strsplit(cmd, ';')[2]
+        if not sh_context['var'] then sh_context['var'] = {} end
+        sh_context['var'][var] = val
+        return sh_context
     end
 
-    local prl = context['shell']['thread']
+    local prl = sh_context['shell']['thread']
     --prl = true => normal run(without final &)
     --prl = false or nil => threading run(with final &)
 
     local found = false
     --part where we see paths and permissions to run and everything
-    local pr = nil
+    local pr = nil --process
     --check absolute paths
     if fs.exists(program) then
         --security check: check if program is in /sbin
@@ -118,7 +125,6 @@ local function normal_command(cmd, context, _pipe)
 
     --check cwd .. program
     elseif not found and fs.exists(os.cshell.resolve(program)) then
-        print(current_path)
         if shell_wd ~= '/sbin' or shell_wd ~= 'sbin' then
             found = true
             pr = fork(os.cshell.resolve(program))
@@ -162,18 +168,16 @@ local function normal_command(cmd, context, _pipe)
     if not found then
         ferror("csh: "..program..": program not found")
     end
+    return sh_context
 end
 
-local function shcmd(cmd)
+local function shcmd(cmd, sh_context)
     --parse command
     --nothing
-    if cmd == nil or cmd == '' then return 0 end
+    if cmd == nil or cmd == '' then return sh_context end
     --comments
-    if string.sub(cmd, 1, 1) == '#' then return 0 end
+    if string.sub(cmd, 1, 1) == '#' then return sh_context end
     --parse multiple commands
-    local sh_context = {}
-    sh_context['shell'] = {}
-    sh_context['shell']['thread'] = true
 
     local c = cmd
     if string.sub(c,#c,#c) == '&' and string.sub(c,#c - 1,#c) ~= '&&' then
@@ -189,14 +193,15 @@ local function shcmd(cmd)
                 --[[
                 For each program, run it with pipe support
                 ]]
-                normal_command(prog, sh_context, main_pipe)
+                sh_context = normal_command(prog, sh_context, main_pipe)
             end
         else
             --if command does not have |, run program normally
             --now parse the command, with args and everything
-            normal_command(command, sh_context)
+            sh_context = normal_command(command, sh_context)
         end
     end
+    return sh_context
 end
 
 os.cshell.resolve = function()
@@ -239,7 +244,7 @@ end
 os.cshell.exit = function()
 end
 
-function run_script(pth)
+function run_script(pth, sh_context)
     local p = os.cshell.resolve(pth)
     k = fs.open(p, 'r')
     if k == nil then
@@ -247,15 +252,13 @@ function run_script(pth)
     end
     d = k.readAll()
     d = strsplit(d, "\n")
-    local sh_context = {}
-    sh_context['shell'] = {}
-    sh_context['shell']['thread'] = true
-    
+
     for k,line in ipairs(d) do
         if string.sub(line,1,1) ~= '#' then
-            normal_command(line, sh_context)
+            sh_context = normal_command(line, sh_context)
         end
     end
+    return sh_context
 
     --[[
     tokens = tokenize(d)
@@ -265,29 +268,66 @@ function run_script(pth)
     ]]
 end
 
+function write_ps1(cxt, shell_char, hostname)
+    local ps1 = cxt['var']['PS1']
+
+    local i = 1
+    for j=1,#ps1 do
+        local char = string.sub(ps1,i,i)
+        if char == '%' then
+            if string.sub(ps1,i+1,i+1) == 'u' then
+                write(shellToken.user)
+                i = i + 2
+            elseif string.sub(ps1,i+1,i+1) == 'h' then
+                write(hostname)
+                i = i + 2
+            elseif string.sub(ps1,i+1,i+1) == 'w' then
+                write(shell_wd)
+                i = i + 2
+            else
+                write('%')
+                i = i + 1
+            end
+        elseif char == '$' then
+            write(shell_char..' ')
+            i = i + 1
+        else
+            write(char)
+            i = i + 1
+        end
+    end
+
+    --write(shellToken.user)
+    --write("@"..hostname)
+    --write(":"..shell_wd)
+    --write(shell_char..' ')
+end
+
 function main(args)
     _G['os.shell'] = os.cshell
     _G['shell'] = os.cshell
     libproc.chair_register(pget_running())
-
+    local hostname = gethostname()
     if #args == 0 then
         --get first cwd
         shell_wd = os.lib.control.get('/sbin/login', 'cwd')
         --generate a new token.
         shellToken = os.lib.login.Token.new(os.lib.login.currentUser(), 100)
         local HISTORY = {} --csh history
-        local hostname = gethostname() --avoid multiple calls
-        run_script('.cshrc')
+        local sh_context = {}
+        sh_context['shell'] = {}
+        sh_context['var'] = {}
+        sh_context['shell']['thread'] = true
+
+        sh_context = run_script('.cshrc', sh_context)
+
         while true do --main loop
             if shellToken.user == 'root' then --always check if user is root
                 shell_char = '#'
             else
                 shell_char = '$'
             end
-            write(shellToken.user)
-            write("@"..hostname)
-            write(":"..shell_wd)
-            write(shell_char..' ')
+            write_ps1(sh_context, shell_char, hostname)
             local cmd = read(nil, HISTORY, os.cshell.complete)
             if cmd == 'exit' then --hardcoded command
                 return 0
@@ -295,12 +335,12 @@ function main(args)
                 if command ~= '' or not command:find(" ") then
                     table.insert(HISTORY, cmd)
                 end
-                shcmd(cmd)
+                sh_context = shcmd(cmd, sh_context)
             end
         end
     else
         --run scripts
-        run_script(os.cshell.resolve(args[1]))
+        sh_context = run_script(os.cshell.resolve(args[1]))
     end
 end
 

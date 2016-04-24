@@ -24,7 +24,7 @@ end
 
 ]]
 
--- the major differences between old and new login modules is:
+-- the major differences between old and new login module is:
 --  1 - the token logic is simplified, allowing me to fix it better
 --  2 - the code is not spaghetti
 --  3 - most of the functions that need to iterate with programs use deepcopy
@@ -54,10 +54,13 @@ local current_user = {
 --group data
 local groups = {}
 
+local SHA256_ROUNDS = 15
+local WORK_FACTOR = SHA256_ROUNDS - 1
+
 --proof that a computer has worked to hash something(15 rounds of sha256)
 function proof_work(data)
     local cache = data
-    for i=0, 14 do --15 times
+    for i=0, WORK_FACTOR do --15 times
         cache = os.lib.hash.hash.sha256(cache)
     end
     return cache

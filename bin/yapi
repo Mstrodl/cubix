@@ -16,7 +16,7 @@ Features included:
 
 --basic data
 AUTHOR = 'Lukas Mendes'
-VERSION = '0.2.2'
+VERSION = '0.2.3'
 
 --default variables
 local SERVERIP = 'lkmnds.github.io'

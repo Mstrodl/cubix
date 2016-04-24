@@ -143,7 +143,14 @@ debug = os.debug
 cubix = {}
 _G['cubix'] = cubix
 
+local booted = false
+
 cubix.boot_kernel = function() --the function to load the kernel
+
+if booted then
+    return ferror("Cubix already booted!")
+end
+booted = true
 
 if kflag.quiet then
     --if quiet, just make normal debug functions as nothing.
