@@ -101,6 +101,11 @@ local function start_thread(fn, id, pid, bt, prb)
 end
 libproc.thread.start_thread = start_thread
 
+local function nthreads()
+    return #threads
+end
+libproc.thread.nthreads = nthreads
+
 local function tick(t, evt, ...)
     if t.dead then return end
     if t.filter ~= nil and evt ~= t.filter then return end

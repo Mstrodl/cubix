@@ -54,16 +54,11 @@ local current_user = {
 --group data
 local groups = {}
 
-local SHA256_ROUNDS = 15
-local WORK_FACTOR = SHA256_ROUNDS - 1
+local SHA256_ROUNDS = 7
 
 --proof that a computer has worked to hash something(15 rounds of sha256)
 function proof_work(data)
-    local cache = data
-    for i=0, WORK_FACTOR do --15 times
-        cache = os.lib.hash.hash.sha256(cache)
-    end
-    return cache
+    return os.lib.hash.hash.sha256(data, SHA256_ROUNDS)
 end
 
 --Token class

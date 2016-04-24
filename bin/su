@@ -2,7 +2,9 @@
 --/bin/su: logins to root
 
 function main(args)
-    os.runfile_proc("/sbin/login", {"root"})
+    libproc.chair_register(pget_running())
+    local loginproc = fork("/sbin/login")
+    prexec(loginproc, {"root"}, nil, nil, nil, true)
 end
 
 main({...})

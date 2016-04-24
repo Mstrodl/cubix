@@ -6,6 +6,6 @@
 
 #setting aliases
 alias yapisy='sudo yapi -Sy'
-alias god='su'
 
 set PS1 ;[%u@%h %w]$
+set PS2 ;>

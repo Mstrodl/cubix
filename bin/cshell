@@ -4,6 +4,7 @@
 local shellToken = {}
 --local shell_wd = os.lib.control.get('/sbin/login', 'cwd')
 local shell_wd = nil
+local normal_wd = nil
 
 --getting shell process
 local itself = os.lib.proc.get_processes()[pget_running()]
@@ -89,6 +90,8 @@ local function normal_command(cmd, sh_context, _pipe)
         end
         return sh_context
     elseif program == 'alias' then
+        local k = strsplit(cmd, '=')
+        sh_context['alias'][tokens[2]] = k[2]
         return sh_context
     elseif program == 'set' then
         local var = tokens[2]
@@ -246,9 +249,14 @@ end
 
 function run_script(pth, sh_context)
     local p = os.cshell.resolve(pth)
+    if not fs.exists(p) then
+        ferror("run_script: doesn't exist: "..p)
+        return sh_context
+    end
     k = fs.open(p, 'r')
     if k == nil then
-        return ferror("error opening file: "..p)
+        ferror("error opening file: "..p)
+        return sh_context
     end
     d = k.readAll()
     d = strsplit(d, "\n")
@@ -279,7 +287,16 @@ function write_ps1(cxt, shell_char, hostname)
                 write(shellToken.user)
                 i = i + 2
             elseif string.sub(ps1,i+1,i+1) == 'h' then
+                local k = hostname:find("%.")
+                if k == 1 then k = #hostname end
+                write(string.sub(hostname, 1, k - 1))
+                i = i + 2
+            elseif string.sub(ps1,i+1,i+1) == 'H' then
                 write(hostname)
+                i = i + 2
+            elseif string.sub(ps1,i+1,i+1) == 'j' then
+                local jobs = libproc.thread.nthreads()
+                write(tostring(jobs))
                 i = i + 2
             elseif string.sub(ps1,i+1,i+1) == 'w' then
                 write(shell_wd)
@@ -317,16 +334,27 @@ function main(args)
         local sh_context = {}
         sh_context['shell'] = {}
         sh_context['var'] = {}
+        sh_context['alias'] = {}
         sh_context['shell']['thread'] = true
 
         sh_context = run_script('.cshrc', sh_context)
 
         while true do --main loop
+            libproc.chair_register(pget_running())
+
+            if shell.getwd() ~= shell_wd then
+                print(shell.getwd())
+                print(shell_wd)
+                print("[D] getwd() ~= shell_wd")
+                shell_wd = os.lib.control.get('/sbin/login', 'cwd')
+            end
+
             if shellToken.user == 'root' then --always check if user is root
                 shell_char = '#'
             else
                 shell_char = '$'
             end
+            sh_context['shell']['thread'] = true
             write_ps1(sh_context, shell_char, hostname)
             local cmd = read(nil, HISTORY, os.cshell.complete)
             if cmd == 'exit' then --hardcoded command

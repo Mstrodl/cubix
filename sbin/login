@@ -19,21 +19,29 @@ function main(args)
         try_pwd = read("")
     end
 
-    if os.lib.login.login(try_user, try_pwd) then
+    local ok, wd = os.lib.login.login(try_user, try_pwd)
+    if ok then
+        sleep(0)
+        
         local k = fs.open("/tmp/current_user", 'w')
         if not k then os.debug.kpanic("cannot open /tmp/current_user") end
         k.write(try_user)
         k.close()
+
+        local new_wd = "/home/"..try_user
+        if try_user == 'root' then
+            new_wd = '/root'
+        else
+            new_wd = "/home/"..try_user
+        end
+
         local k2 = fs.open("/tmp/current_path", 'w')
         if not k2 then os.debug.kpanic("cannot open /tmp/current_path") end
-        if try_user ~= 'root' then
-            k2.write("/home/"..try_user)
-        else
-            k2.write("/root")
-        end
+        k2.write(new_wd)
         k2.close()
+
         --showing the initial path to csh
-        os.lib.control.register('/sbin/login', 'cwd', '/home/'..try_user)
+        os.lib.control.register('/sbin/login', 'cwd', new_wd)
 
         --getting itself as a process
         os.lib.control.register('/sbin/login', 'login_lock', '1')
@@ -41,7 +49,12 @@ function main(args)
         os.lib.control.register('/sbin/login', 'login_lock', nil)
 
         --running csh
-        local cshellproc = fork('/bin/cshell')
+        sleep(0)
+        local a = fs.open("/etc/default_sh", 'r')
+        local shell_path = a.readAll()
+        a.close()
+
+        local cshellproc = fork(shell_path)
         prexec(cshellproc, nil, nil, nil, nil, true)
     else
         os.ferror("\nLogin incorrect")

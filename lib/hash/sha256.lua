@@ -190,4 +190,12 @@ function _sha256(msg) --returns string
 		num2s(H[5], 4) .. num2s(H[6], 4) .. num2s(H[7], 4) .. num2s(H[8], 4))
 end
 
-hash_sha256 = _sha256
+hash_sha256 = function(msg, rounds)
+	rounds = rounds or 1
+	local k = msg
+	for i=1,rounds do
+		sleep(0) --"Too long without yielding"
+		k = _sha256(k)
+	end
+	return k
+end
