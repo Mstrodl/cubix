@@ -2,7 +2,7 @@
 --/boot/cubix: well, cubix!(at least the booting is here)
 
 AUTHOR = "Lukas Mendes"
-BUILD_DATE = "2016-04-23"
+BUILD_DATE = "2016-04-25"
 
 --  version format: major.revision.minor
 --      major: linear
@@ -14,7 +14,7 @@ BUILD_DATE = "2016-04-23"
 VERSION_MAJOR = 0
 VERSION_REV   = 5
 VERSION_MINOR = 3
-VERSION_RC = 1
+VERSION_RC = 2
 VERSION = VERSION_MAJOR.."."..VERSION_REV.."."..VERSION_MINOR
 if VERSION_RC ~= 0 then
     VERSION = VERSION.."-rc"..VERSION_RC
