@@ -22,6 +22,7 @@ end
 function load_filesystems()
     load_fs('cfs') --Cubix File System
     load_fs('tmpfs') --Temporary File System
+    load_fs('procfs') --proc file system
     --load_fs('ext2')
     --load_fs('ext3')
     --load_fs('ext4')
@@ -153,10 +154,13 @@ PERMISSIONS:
 ]]
 
 permission.fileCurPerm = function()
-    if os.currentUID() == 0 then
+    if not libproc then
+        return '777'
+    end
+    if libproc.procUID() == 0 then
         --root here
-        return '770'
-    elseif os.currentUID() ~= 0 then
+        return '755'
+    elseif libproc.procUID() ~= 0 then
         return '777'
     end
 end
@@ -529,4 +533,5 @@ function libroutine()
     _G['perms'] = fs.perms
     load_filesystems()
     run_fstab()
+    fsmanager.mount('/dev/loop3', 'procfs', '/proc')
 end

@@ -1,24 +1,24 @@
 Things to do(not in order of priority):
 
- * [0.6.x](60%) Finish cshell rewrite
- * [0.6.x](30%) Finish filesystems
-  * cfs (50%)
+ * [0.5.3](0%) Better login management
+  * [x] Add round thing into the hash lib, not in login
+  * [] Add utils to change the WORK_FACTOR
+  * [] Add programs to restore /etc/shadow if WORK_FACTOR has changed
+
+ * [0.6.x](65%) Finish cshell rewrite
+ * [0.6.x](33%) Finish filesystems
+  * cfs (55%)
   * tmpfs (60%)
-  * ext2 (0%)
-  * ext3 (0%)
-  * ext4 (0%)
+  * ext* family(0%, 0%, 0%)
   * devfs (0%)
 
- * [0.7.x]finish luaX(lxWindow, etc.)(20%)
+ * [0.7.x](23%) finish luaX(lxWindow, etc.)
+
 
 Features that are good to go:
  * [0.5.2, good to go](70%) Cubix Live Installer rewrite
  * [0.5.2, good to go]finish recoding of yapi(95%)
 
-Features that aren't going any further:
- * [0.6.x](0%) systemd(modules), systemd(order stuff), journalctl, timectl, ...
-   * systemctl {start,stop,restart,reload,enable,disable,status,list-units}
-   * journalctl
-   * loginctl
-   * daemons (systemd, journald, networkd, logind, timedated, udevd, libudev)
-   * libpam
+
+Closed Features:
+ * [0.6.x](0%) systemd

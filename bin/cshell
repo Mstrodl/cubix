@@ -95,7 +95,7 @@ local function normal_command(cmd, sh_context, _pipe)
         return sh_context
     elseif program == 'set' then
         local var = tokens[2]
-        local val = strsplit(cmd, ';')[2]
+        local val = table.concat(tail(strsplit(cmd, ';')), ';')
         if not sh_context['var'] then sh_context['var'] = {} end
         sh_context['var'][var] = val
         return sh_context
@@ -305,6 +305,25 @@ function write_ps1(cxt, shell_char, hostname)
                 write('%')
                 i = i + 1
             end
+        elseif char == '\\' then
+            if string.sub(ps1,i+1,i+4) == '033[' then
+                if string.sub(ps1,i+5,i+5) == '0' and
+                   string.sub(ps1,i+6,i+6) == ';' then
+                    local code = string.sub(ps1, i+7, i+8)
+                    term.set_term_color(libansi.get(code, 0))
+                    i = i + 10
+                elseif string.sub(ps1,i+5,i+5) == '1' and
+                       string.sub(ps1,i+6,i+6) == ';' then
+                    local code = string.sub(ps1, i+7, i+8)
+                    term.set_term_color(libansi.get(code, 1))
+                    i = i + 10
+                else
+                    i = i + 4
+                end
+            else
+                write("\\")
+                i = i + 1
+            end
         elseif char == '$' then
             write(shell_char..' ')
             i = i + 1
@@ -313,11 +332,6 @@ function write_ps1(cxt, shell_char, hostname)
             i = i + 1
         end
     end
-
-    --write(shellToken.user)
-    --write("@"..hostname)
-    --write(":"..shell_wd)
-    --write(shell_char..' ')
 end
 
 function main(args)

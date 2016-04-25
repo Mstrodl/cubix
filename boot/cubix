@@ -84,19 +84,6 @@ if _label == nil then _label = 'generic' end
 pcid.write(_label)
 pcid.close()
 
---some default things in /proc
-local version = fs.open("/proc/version", 'w')
-version.write(VERSION)
-version.close()
-
-local build = fs.open("/proc/build_date", 'w')
-build.write(BUILD_DATE)
-build.close()
-
-local sttime = fs.open("/proc/sttime", 'w')
-sttime.write(tostring(os.time()))
-sttime.close()
-
 DEVICES = {}
 MANAGED_FILES = {}
 TTYS = {}
@@ -294,9 +281,25 @@ os.lib.login = {}
 os.lib.login.currentUser = function()
     return {uid = 2}
 end
+os.lib.login.isInGroup = function(uid, gid)
+    return uid == gid
+end
 
 --filesystem manager
 loadmodule("fs_mngr", "/lib/fs_manager")
+
+--some default things in /proc
+local version = fs.open("/proc/version", 'w')
+version.write(VERSION)
+version.close()
+
+local build = fs.open("/proc/build_date", 'w')
+build.write(BUILD_DATE)
+build.close()
+
+local sttime = fs.open("/proc/sttime", 'w')
+sttime.write(tostring(os.clock()))
+sttime.close()
 
 --start permission system for kernel boot
 permission.initKernelPerm()
@@ -309,10 +312,7 @@ else
 --process manager
 function os.internals._kernel.register_mfile(controller) --register Managed Files
     debug.debug_write("[mfile] "..controller.name.." created")
-    os.list_mfiles[controller.name] = controller.file
-    fs.open(controller.name, 'w', fs.perms.SYS).close()
-    -- debug.debug_Write("[mfile] "..controller.name)
-    -- new_mfile(controller)
+    fsdrivers.procfs.register_mfile(controller)
 end
 
 loadmodule("proc", "/lib/proc_manager")
@@ -414,6 +414,9 @@ loadmodule("mtrand", "/lib/random/mt_rand.lua")
 
 --Cubix Containers
 loadmodule("cbxctr", "/lib/cbxctr/cbxctr.lua")
+
+--Ansi library
+loadmodule("libansi", "/lib/colors/libansi.lua")
 
 --print to pipes(doesn't work since the proc change)
 os.pprint = function(message, pipe, double)

@@ -1,18 +1,12 @@
 #!/usr/bin/env lua
---/bin/mkdir: wrapper to CC mkdir
-
-_handler = {}
-_handler.signal_handler = function(sig)
-    if sig == 'kill' then
-        --print("mkdir: SIGKILL")
-        return 0
-    end
-end
+--/bin/mkdir: make directories
 
 function main(args)
     if #args == 0 then return 0 end
-    local newfolder = args[1]
-    fs.makeDir(os.cshell.resolve(newfolder))
+    --local folderperm = args[2] or '755'
+    for _,folder in ipairs(args) do
+        fs.makeDir(shell.resolve(folder))
+    end
     return 0
 end
 

@@ -3,18 +3,6 @@
 
 CURRENT_PATH = ''
 
-function strsplit(inputstr, sep)
-    if sep == nil then
-        sep = "%s"
-    end
-    local t={} ; i=1
-    for str in string.gmatch(inputstr, "([^"..sep.."]+)") do
-        t[i] = str
-        i = i + 1
-    end
-    return t
-end
-
 function pth_goup(p)
     elements = strsplit(p, '/')
     res = ''
@@ -27,7 +15,7 @@ end
 
 function cd(pth)
     local current_user = os.lib.login.currentUser()
-    if CURRENT_PATH == nil then
+    if CURRENT_PATH == nil or CURRENT_PATH == '' then
         CURRENT_PATH = '/'
     elseif pth == nil then
         CURRENT_PATH = "/home/"..current_user
@@ -37,10 +25,18 @@ function cd(pth)
         CURRENT_PATH = pth_goup(CURRENT_PATH)
     elseif pth == '/' then
         CURRENT_PATH = pth
-    elseif fs.exists(fs.combine(CURRENT_PATH, pth)) == true then
-        CURRENT_PATH = fs.combine(CURRENT_PATH, pth)
-    elseif fs.exists(pth) == true then
-        CURRENT_PATH = pth
+    elseif fs.exists('/'..fs.combine(CURRENT_PATH, pth)) == true then
+        if CURRENT_PATH == '/' then
+            CURRENT_PATH = CURRENT_PATH..pth
+        else
+            CURRENT_PATH = CURRENT_PATH..'/'..pth
+        end
+    elseif fs.exists(pth) then
+        if string.sub(pth,1,1) ~= '/' then
+            CURRENT_PATH = '/'..pth
+        else
+            CURRENT_PATH = pth
+        end
     else
         print("cd: not found!")
     end --end
@@ -49,12 +45,10 @@ end
 function main(args)
     local pth = args[1]
 
-    CURRENT_PATH = os.cshell.getwd()
+    CURRENT_PATH = shell.dir()
     cd(pth)
+    if CURRENT_PATH == '' then CURRENT_PATH = '/' end
 
-    --local _cpath = fs.open("/tmp/current_path", 'w')
-    --_cpath.write(CURRENT_PATH)
-    --_cpath.close()
     os.lib.control.register('/bin/cd', 'cd_lock', '1')
     os.cshell.cwd(CURRENT_PATH)
     os.lib.control.register('/bin/cd', 'cd_lock', nil)

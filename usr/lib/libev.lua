@@ -1,6 +1,6 @@
 #!/usr/bin/env lua
 
---libev: library foe event handling
+--libev: library for event handling
 
 local libev = {}
 
