@@ -5,7 +5,7 @@ g root *
 
 #user cubix can be anyone
 u cubix *
-#user cubix can be any group
+#group cubix can be any group
 g cubix *
 
 #group sudo can be anyone

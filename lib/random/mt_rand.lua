@@ -80,4 +80,7 @@ function libroutine()
     _G['rand'] = function()
         return os.random.extract_num(os.random)
     end
+    _G['randrange'] = function(a, b)
+        return (rand() * b) + a
+    end
 end

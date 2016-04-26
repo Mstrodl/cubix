@@ -247,7 +247,7 @@ local function read_sudoers()
     local lines = os.strsplit(d, '\n')
     for _,line in ipairs(lines) do
         if string.sub(line, 1, 1) ~= '#' then
-            if string.sub(line, 1, 1) == 'u' then
+            if string.sub(line, 1, 1) == 'u' then --apply user to user
                 local spl = os.strsplit(line, ' ')
                 local user = spl[2]
                 local _users = spl[3]
@@ -262,7 +262,7 @@ local function read_sudoers()
                         table.insert(current_sudoers.user[user].users, v)
                     end
                 end
-            elseif string.sub(line, 1, 1) == 'g' then
+            elseif string.sub(line, 1, 1) == 'g' then --apply user to groups
                 local spl = os.strsplit(line, ' ')
                 local user = spl[2]
                 local _groups = spl[3]
@@ -277,7 +277,7 @@ local function read_sudoers()
                         table.insert(current_sudoers.user[user].groups, v)
                     end
                 end
-            elseif string.sub(line, 1, 1) == 'h' then
+            elseif string.sub(line, 1, 1) == 'h' then --apply group to users
                 local spl = os.strsplit(line, ' ')
                 local group = spl[2]
                 local _users = spl[3]
@@ -292,7 +292,7 @@ local function read_sudoers()
                         table.insert(current_sudoers.group[group].users, v)
                     end
                 end
-            elseif string.sub(line, 1, 1) == 'q' then --TODO: this
+            elseif string.sub(line, 1, 1) == 'q' then --apply group to groups
                 local spl = os.strsplit(line, ' ')
                 local group = spl[2]
                 local _groups = spl[3]
