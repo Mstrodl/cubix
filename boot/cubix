@@ -2,7 +2,7 @@
 --/boot/cubix: well, cubix!(at least the booting is here)
 
 AUTHOR = "Lukas Mendes"
-BUILD_DATE = "2016-04-26"
+BUILD_DATE = "2016-04-28"
 
 --  version format: major.revision.minor
 --      major: linear
@@ -160,6 +160,8 @@ os.lib = {} --interface to most modules
 os.internals = {}
 os.internals._kernel = {}
 
+local mod_order = {} -- order of loaded modules
+
 local isReloadable = {}
 
 --default function to load modules
@@ -177,11 +179,12 @@ function loadmodule(nmodule, path, dflag)
             os.debug.debug_write("[mod] libroutine() not found", dflag, true)
             sleep(.3)
         end
-        os.lib[nmodule] = _G[fs.getName(path)]
+        os.lib[nmodule] = _G[nmodule]
         isReloadable[nmodule] = os.lib[nmodule].RELOADABLE
         term.set_term_color(colors.green)
         os.debug.debug_write('[mod] loaded: '..nmodule, dflag)
         term.set_term_color(colors.white)
+        mod_order[#mod_order + 1] = nmodule
     else
         os.debug.kpanic("[mod] not loaded: "..nmodule, dflag)
     end
@@ -235,10 +238,9 @@ cubix.loadmodule_ret = loadmodule_ret
 
 --show all loaded modules in the system(shows to stdout)
 os.viewLoadedMods = function()
-    for k,_ in pairs(os.lib) do
-        write(k..' ')
+    for k,v in pairs(mod_order) do
+        write(tostring(k)..' '..v..'\n')
     end
-    write('\n')
 end
 
 --hack
@@ -418,8 +420,12 @@ loadmodule("cbxctr", "/lib/cbxctr/cbxctr.lua")
 --Ansi library
 loadmodule("libansi", "/lib/colors/libansi.lua")
 
---CSPRNG for Cubix
---loadmodule("csprng", "/lib/random/generator/rand_generator.lua")
+--BigInt library
+loadmodule("bigint", "/lib/bigint.lua")
+
+--The Random Generator.
+loadmodule("isaac", "/lib/random/isaac.lua")
+loadmodule("sysrand", "/lib/random/generator.lua")
 
 --print to pipes(doesn't work since the proc change)
 os.pprint = function(message, pipe, double)

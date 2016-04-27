@@ -77,10 +77,18 @@ end
 
 function libroutine()
     os.random = MT19937(os.time())
-    _G['rand'] = function()
+
+    _G['rand'] = function() -- get number from state
         return os.random.extract_num(os.random)
     end
+
     _G['randrange'] = function(a, b)
-        return (rand() * b) + a
+        --generate from a to b inclusive
+        return (rand() % (b+1)) + a
+    end
+
+    _G['getrandombyte'] = function()
+        --return a byte, from 0 to 255
+        return randrange(0, 256 - 1)
     end
 end

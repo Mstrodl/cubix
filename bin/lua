@@ -21,7 +21,7 @@ function main(args)
     print( "Call exit() to exit." )
 
     while bRunning do
-    	term.set_term_color(colors.yellow)
+    	term.set_term_color(colors.lightBlue)
     	write("In ["..cmd_counter.."]: ")
     	term.set_term_color(colors.white)
 
