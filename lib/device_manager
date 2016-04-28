@@ -29,7 +29,7 @@ MAPDEVICES_CHAR[1] = {
     [5]={key='dev_zero', name='/dev/zero', lib='zero_device.lua'},
     [7]={key='dev_full', name='/dev/full', lib='full_device.lua'},
     [8]={key='dev_random', name='/dev/random', lib='random_device.lua'},
-    [9]={key='dev_urandom', name='/dev/urandom', lib='urandom_device.lua'},
+    [9]={key='dev_random', name='/dev/urandom', lib='random_device.lua'},
 }
 
 MAPDEVICES_CHAR[10] = {

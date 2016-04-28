@@ -1,27 +1,12 @@
 #!/usr/bin/env lua
 --random device
 
-function rawread()
-    while true do
-        local sEvent, param = os.pullEvent("key")
-        if sEvent == "key" then
-            if param == 28 then
-                break
-            end
-        end
-    end
-end
+local rnd_running = true
 
-function print_rndchar()
-    local cache = tostring(os.clock())
-    local seed = 0
-    for i=1,#cache do
-        seed = seed + string.byte(string.sub(cache,i,i))
-    end
-    math.randomseed(tostring(seed))
-    while true do
-        s = string.char(math.random(0, 255))
-        io.write(s)
+function check_key()
+    local evt, key = os.pullEvent("key")
+    if evt and (key == 46) then
+        rnd_running = false
     end
 end
 
@@ -30,35 +15,30 @@ dev_random.device = {}
 dev_random.name = '/dev/random'
 
 dev_random.device.device_write = function (message)
-    print("cannot write to /dev/random")
+    print("cannot write to random devices")
 end
 
 dev_random.device.device_read = function (bytes)
-    local crand = {}
     if bytes == nil then
-        crand = coroutine.create(print_rndchar)
-        coroutine.resume(crand)
-        while true do
-            local event, key = os.pullEvent( "key" )
-            if event and key then
-                break
-            end
+        local randchar
+        local randchar_num
+        while rnd_running do
+            randchar_num = getrandombyte(true)
+            randchar = string.char(randchar_num)
+            io.write(randchar)
+
+            check_key()
         end
+        return randchar
     else
-        local cache = tostring(os.clock())
-        local seed = 0
-        for i=1,#cache do
-            seed = seed + string.byte(string.sub(cache,i,i))
+        local res = ''
+        for i=1,bytes do
+            local b = getrandombyte(true)
+            res = res .. string.char(b)
         end
-        math.randomseed(tostring(seed))
-        result = ''
-        for i = 0, bytes do
-            s = string.char(math.random(0, 255))
-            result = result .. s
-        end
-        return result
+        return res
     end
-    return 0
+    return -1
 end
 
 return dev_random

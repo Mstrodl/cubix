@@ -10,6 +10,7 @@ function getrandom(buffer, bufferlen, flag_bytes)
             buffer[i] = rand()
         end
     end
+    return buffer
 end
 
 local bigint = os.lib.bigint.bigint
@@ -53,12 +54,7 @@ function getrandombits(length, cap)
 end
 
 function libroutine()
-    if not entropyman then
-        isaac.isaac_seed_mt()
-    else
-        isaac.isaac_seed(entropyman.get_seed())
-        entropyman.save(isaac.isaac_rand())
-    end
+    isaac.isaac_seed_mt()
 
     -- install syscalls
     _G['getrandom'] = getrandom

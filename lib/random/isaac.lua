@@ -6,6 +6,8 @@ local INT_MASK = 2^32 -1
 -- external results
 local randrsl = {}
 local randcnt = 0
+
+local isaac_seeded_entpool = false
 local isaac_seeded = false
 
 -- internal state
@@ -64,8 +66,6 @@ function mix(a,b,c,d,e,f,g,h)
     b = b + c
     b = b % (INT_MASK)
 
-    sleep(0) -- yielding purposes
-
     b = bit.bxor(b, bit.brshift(c, 2))
     e = e + b
     e = e % (INT_MASK)
@@ -93,8 +93,6 @@ function mix(a,b,c,d,e,f,g,h)
     f = f + g
     f = f % (INT_MASK)
 
-    sleep(0) -- yielding purposes
-
     f = bit.bxor(f, bit.brshift(g, 4))
     a = a + f
     a = a % (INT_MASK)
@@ -108,8 +106,6 @@ function mix(a,b,c,d,e,f,g,h)
 
     h = h + a
     h = h % (INT_MASK)
-
-    sleep(0) -- yielding purposes
 
     h = bit.bxor(h, bit.brshift(a, 9))
     c = c + h
@@ -149,7 +145,6 @@ local function randinit(flag)
             f = f + randrsl[i+5];
             g = g + randrsl[i+6];
             h = h + randrsl[i+7];
-            sleep(0) -- yielding purposes
 
             a = a % (INT_MASK)
             b = b % (INT_MASK)
@@ -182,8 +177,6 @@ local function randinit(flag)
             g = g + mm[i+6];
             h = h + mm[i+7];
 
-            sleep(0) -- yielding purposes
-
             a = a % (INT_MASK)
             b = b % (INT_MASK)
             c = c % (INT_MASK)
@@ -213,11 +206,16 @@ local function randinit(flag)
 end
 
 function isaac_seed(seed, flag)
-    if (not permission.grantAccess(fs.perms.SYS)) or isaac_seeded then
-        ferror("isaac_seed: not enough permission")
-        sleep(2)
-        return false
+    print("isaac_seed "..tostring(seed))
+    sleep(.5)
+    if isaac_seeded or (not isaac_seeded_entpool) then
+        if (not permission.grantAccess(fs.perms.SYS)) then
+            ferror("isaac_seed: not enough permission")
+            return false
+        end
     end
+
+    isaac_seeded = true
 
     local i,m
     for i=0,255 do
@@ -235,7 +233,6 @@ function isaac_seed(seed, flag)
 
     os.debug.debug_write("isaac_seed: initializing", false)
 
-    isaac_seeded = true
     randinit(flag)
     isaac()
     isaac()
@@ -244,10 +241,19 @@ function isaac_seed(seed, flag)
 end
 
 function isaac_seed_mt()
-    os.debug.debug_write("isaac_seed: seeding from os.random")
+    os.debug.debug_write("isaac_seed: seeding from MT19937(os.random)")
     for i=0,255 do
         randrsl[i] = os.random.extract_num(os.random)
     end
+end
+
+function isaac_seed_entpool()
+    os.debug.debug_write("isaac_seed: seeding from entropyman", false)
+    for i=0,255 do
+        randrsl[i] = entropyman.pool_seed()
+    end
+    sleep(.3)
+    isaac_seed_entpool = true
 end
 
 function isaac_rand()
@@ -255,9 +261,7 @@ function isaac_rand()
     r = randrsl[randcnt]
     randcnt = randcnt + 1
     if randcnt > 255 then
-        sleep(0)
         isaac()
-        sleep(0)
         randcnt = 0
     end
     return r
@@ -272,21 +276,24 @@ function isaac_export_seed()
 end
 
 function libroutine()
+    isaac_seed(os.generateSalt(64))
+
     _G['rand'] = function() -- overwrite Mersenne Twister syscalls
-        if not isaac_seeded then
-            print("isaac(rand): seeding from math.random")
-            isaac_seeded = true
-            isaac_seed(os.generateSalt(64))
-        end
         return isaac_rand()
     end
 
     _G['randrange'] = function(a, b)
         --generate from a to b inclusive
-        return (rand() % (b+1)) + a
+        local v = rand()
+        return (v % (b+1)) + a
     end
 
-    _G['getrandombyte'] = function()
-        return randrange(0, 256 - 1)
+    _G['getrandombyte'] = function(flag)
+        local val = randrange(0, 256 - 1)
+        if flag then
+            return tonumber(tostring(val))
+        else
+            return val
+        end
     end
 end
