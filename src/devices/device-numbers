@@ -1,0 +1,21 @@
+
+Cubix Device Numbers
+
+Syntax:
+ <major number>
+  <minor number> - <description of device>, <preffered device path>
+
+Block Devices:
+ 7
+  0 - dummy device, /dev/loop{0,1,2,3,4}
+
+Character Devices:
+ 1
+  3 - Null device, /dev/null
+  5 - Zero device, /dev/zero
+  7 - Full device, /dev/full
+  8 - Random device, /dev/random
+  9 - Random device, /dev/urandom
+
+ 10
+  8 - Mouse device, /dev/mouse
