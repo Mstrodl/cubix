@@ -1,13 +1,13 @@
 -- generator.lua: the cubix random generator
 -- uses evgather to gather seed and then returns ISAAC iterations
 
-function getrandom(buffer, bufferlen, flag_bytes)
+function getrandom(buffer, bufferlen, flag_bytes, flag_bigint)
     bufferlen = bufferlen or #buffer
     for i=1,bufferlen do
         if flag_bytes then
             buffer[i] = getrandombyte()
         else
-            buffer[i] = rand()
+            buffer[i] = rand(flag_bigint)
         end
     end
     return buffer

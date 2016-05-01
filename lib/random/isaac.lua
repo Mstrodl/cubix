@@ -278,8 +278,13 @@ end
 function libroutine()
     isaac_seed(os.generateSalt(64))
 
-    _G['rand'] = function() -- overwrite Mersenne Twister syscalls
-        return isaac_rand()
+    _G['rand'] = function(flag) -- overwrite Mersenne Twister syscalls
+        if flag then
+            return isaac_rand()
+        else
+            --convert from bigint to string to number
+            return tonumber(tostring(isaac_rand()))
+        end
     end
 
     _G['randrange'] = function(a, b)

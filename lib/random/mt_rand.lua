@@ -78,7 +78,7 @@ end
 function libroutine()
     os.random = MT19937(os.time())
 
-    _G['rand'] = function() -- get number from state
+    _G['rand'] = function(flag) -- get number from state
         return os.random.extract_num(os.random)
     end
 

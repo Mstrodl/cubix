@@ -244,6 +244,16 @@ function tviewnum(tbl)
 end
 _G['tviewnum'] = tviewnum
 
+function reduce_add(seq, init_val)
+    local accumulator = bigint.bigint(init_val)
+    for k,v in ipairs(seq) do
+        local num = bigint.bigint(tostring(v))
+        accumulator = accumulator + num
+    end
+    return accumulator
+end
+_G['reduce_add'] = reduce_add
+
 function reduce(f, seq, init_val)
     local acc = init_val
     for k,v in pairs(seq) do

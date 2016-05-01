@@ -11,15 +11,14 @@ local evgather = {} -- api object
 --event pool, time pool and pool lock
 local evtpool = {}
 local evtpool_time = {}
-local evtpool_state = {}
+local evtpool_cursor = 0
 local pool_lock = false
 
 local a,b,c,d = 0x9e3779b9, 0x9e3779b9, 0x9e3779b9, 0x9e3779b9
 
 function evt_num(evt)
     local evt_type = evt[1]
-    if evt_type == 'alarm' then
-    elseif evt_type == 'char' then
+    if evt_type == 'char' then
         local character = evt[2]
         return string.byte(character)
     elseif evt_type == 'http_failure' then
@@ -62,6 +61,11 @@ function evt_num(evt)
         local click_x = evt[3]
         local click_y = evt[4]
         return mouse_button * (click_x + click_y)
+    elseif evt_type == 'mouse_up' then
+        local mouse_button = evt[2] -- 1 for left, 2 right, 3 middle
+        local click_x = evt[3]
+        local click_y = evt[4]
+        return mouse_button * (click_x + click_y)
     elseif evt_type == 'mouse_drag' then
         local mouse_button = evt[2] -- 1 for left, 2 right, 3 middle
         local click_x = evt[3]
@@ -90,7 +94,7 @@ function evt_num(evt)
 
         return msg_res * sender_id * distance
     else
-        return math.floor(rand() / (10^7))
+        return math.floor(tonumber(tostring(rand() / (10^7))))
     end
 end
 
@@ -147,16 +151,19 @@ local function evtpool_mix()
     end
 end
 
-function pool_add(event)
+function pool_add(event, evt_time)
     if not pool_lock then
         if (not permission.grantAccess(fs.perms.SYS)) then
             ferror("pool_add: not enough permission")
             return false
         end
     end
+    evt_time = evt_time or os.clock()
 
-    evtpool_time[(#evtpool + 1) % EVPOOL_SIZE] = os.clock()
-    evtpool[(#evtpool + 1) % EVPOOL_SIZE] = evt_num(event)
+    evtpool_cursor = (evtpool_cursor + 1) % EVPOOL_SIZE
+
+    evtpool[evtpool_cursor] = evt_num(event)
+    evtpool_time[evtpool_cursor] = evt_time
 end
 evgather.pool_add = poll_add
 
@@ -172,17 +179,45 @@ function pool_export()
 end
 evgather.pool_export = pool_export
 
+function evt_time_coef()
+    return reduce(function(a,b) return a+b end, evtpool_time, bigint.bigint('0'))
+end
+
 function pool_seed()
+    -- copy pool and get coefficient from evtpool_time
     local copypool = pool_export()
     local coef = evt_time_coef()
-    return reduce(function(a,b) return a+b end, copypool, 0)
+
+    local seed = reduce(function(a,b) return a+b end, evtpool, coef)
+
+    -- remove first 2 characters of seed(they always are in the range 40-50)
+    local seed = tostring(seed)
+    return bigint.bigint(string.sub(seed, 3, #seed))
 end
 evgather.pool_seed = pool_seed
+
+function load_pooltime(pth)
+    -- save time pool
+    os.debug.debug_write("[evgather] load_pooltime", false)
+    pth = pth or EVPOOL_PATH
+    local h = fs.open(pth..'_time', 'r')
+    if h == nil then
+        ferror("load_pooltime: error loading pooltime file")
+        sleep(1)
+        evtpool_time = table_fgen(os.clock, EVPOOL_SIZE)
+        return true
+    end
+    local a = h.readAll()
+    h.close()
+
+    evtpool_time = textutils.unserialise(a)
+    return true
+end
 
 function load_pool(pth)
     os.debug.debug_write("[evgather] load_pool", false)
     pth = pth or EVPOOL_PATH
-    h = fs.open(pth, 'r')
+    local h = fs.open(pth, 'r')
     if h == nil then
         ferror("load_pool: error loading pool file")
         sleep(1)
@@ -193,6 +228,7 @@ function load_pool(pth)
     h.close()
 
     evtpool = textutils.unserialise(a)
+    load_pooltime(pth)
     return true
 end
 evgather.load_pool = load_pool
@@ -203,9 +239,19 @@ function save_pool(pth)
     h = fs.open(pth, 'w')
     h.write(textutils.serialise(evtpool))
     h.close()
+    save_pooltime(pth)
     return true
 end
 evgather.save_pool = save_pool
+
+function save_pooltime(pth)
+    os.debug.debug_write("[evgather] save_pooltime")
+    pth = pth or EVPOOL_PATH
+    h = fs.open(pth..'_time', 'w')
+    h.write(textutils.serialise(evtpool_time))
+    h.close()
+    return true
+end
 
 function tick_event()
     local evt = {os.pullEvent()}
