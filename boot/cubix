@@ -2,7 +2,7 @@
 --/boot/cubix: well, cubix!(at least the booting is here)
 
 AUTHOR = "Lukas Mendes"
-BUILD_DATE = "2016-04-28"
+BUILD_DATE = "2016-05-01"
 
 --  version format: major.revision.minor
 --      major: linear
@@ -135,7 +135,7 @@ local booted = false
 cubix.boot_kernel = function() --the function to load the kernel
 
 if booted then
-    return ferror("Cubix already booted!")
+    return ferror("boot_kernel: cubix already booted!")
 end
 booted = true
 
@@ -253,7 +253,7 @@ function make_readonly(table)
     setmetatable(temporary, {
         __index = table,
         __newindex = function(_t, k, v)
-            local runningproc = os.processes[os.lib.proc.running]
+            local runningproc = os.lib.proc.get_processes()[pget_running()]
             if runningproc == nil then
                 os.debug.debug_write("[readonly -> proc] cubix is not running any process now!", nil, true)
                 table[k] = v
@@ -427,6 +427,9 @@ loadmodule("bigint", "/lib/bigint.lua")
 loadmodule("isaac", "/lib/random/isaac.lua")
 loadmodule("sysrand", "/lib/random/generator.lua")
 
+--Entropy Gathering
+loadmodule("evgather", "/lib/random/evgather.lua")
+
 --print to pipes(doesn't work since the proc change)
 os.pprint = function(message, pipe, double)
     if double == nil then double = false end
@@ -485,7 +488,10 @@ function init_fun()
 end
 
 function entropy_loader()
-    loadmodule("entropyman", "/lib/random/entropyman.lua", false)
+    while true do
+        os.lib.evgather.tick_event()
+        sleep(0)
+    end
 end
 
 --create threads and allocate them in starting list

@@ -1,5 +1,5 @@
 -- generator.lua: the cubix random generator
--- uses entropyman to gather seed and then returns ISAAC iterations
+-- uses evgather to gather seed and then returns ISAAC iterations
 
 function getrandom(buffer, bufferlen, flag_bytes)
     bufferlen = bufferlen or #buffer

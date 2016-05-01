@@ -2,7 +2,7 @@
 --libcubix: compatibility for cubix
 
 AUTHOR = 'Lukas Mendes'
-VERSION = '0.2'
+VERSION = '0.3'
 
 --[[
 
@@ -243,6 +243,15 @@ function tviewnum(tbl)
     write("}\n")
 end
 _G['tviewnum'] = tviewnum
+
+function reduce(f, seq, init_val)
+    local acc = init_val
+    for k,v in pairs(seq) do
+        acc = f(acc, v)
+    end
+    return acc
+end
+_G['reduce'] = reduce
 
 function generate_lcubix(type, path)
     if type == 'all' then

@@ -248,9 +248,9 @@ function isaac_seed_mt()
 end
 
 function isaac_seed_entpool()
-    os.debug.debug_write("isaac_seed: seeding from entropyman", false)
+    os.debug.debug_write("isaac_seed: seeding from evgather", false)
     for i=0,255 do
-        randrsl[i] = entropyman.pool_seed()
+        randrsl[i] = evgather.pool_seed()
     end
     sleep(.3)
     isaac_seed_entpool = true

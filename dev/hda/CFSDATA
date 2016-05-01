@@ -161,10 +161,10 @@ usr/manuals/wget.man:1:777::0
 rom/autorun:0:777::0
 rom/programs/fun/advanced/levels/8:1:777::0
 dev/full:1:777::0
-rom/programs/advanced/bg:1:777::0
 lib/bigint.lua:1:777::0
 rom/help/fs:1:777::0
 /var/yapi/db:0:777::0
+rom/programs/advanced/bg:1:777::0
 sbin/reboot:1:777::0
 /lib:0:777::0
 bin/wget:1:777::0
@@ -193,6 +193,7 @@ bin/cat:1:777::0
 rom/programs/set:1:777::0
 rom/programs/fun/advanced/levels/11:1:777::0
 /lib/net:0:777::0
+src/devices/device-numbers:1:777::0
 rom/programs/fun/advanced/levels/5:1:777::0
 /dev/shm:1:777::0
 lib/luaX/lxMouse.lua:1:777::0
@@ -204,8 +205,8 @@ lib/devices:0:777::0
 rom/help/bundled:1:777::0
 rom/help/bit:1:777::0
 rom/help/chat:1:777::0
-rom/help/io:1:777::0
 dev/mouse:1:777::0
+rom/help/io:1:777::0
 rom/programs/delete:1:777::0
 /rom/apis/turtle:0:777::0
 rom/help/edit:1:777::0
@@ -231,6 +232,7 @@ usr/manuals/fsmngr.man:1:777::0
 /usr/games:0:777::0
 rom/apis/turtle:0:777::0
 /usr/manuals:0:777::0
+lib/random/evgather.lua:1:777::0
 dev/tty1:1:777::0
 /sbin:0:777::0
 lib/colors/libansi.lua:1:777::0
@@ -240,6 +242,7 @@ lib/comm_manager:1:777::0
 etc/initramfs.modules:1:777::0
 rom/programs/fun/advanced/levels/6:1:777::0
 dev/loop0:1:777::0
+src/devices:1:777::0
 rom/help/adventure:1:777::0
 dev/tty9:1:777::0
 lib/random/mt_rand.lua:1:777::0
@@ -284,6 +287,7 @@ rom/programs/programs:1:777::0
 rom/programs/turtle/unequip:1:777::0
 /rom/programs/fun/advanced:0:777::0
 /etc/rc6.d:0:777::0
+/src/devices:1:777::0
 /todo_stuff:0:777::0
 usr/manuals:0:777::0
 boot/cubix-initramfs:1:777::0
@@ -321,7 +325,6 @@ rom/programs/turtle:0:777::0
 rom/apis/vector:1:777::0
 dev/dummy:1:777::0
 bin/mknod:1:777::0
-var/rand/evtpool:1:777::0
 rom/help/lua:1:777::0
 rom/help/redstone:1:777::0
 rom/programs/turtle/turn:1:777::0
@@ -364,8 +367,8 @@ src/tests:1:777::0
 bin/dd:1:777::0
 /startup:0:777::0
 /lib/luaX:0:777::0
-lib/proc_manager:1:777::0
 dev/MAKEDEV:1:777::0
+lib/proc_manager:1:777::0
 etc/rc5.d:0:777::0
 /etc/rc5.d:0:777::0
 rom/programs/rednet/chat:1:777::0
@@ -409,8 +412,8 @@ rom/help/commands:1:777::0
 rom/programs/fun/advanced/levels/4:1:777::0
 lib/cbxctr/container.lua:1:777::0
 rom/apis/rednet:1:777::0
-rom/programs/shell:1:777::0
 rom/help/peripherals:1:777::0
+rom/programs/shell:1:777::0
 rom/programs/turtle/refuel:1:777::0
 home/cubix:0:777::0
 mnt/tmpfs:1:777::0
@@ -433,21 +436,20 @@ etc/default_sh:1:777::0
 rom/programs/gps:1:777::0
 bin/sh:1:777::0
 boot/sblcfg/craftos:1:777::0
-lib/proc_manager.old:1:777::0
 /cubix_standards:0:777::0
+lib/proc_manager.old:1:777::0
 proc/version:1:777::0
 usr/share/manuals:1:777::0
 /rom/autorun:0:777::0
 var/yapi/sources:1:777::0
-lib/random/entropyman.lua:1:777::0
 proc/cpuinfo:1:777::0
 lib/time:1:777::0
 bin/license:1:777::0
 dev/shm:1:777::0
 etc/time-servers:1:777::0
 dev/urandom:1:777::0
-rom/apis:0:777::0
 sbin/shutdown:1:777::0
+rom/apis:0:777::0
 dev/stderr:1:777::0
 /lib/multiuser:0:777::0
 etc/bootsplash.default:1:777::0
@@ -465,8 +467,8 @@ lib/multiuser/multiuser.lua:1:777::0
 bin/glep:1:777::0
 rom/programs/list:1:777::0
 bin/cksum:1:777::0
-rom/programs/rednet/repeat:1:777::0
 src/yapi-extradocs:0:777::0
+rom/programs/rednet/repeat:1:777::0
 rom/apis/peripheral:1:777::0
 usr/manuals/kernel/internals.man:1:777::0
 lib/hash/md5.lua:1:777::0

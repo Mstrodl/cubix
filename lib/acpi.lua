@@ -20,7 +20,7 @@ local __clear_temp = function()
     fs.makeDir("/tmp")
 
     os.debug.debug_write("[acpi] save entropy pool")
-    entropyman.save_pool()
+    evgather.save_pool()
 end
 
 local function acpi_shutdown()
