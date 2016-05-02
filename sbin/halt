@@ -1,0 +1,7 @@
+#!/usr/bin/env lua
+
+function main(args)
+    os.shutdown()
+end
+
+main({...})

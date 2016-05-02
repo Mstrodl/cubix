@@ -2,7 +2,7 @@
 --/boot/cubix: well, cubix!(at least the booting is here)
 
 AUTHOR = "Lukas Mendes"
-BUILD_DATE = "2016-05-01"
+BUILD_DATE = "2016-05-02"
 
 --  version format: major.revision.minor
 --      major: linear
@@ -164,30 +164,64 @@ local mod_order = {} -- order of loaded modules
 
 local isReloadable = {}
 
+local function load_file(pth)
+    local n = fs.getName(pth)
+
+    local tEnv = {}
+    setmetatable( tEnv, { __index = _G } )
+    local fnAPI, err = loadfile( pth, tEnv )
+    if fnAPI then
+        local ok, err = pcall( fnAPI )
+        if not ok then
+            printError( err )
+            return false
+        end
+    else
+        printError( err )
+        return false
+    end
+
+    local lib_exported = {}
+    for k,v in pairs( tEnv ) do
+        if k ~= "_ENV" then
+            lib_exported[k] =  v
+        end
+    end
+
+    return lib_exported
+end
+
 --default function to load modules
 function loadmodule(nmodule, path, dflag)
-    os.debug.debug_write('[mod] loading: '..nmodule, dflag)
     if isReloadable[nmodule] ~= nil and isReloadable[nmodule] == false then
         os.debug.debug_write("[mod] cannot reload "..nmodule..", please reboot!", nil, true)
         return 0
     end
-    if os.loadAPI(path) then
-        _G[nmodule] = _G[fs.getName(path)]
-        if _G[nmodule].libroutine ~= nil then
-            _G[nmodule].libroutine()
-        else
-            os.debug.debug_write("[mod] libroutine() not found", dflag, true)
-            sleep(.3)
-        end
-        os.lib[nmodule] = _G[nmodule]
-        isReloadable[nmodule] = os.lib[nmodule].RELOADABLE
-        term.set_term_color(colors.green)
-        os.debug.debug_write('[mod] loaded: '..nmodule, dflag)
-        term.set_term_color(colors.white)
-        mod_order[#mod_order + 1] = nmodule
-    else
+
+    os.debug.debug_write('[mod] load: '..nmodule, dflag)
+
+    local mod_tbl = load_file(path)
+    if not mod_tbl then
         os.debug.kpanic("[mod] not loaded: "..nmodule, dflag)
+        return false
     end
+
+    _G[nmodule] = mod_tbl
+    if mod_tbl.libroutine ~= nil then
+        mod_tbl.libroutine()
+    else
+        os.debug.debug_write("[mod] libroutine() not found", dflag, true)
+        sleep(.3)
+    end
+
+    os.lib[nmodule] = mod_tbl
+    isReloadable[nmodule] = os.lib[nmodule].RELOADABLE
+
+    term.set_term_color(colors.green)
+    os.debug.debug_write('[mod] loaded: '..nmodule, dflag)
+    term.set_term_color(colors.white)
+
+    mod_order[#mod_order + 1] = nmodule
 end
 
 --unload a module
@@ -199,36 +233,41 @@ function unloadmod(mod)
 
     if os.lib[mod] then
         os.debug.debug_write("[unloadmod] unloading "..mod)
+        if os.lib[mod].libunload then
+            os.lib[mod].libunload()
+        end
         os.lib[mod] = nil
         return true
     else
-        ferror("unloadmod: module not found")
+        ferror("unloadmod: module not found or loaded")
         return false
     end
 end
 
-function loadmodule_ret(path)
+function loadmodule_ret(path, debug_level)
     -- instead of putting the library into os.lib, just return it
-    if path == nil then
+    if path == nil or path == '' then
         return ferror("[loadmodule_ret] path == nil")
     end
     os.debug.debug_write('[loadmodule:ret] loading: '..path)
-    local ret = {}
-    if os.loadAPI(path) then
-        ret = _G[fs.getName(path)]
-        if ret.libroutine ~= nil then
-            ret.libroutine()
-        else
-            os.debug.debug_write("[loadmodule:ret] libroutine() not found", nil, true)
-            sleep(.3)
-        end
-        os.debug.debug_write('[loadmodule:ret] loaded: '..path)
-        return ret
-    else
+
+    local ret = load_file(path)
+    if not ret then
         ferror("[loadmodule:ret] not loaded: "..path)
         return nil
     end
+
+    if ret.libroutine ~= nil then
+        ret.libroutine()
+    else
+        os.debug.debug_write("[loadmodule:ret] libroutine() not found", nil, true)
+        sleep(0)
+    end
+
+    os.debug.debug_write('[loadmodule:ret] loaded: '..path)
+    return ret
 end
+_G['loadmodule_ret'] = loadmodule_ret
 
 os.internals.loadmodule = loadmodule
 os.internals.loadmodule_ret = loadmodule_ret
@@ -412,7 +451,7 @@ loadmodule("time", "/lib/time")
 loadmodule("control", "/lib/comm_manager")
 
 --Mersenne Twister implementation
-loadmodule("mtrand", "/lib/random/mt_rand.lua")
+loadmodule("mtrand", "/lib/crypto/rand/mt_rand.lua")
 
 --Cubix Containers
 loadmodule("cbxctr", "/lib/cbxctr/cbxctr.lua")
@@ -424,11 +463,15 @@ loadmodule("libansi", "/lib/colors/libansi.lua")
 loadmodule("bigint", "/lib/bigint.lua")
 
 --The Random Generator.
-loadmodule("isaac", "/lib/random/isaac.lua")
-loadmodule("sysrand", "/lib/random/generator.lua")
+loadmodule("isaac", "/lib/crypto/rand/isaac.lua")
+loadmodule("sysrand", "/lib/crypto/rand/generator.lua")
 
 --Entropy Gathering
-loadmodule("evgather", "/lib/random/evgather.lua")
+loadmodule("evgather", "/lib/crypto/rand/evgather.lua")
+
+--load Prime Generator.
+loadmodule("primegen", "/lib/crypto/gen_prime.lua")
+
 
 --print to pipes(doesn't work since the proc change)
 os.pprint = function(message, pipe, double)

@@ -1,0 +1,7 @@
+#!/usr/bin/env lua
+
+function main(args)
+    print(gethostname())
+end
+
+main({...})

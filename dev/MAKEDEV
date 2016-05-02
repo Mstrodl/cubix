@@ -1,21 +1,16 @@
 #!/usr/bin/env lua
 --/dev/MAKEDEV: create unix folder structure in /
 
-_handler = {}
-_handler.signal_handler = function (sig)
-    if sig == 'kill' then
-        --print("MAKEDEV: SIGKILL'd!", false)
-        return 0
-    end
-end
-
 function main(args)
     os.runfile = shell.run
     os.runfile("mkdir /proc") --proc_manager
     os.runfile("mkdir /bin") --binaries
     os.runfile("mkdir /sbin") --root binaries
     os.runfile("mkdir /boot") --boot things
+
     os.runfile("mkdir /etc") --system-wide configuration files and system databases
+    os.runfile("mkdir /etc/opt")
+    os.runfile("mkdir /etc/luaX")
     os.runfile("mkdir /etc/rc0.d")
     os.runfile("mkdir /etc/rc1.d")
     os.runfile("mkdir /etc/rc2.d")
@@ -23,22 +18,71 @@ function main(args)
     os.runfile("mkdir /etc/rc5.d")
     os.runfile("mkdir /etc/rc6.d")
     os.runfile("mkdir /etc/scripts")
+
     os.runfile("mkdir /home") --home folder
     os.runfile("mkdir /home/cubix") --default user
+
     os.runfile("mkdir /lib") --libraries
     os.runfile("mkdir /mnt") --mounting
     os.runfile("mkdir /root") --home for root
+
     os.runfile("mkdir /usr") --user things
-    os.runfile("mkdir /usr/bin")
+    os.runfile("mkdir /usr/etc")
     os.runfile("mkdir /usr/games")
     os.runfile("mkdir /usr/lib")
+
+    os.runfile("mkdir /usr/local")
+    os.runfile("mkdir /usr/local/bin")
+    os.runfile("mkdir /usr/local/etc")
+    os.runfile("mkdir /usr/local/games")
+    os.runfile("mkdir /usr/local/include")
+    os.runfile("mkdir /usr/local/lib")
+    os.runfile("mkdir /usr/local/man")
+    os.runfile("mkdir /usr/local/sbin")
+
+    os.runfile("mkdir /usr/local/share")
+    os.runfile("mkdir /usr/local/share/man")
+    os.runfile("mkdir /usr/local/share/misc")
+
+    os.runfile("mkdir /usr/local/src")
+
     os.runfile("mkdir /usr/sbin")
+    os.runfile("mkdir /usr/include")
+
+    os.runfile("mkdir /usr/share")
+    os.runfile("mkdir /usr/share/doc")
+    os.runfile("mkdir /usr/share/games")
+    os.runfile("mkdir /usr/share/info")
+    os.runfile("mkdir /usr/share/locale")
+    os.runfile("mkdir /usr/share/zoneinfo")
+
+    os.runfile("mkdir /usr/src")
+    os.runfile("mkdir /usr/manuals") --manuals
+
     os.runfile("mkdir /var") --variables
+    os.runfile("mkdir /var/mail")
+    os.runfile("mkdir /var/run")
+    os.runfile("mkdir /var/lock")
+
+    os.runfile("mkdir /var/cache")
+    os.runfile("mkdir /var/cache/www")
+
+    os.runfile("mkdir /var/lib")
+    os.runfile("mkdir /var/local")
+    os.runfile("mkdir /var/log")
+    os.runfile("mkdir /var/opt")
+    os.runfile("mkdir /var/spool")
+    os.runfile("mkdir /var/tmp")
+
+    os.runfile("mkdir /var/crash")
+
     os.runfile("mkdir /src") --source data
+    os.runfile("mkdir /opt")
+
     os.runfile("rm /tmp") --removing temporary because yes
     os.runfile("mkdir /tmp") --temporary, deleted when shutdown/reboot
+
     os.runfile("mkdir /media") --mounting
-    os.runfile("mkdir /usr/manuals") --manuals
     print("MAKEDEV: created folders")
 end
 

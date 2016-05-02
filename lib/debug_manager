@@ -57,7 +57,7 @@ function kpanic(message)
         if os.__boot_flag then --early kernel
             debug_write("Proc: /boot/cubix")
         else
-            debug_write("Proc: "..tostring(os.getrunning()))
+            debug_write("Proc: "..tostring(pget_running()))
         end
         term.set_term_color(colors.red)
         debug_write(message)
@@ -78,7 +78,7 @@ function kpanic(message)
         if not os.lib.proc or os.__boot_flag then --how are you in early boot and with luaX?
             process_line = "proc: /boot/cubix"
         else
-            process_line = "pid: "..tostring(os.lib.proc.get_running())
+            process_line = "pid: "..tostring(pget_running())
         end
 
         for i=1, #process_line do
@@ -90,7 +90,7 @@ function kpanic(message)
         if not os.lib.proc or os.__boot_flag then --how are you in early boot(seriously, how)?
             procname = "name: /boot/cubix"
         else
-            procname = "pname: "..tostring(os.lib.proc.get_processes()[os.lib.proc.get_running()].file)
+            procname = "pname: "..tostring(os.lib.proc.get_processes()[pget_running()].file)
         end
 
         for i=1, #procname do

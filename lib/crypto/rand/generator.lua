@@ -13,6 +13,15 @@ function getrandom(buffer, bufferlen, flag_bytes, flag_bigint)
     return buffer
 end
 
+function getrandombits_char(bits)
+    local r = ''
+    for i=1,bits do
+        r = r .. string.char(getrandombyte())
+    end
+    return r
+end
+_G['getrandombits_char'] = getrandombits_char
+
 local bigint = os.lib.bigint.bigint
 
 function getrandombits(length, cap)

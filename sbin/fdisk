@@ -1,0 +1,19 @@
+#!/usr/bin/env lua
+
+function main(args)
+    if args[1] == 'list' then
+        local list_devices = udev.get_dev()
+        for k,v in pairs(list_devices) do
+            if udev.type_dev(k) == udev.DEVICE_DISK then
+                write(k)
+                print(' '..fs.getFreeSpace(v.mpath))
+            end
+        end
+        return 0
+    else
+        print("usage: fdisk <mode>")
+        return 0
+    end
+end
+
+main({...})

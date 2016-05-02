@@ -1,0 +1,30 @@
+#!/usr/bin/env lua
+
+VER = "0.0.1"
+
+function main(args)
+    print("rsa util v"..VER)
+    if args[1] == 'encrypt' then
+        print("rsa: encrypt")
+    elseif args[1] == 'decrypt' then
+        print("rsa: decrypt")
+    elseif args[1] == 'gen' then
+        print("rsa: generating key")
+        local s = tail(args)
+        if s == nil or #s ~= 2 then
+            print("usage: rsa gen <keysize> <output>")
+            return 0
+        end
+        local keysize, output = unpack(tail(args))
+        local ok, public, private = crypto_rsa_generate(keysize)
+        if not ok then
+            ferror("rsa: error generating keys")
+            return 0
+        end
+        print(k)
+    else
+        print("usage: rsa <mode>")
+    end
+end
+
+main({...})

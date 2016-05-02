@@ -15,7 +15,7 @@ local shell_PS1 = '%u@%h:%w $'
 if not os.cshell then
     os.cshell = {}
 end
-os.cshell.PATH = '/bin:/usr/bin:/usr/games'
+os.cshell.PATH = '/bin:/usr/bin:/usr/games:/usr/local/bin:/usr/local/sbin'
 
 local last_command = ''
 
