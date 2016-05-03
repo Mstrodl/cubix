@@ -21,6 +21,7 @@ function isprime(n)
 
     return true
 end
+
 function crypto_prime_gen(bits)
     bits = math.floor(bits)
     if bits < 24 then return end

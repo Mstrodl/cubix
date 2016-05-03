@@ -2,7 +2,7 @@
 --/boot/cubix: well, cubix!(at least the booting is here)
 
 AUTHOR = "Lukas Mendes"
-BUILD_DATE = "2016-05-02"
+BUILD_DATE = "2016-05-03"
 
 --  version format: major.revision.minor
 --      major: linear
@@ -471,6 +471,9 @@ loadmodule("evgather", "/lib/crypto/rand/evgather.lua")
 
 --load Prime Generator.
 loadmodule("primegen", "/lib/crypto/gen_prime.lua")
+
+--RSA lib
+loadmodule("rsa", "/lib/crypto/rsa/rsa.lua")
 
 
 --print to pipes(doesn't work since the proc change)

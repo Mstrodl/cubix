@@ -74,6 +74,10 @@ function libroutine()
     lddev('/dev/loop2', 'b', 7, 0)
     lddev('/dev/loop3', 'b', 7, 0)
     lddev('/dev/loop4', 'b', 7, 0)
+    lddev('/dev/loop5', 'b', 7, 0)
+    lddev('/dev/loop6', 'b', 7, 0)
+    lddev('/dev/loop7', 'b', 7, 0)
+    lddev('/dev/loop8', 'b', 7, 0)
 
     --mouse
     lddev("/dev/mouse", 'c', 10, 8)

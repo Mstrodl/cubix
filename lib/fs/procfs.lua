@@ -88,7 +88,7 @@ function isDir(mountpath, path)
         end
     end
     if paths[mountpath][path] == nil then
-        ferror("tmpfs: path does not exist")
+        ferror("procfs: path does not exist")
         return false
     end
     return paths[mountpath][path].type == 'dir'
@@ -150,7 +150,7 @@ function general_file(mountpath, path, mode)
                 paths[mountpath][path].file = paths[mountpath][path].file .. data
                 return data
             else
-                ferror("tmpfs: cant write to file")
+                ferror("procfs: cant write to file")
             end
         end,
         writeLine = function(data)
@@ -161,7 +161,7 @@ function general_file(mountpath, path, mode)
                 paths[mountpath][path].file = paths[mountpath][path].file .. data .. '\n'
                 return data
             else
-                ferror("tmpfs: cant writeLine to file")
+                ferror("procfs: cant writeLine to file")
             end
         end,
         read = function(bytes)
@@ -170,7 +170,7 @@ function general_file(mountpath, path, mode)
                 _cursor = _cursor + bytes
                 return res
             else
-                ferror("tmpfs: cant read file")
+                ferror("procfs: cant read file")
             end
         end,
         readAll = function()
@@ -179,7 +179,7 @@ function general_file(mountpath, path, mode)
                 local res = string.sub(paths[mountpath][path].file, 1, bytes)
                 return res
             else
-                ferror('tmpfs: cant read file')
+                ferror('procfs: cant read file')
             end
         end,
         close = function()
@@ -214,7 +214,7 @@ function makeObject(mountpath, path, mode)
             owner=owner
         }
         if mode == 'r' then
-            ferror("tmpfs: file does not exist")
+            ferror("procfs: file does not exist")
             return nil
         elseif mode == 'w' then
             --create a file
@@ -235,7 +235,7 @@ function delete(mountpoint, path)
         paths[mountpath][path] = nil
         return true
     else
-        ferror("tmpfs: not enough permission.")
+        ferror("procfs: not enough permission.")
         return false
     end
 end

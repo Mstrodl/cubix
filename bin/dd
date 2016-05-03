@@ -1,16 +1,6 @@
 #!/usr/bin/env lua
 --/bin/dd
 
---TODO: support for devices
-
-_handler = {}
-_handler.signal_handler = function (sig)
-    if sig == 'kill' then
-        --print("dd: recieved SIGKILL")
-        return 0
-    end
-end
-
 function main(args)
     local infile = os.cshell.resolve(args[1])
     local outfile = os.cshell.resolve(args[2])

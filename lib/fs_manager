@@ -20,9 +20,10 @@ function load_fs(fsname)
 end
 
 function load_filesystems()
-    load_fs('cfs') --Cubix File System
-    load_fs('tmpfs') --Temporary File System
-    load_fs('procfs') --proc file system
+    load_fs('cfs') -- Cubix File System
+    load_fs('tmpfs') -- Temporary File System
+    load_fs('procfs') -- proc file system
+    load_fs('devfs') -- device file system
     --load_fs('ext2')
     --load_fs('ext3')
     --load_fs('ext4')
@@ -533,5 +534,8 @@ function libroutine()
     _G['perms'] = fs.perms
     load_filesystems()
     run_fstab()
+
+    -- mount special file systems
     fsmanager.mount('/dev/loop3', 'procfs', '/proc')
+    -- unstable: fsmanager.mount('/dev/loop4', 'devfs', '/dev')
 end

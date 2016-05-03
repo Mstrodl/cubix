@@ -1,12 +1,77 @@
 #!/usr/bin/env lua
 
+-- rsa program: unsuitable for use
+
 VER = "0.0.1"
+
+function write_file(pth, d)
+    local h = fs.open(shell.resolve(pth), 'w')
+    h.write(d)
+    h.close()
+end
+
+function read_file(pth)
+    local h = fs.open(shell.resolve(pth), 'r')
+    local a = h.readAll()
+    h.close()
+    return a
+end
+
+function string2int(x)
+    local alphanum = {A=10, B=11, C=12, D=13, E=14,
+    F=15, G=16, H=17, I=18, J=19, K=20, L=21, M=22,
+    N=23, O=24, P=25, Q=26, R=27, S=28, T=29, U=30,
+    V=31, W=32, X=33, Y=34, Z=35, a=36, b=37, c=38,
+    d=39, e=40, f=41, g=42, h=43, i=44, j=45, k=46,
+    l=47, m=48, n=49, o=50, p=51, q=52, r=53, s=54,
+    t=55, u=56, v=57, w=58, x=59, y=60, z=61, _=62}
+    local ret = {}
+    for i = 1, #x do
+        local s = x:sub(i,i)
+        ret[#ret + 1] = alphanum[s]
+    end
+    return ret
+end
 
 function main(args)
     print("rsa util v"..VER)
-    if args[1] == 'encrypt' then
+    if args[1] == 'encrypt' or args[1] == 'enc' then
         print("rsa: encrypt")
-    elseif args[1] == 'decrypt' then
+
+        local s = tail(args)
+        if s == nil or #s ~= 3 then
+            print("usage: rsa enc public_file input_file output_file")
+            return 0
+        end
+
+        local private_key = shell.resolve(args[2])
+        local input_file = shell.resolve(args[3])
+        local output_file = shell.resolve(args[4]) or '/dev/stdout'
+
+        local tok = strsplit(read_file(private_key), ':')
+        local type = tok[1]
+        if type ~= 'pb' then
+            ferror("rsa: not a valid public key file")
+            return false
+        end
+        local n = bigint.bigint(tok[2])
+        local e = bigint.bigint(tok[3])
+
+        write("public key: ")
+        print(n, d)
+
+        local dec_data = string2int(read_file(input_file))
+
+        local encrypted = ''
+        for k,v in ipairs(dec_data) do
+            local enc_byte = crypto_rsa_encrypt(n, e, v)
+            encrypted = encrypted .. tostring(enc_byte)
+        end
+
+        print("writing to "..output_file)
+        write_file(output_file, encrypted)
+
+    elseif args[1] == 'decrypt' or args[1] == 'dec' then
         print("rsa: decrypt")
     elseif args[1] == 'gen' then
         print("rsa: generating key")
@@ -15,13 +80,28 @@ function main(args)
             print("usage: rsa gen <keysize> <output>")
             return 0
         end
-        local keysize, output = unpack(tail(args))
-        local ok, public, private = crypto_rsa_generate(keysize)
+        local keysize = args[2]
+        local output = args[3]
+        local ok, n, e, d = crypto_rsa_generate(keysize)
         if not ok then
             ferror("rsa: error generating keys")
             return 0
         end
-        print(k)
+        local public = {n, e}
+        local private = {n, d}
+        print("keys:")
+        write("public: ")
+        print(unpack(public))
+        write("private: ")
+        print(unpack(private))
+
+        print("writing public key")
+        write_file(output..'-public',
+            'pb:'..tostring(n) .. ':' .. tostring(e))
+
+        print("writing private key")
+        write_file(output..'-private',
+            'pr:'..tostring(n) .. ':' .. tostring(d))
     else
         print("usage: rsa <mode>")
     end

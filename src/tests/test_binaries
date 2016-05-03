@@ -13,7 +13,7 @@ sleep
 rm /home/cubix/cshrc
 sleep
 
-curtime
+date
 sleep
 
 factor 25
