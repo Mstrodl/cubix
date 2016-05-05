@@ -2,7 +2,7 @@
 --/boot/cubix: well, cubix!(at least the booting is here)
 
 AUTHOR = "Lukas Mendes"
-BUILD_DATE = "2016-05-03"
+BUILD_DATE = "2016-05-05"
 
 --  version format: major.revision.minor
 --      major: linear
@@ -128,16 +128,18 @@ os.debug = __debug
 debug = os.debug
 
 cubix = {}
+cubix.boot_flag = false
 _G['cubix'] = cubix
 
 local booted = false
 
 cubix.boot_kernel = function() --the function to load the kernel
 
-if booted then
+if booted or cubix.boot_flag then
     return ferror("boot_kernel: cubix already booted!")
 end
 booted = true
+cubix.boot_flag = true
 
 if kflag.quiet then
     --if quiet, just make normal debug functions as nothing.
@@ -311,6 +313,9 @@ function make_readonly(table)
 end
 
 _G['make_readonly'] = make_readonly
+
+--load syslog
+loadmodule("syslog", "/lib/syslog/syslog.lua")
 
 --acpi module
 if kflag.acpi then
@@ -495,7 +500,9 @@ term.setCursorPos(1,1)
 
 --finishing boot
 os.__debug_buffer = debug.__debug_buffer
-os.__boot_flag = false
+cubix.boot_flag = false
+
+cubix = mk_rdonly(cubix)
 
 --setting tty
 os.lib.tty.current_tty("/dev/tty0")
@@ -555,13 +562,31 @@ end
 
 end
 
+--other make_readonly function stripped
+function mk_rdonly(table)
+    local temporary = {}
+    setmetatable(temporary, {
+        __index = table,
+        __newindex = function(_t, k, v)
+            if true then
+                os.debug.debug_write("[readonly] Attempt to modify read-only table", nil, true)
+            else
+                table[k] = v
+            end
+        end,
+        __metatable = false
+    })
+    os.debug.debug_write("[readonly] new read-only table!")
+    return temporary
+end
+
 if kflag.splash then --bootsplash support
     if bootsplash then
         kflag.quiet = true
         bootsplash.load_normal()
     else
         ferror("splash: bootsplash not loaded at initramfs.")
-        sleep(.5)
+        sleep(.3)
         kflag.quiet = false
         cubix.boot_kernel()
     end

@@ -12,3 +12,6 @@
 
 #uninportant things to overall download of repo
 /var/yapi/cache
+
+#syslog log
+/var/log/syslog

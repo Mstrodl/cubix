@@ -23,7 +23,7 @@ function debug_write(dmessage, screen, isErrorMsg)
         end
         if screen == nil then
             print('[' .. __debug_counter ..']' .. dmessage)
-        elseif screen == false and os.__boot_flag or _G['CUBIX_REBOOTING'] or _G['CUBIX_TURNINGOFF'] then
+        elseif screen == false and cubix.boot_flag or _G['CUBIX_REBOOTING'] or _G['CUBIX_TURNINGOFF'] then
             print('[' .. __debug_counter ..']' .. dmessage)
         end
         debug_write_tobuffer(dmessage..'\n')
@@ -54,7 +54,7 @@ function kpanic(message)
         --LuaX not loaded
         term.set_term_color(colors.yellow)
         debug_write("[cubix] Kernel Panic!")
-        if os.__boot_flag then --early kernel
+        if cubix.boot_flag then --early kernel
             debug_write("Proc: /boot/cubix")
         else
             debug_write("Proc: "..tostring(pget_running()))
@@ -75,7 +75,7 @@ function kpanic(message)
         end
 
         local process_line = ''
-        if not os.lib.proc or os.__boot_flag then --how are you in early boot and with luaX?
+        if not os.lib.proc or cubix.boot_flag then --how are you in early boot and with luaX?
             process_line = "proc: /boot/cubix"
         else
             process_line = "pid: "..tostring(pget_running())
@@ -87,7 +87,7 @@ function kpanic(message)
         end
 
         local procname = ''
-        if not os.lib.proc or os.__boot_flag then --how are you in early boot(seriously, how)?
+        if not os.lib.proc or cubix.boot_flag then --how are you in early boot(seriously, how)?
             procname = "name: /boot/cubix"
         else
             procname = "pname: "..tostring(os.lib.proc.get_processes()[pget_running()].file)
