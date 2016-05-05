@@ -8,16 +8,6 @@
 --  device.device.read = function
 --  device.device.devwrite = function
 
-local function loadDevice(name, path)
-    os.debug.debug_write("[devman] loading "..name)
-    if os.loadAPI(path) then
-        _G[name] = _G[fs.getName(path)]
-        os.debug.debug_write("[devman] loaded "..name)
-    else
-        os.debug.kpanic("[devman] not loaded "..name)
-    end
-end
-
 MAPDEVICES_BLOCK = {}
 MAPDEVICES_BLOCK[7] = {
     [0]={key='dev_dummy', name='/dev/dummy', lib='dummy_device.lua'}
@@ -47,16 +37,17 @@ function lddev(path, type, major, minor)
             ferror("lddev: device not found")
             return false
         end
-        local dobj = loadmodule_ret('/lib/devices/'..d.lib)
-        os.internals._kernel.register_device(path, dobj)
+        local dobj = loadmodule_ret('/lib/devices/'..d.lib, nil, true)
+        udev.new_device(path, dobj)
     elseif type == 'c' then
         local d = MAPDEVICES_CHAR[major][minor]
         if d == nil then
             ferror("lddev: device not found")
             return false
         end
-        local dobj = loadmodule_ret('/lib/devices/'..d.lib)
-        os.internals._kernel.register_device(path, dobj)
+        local dobj = loadmodule_ret('/lib/devices/'..d.lib, nil, true)
+        udev.new_device(path, dobj)
+        --os.queueEvent("udev_new", path, dobj)
     end
 end
 

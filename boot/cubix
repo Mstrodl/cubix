@@ -246,12 +246,15 @@ function unloadmod(mod)
     end
 end
 
-function loadmodule_ret(path, debug_level)
+function loadmodule_ret(path, debug_level, debug_flag)
     -- instead of putting the library into os.lib, just return it
     if path == nil or path == '' then
         return ferror("[loadmodule_ret] path == nil")
     end
-    os.debug.debug_write('[loadmodule:ret] loading: '..path)
+
+    if not debug_flag then
+        os.debug.debug_write('[loadmodule:ret] loading: '..path)
+    end
 
     local ret = load_file(path)
     if not ret then
@@ -262,11 +265,14 @@ function loadmodule_ret(path, debug_level)
     if ret.libroutine ~= nil then
         ret.libroutine()
     else
-        os.debug.debug_write("[loadmodule:ret] libroutine() not found", nil, true)
-        sleep(0)
+        if not debug_flag then
+            os.debug.debug_write("[loadmodule:ret] libroutine() not found", nil, true)
+        end
     end
 
-    os.debug.debug_write('[loadmodule:ret] loaded: '..path)
+    if not debug_flag then
+        os.debug.debug_write('[loadmodule:ret] loaded: '..path)
+    end
     return ret
 end
 _G['loadmodule_ret'] = loadmodule_ret
@@ -331,6 +337,9 @@ os.lib.login.isInGroup = function(uid, gid)
     return uid == gid
 end
 
+--udev: manage devices
+loadmodule("udev", "/lib/udev/udev.lua")
+
 --filesystem manager
 loadmodule("fs_mngr", "/lib/fs_manager")
 
@@ -372,7 +381,7 @@ function os.internals._kernel.register_device(path, d)
     fs.open(path, 'w', fs.perms.SYS).close()
 end
 
---device manager
+--device manager: which loads the devices
 loadmodule("devices", "/lib/device_manager")
 
 --external devices
@@ -400,19 +409,18 @@ os.internals._kernel.new_device("err", "ccterm-err", "/dev/stderr")
 
 os.list_devices = deepcopy(DEVICES)
 function dev_write(path, data)
-    return os.list_devices[path].device_write(data)
+    return udev.device_write(path, data)
 end
 _G['dev_write'] = dev_write
 
 --device functions
 function dev_read(path, bytes) --read from devices
-    local result = os.list_devices[path].device_read(bytes)
-    return result
+    return udev.device_read(path, data)
 end
 _G['dev_read'] = dev_read
 
 function dev_available(path) --check if device is available
-    local av = os.list_devices[path] ~= nil
+    local av = udev.get_nodes()[path] ~= nil
     return av
 end
 _G['dev_available'] = dev_available

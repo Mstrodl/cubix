@@ -10,7 +10,7 @@ _handler.signal_handler = function (sig)
 end
 
 function main(args)
-    local debug_file = fs.open("/tmp/syslog", 'r')
+    local debug_file = fs.open("/var/log/syslog", 'r')
     print(debug_file.readAll())
     debug_file.close()
 end

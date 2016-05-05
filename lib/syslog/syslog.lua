@@ -9,28 +9,45 @@ syslog.BOOT = syslog.INFO
 
 RELOADABLE = false
 
-local log_cnt = 0
 local log_buffer = ''
 
+function pad(s, width, padder)
+    padder = string.rep(padder or " ", math.abs(width))
+    if width < 0 then return string.sub(padder .. s, width) end
+    return string.sub(s .. padder, 1, width)
+end
+
 function syslog_log(message)
+    local clk = os.clock()
+    local _c = tostring(clk)
+    local p = 4
+    if clk > 10 then
+        p = 5
+    elseif clk > 100 then
+        p = 7
+    end
+    local c = pad(_c, p)
     local a = fs.open("/var/log/syslog", 'a')
-    a.write('['..log_cnt..'] '..message..'\n')
+    a.write('['..c..'] '..message..'\n')
     a.close()
 
-    print('['..log_cnt..'] '..message)
-    log_buffer = log_buffer .. ('['..log_cnt..'] '..message..'\n')
-    log_cnt = log_cnt + 1
+    print('['..c..'] '..message)
+    log_buffer = log_buffer .. ('['..c..'] '..message..'\n')
 
     os.sleep(math.random() / 16.)
 end
 
-syslog.log = function(msg, level, screen_flag)
+syslog.log = function(msg, level, screen_flag, color)
     if cubix.boot_flag then
         return syslog_log(msg)
     end
 
     if level == syslog.ERROR then
         term.set_term_color(colors.red)
+    end
+
+    if color then
+        term.set_term_color(color)
     end
 
     if screen_flag == nil or (screen_flag == false and
@@ -56,9 +73,7 @@ syslog.get_log = function()
 end
 
 syslog.testcase = function(message, correct)
-    term.set_term_color(colors.orange)
-    syslog.log(message, syslog.INFO)
-    term.set_term_color(colors.white)
+    syslog.log(message, syslog.INFO, nil, colors.orange)
 end
 
 syslog.S_OK = syslog.INFO

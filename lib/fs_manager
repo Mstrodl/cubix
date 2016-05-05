@@ -8,14 +8,17 @@ oldfs = deepcopy(fs)
 
 fsdrivers = {}
 
-function load_fs(fsname)
-    os.debug.debug_write("[load_fs] loading "..fsname)
-    local pth = '/lib/fs/'..fsname..'.lua'
-    if os.loadAPI(pth) then
-        fsdrivers[fsname] = _G[fs.getName(pth)]
-        os.debug.debug_write('[load_fs] loaded: '..fsname)
+function load_fs(fsname, pth, fsobj)
+    syslog.serlog(syslog.S_INFO, "fsman", "load_fs: "..fsname)
+    if pth ~= nil then
+        fsdrivers[fsname] = cubix.loadmodule_ret(pth, nil, true)
+        return true
+    elseif pth == nil and fsobj ~= nil then
+        fsdrivers[fsname] = fsobj
+        return true
     else
-        os.debug.kpanic("[load_fs] not loaded: "..fsname)
+        fsdrivers[fsname] = cubix.loadmodule_ret('/lib/fs/'..fsname..'.lua', nil, true)
+        return true
     end
 end
 
@@ -23,7 +26,7 @@ function load_filesystems()
     load_fs('cfs') -- Cubix File System
     load_fs('tmpfs') -- Temporary File System
     load_fs('procfs') -- proc file system
-    load_fs('devfs') -- device file system
+    load_fs("devfs", nil, udev.devfs)
     --load_fs('ext2')
     --load_fs('ext3')
     --load_fs('ext4')
@@ -537,5 +540,5 @@ function libroutine()
 
     -- mount special file systems
     fsmanager.mount('/dev/loop3', 'procfs', '/proc')
-    -- unstable: fsmanager.mount('/dev/loop4', 'devfs', '/dev')
+    fsmanager.mount('/dev/loop4', 'devfs', '/dev')
 end
