@@ -18,6 +18,7 @@ function pad(s, width, padder)
 end
 
 function syslog_log(message)
+    --pad pc clock time
     local clk = os.clock()
     local _c = tostring(clk)
     local p = 4
@@ -25,8 +26,13 @@ function syslog_log(message)
         p = 5
     elseif clk > 100 then
         p = 7
+    elseif clk > 1000 then
+        p = 9
+    elseif clk > 10000 then
+        p = 11
     end
     local c = pad(_c, p)
+
     local a = fs.open("/var/log/syslog", 'a')
     a.write('['..c..'] '..message..'\n')
     a.close()
@@ -34,7 +40,8 @@ function syslog_log(message)
     print('['..c..'] '..message)
     log_buffer = log_buffer .. ('['..c..'] '..message..'\n')
 
-    os.sleep(math.random() / 16.)
+    --os.sleep(math.random() / 16.)
+    sleep(0)
 end
 
 syslog.log = function(msg, level, screen_flag, color)

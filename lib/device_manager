@@ -1,12 +1,12 @@
 #!/usr/bin/env lua
 -- device manager
--- task: manage devices in /dev
+-- task: load devices to /dev using udev
 
--- devices:
+-- device object:
 --  device.name = string
 --  device.device = table
---  device.device.read = function
---  device.device.devwrite = function
+--  device.device.device_read = function
+--  device.device.device_write = function
 
 MAPDEVICES_BLOCK = {}
 MAPDEVICES_BLOCK[7] = {
@@ -38,7 +38,7 @@ function lddev(path, type, major, minor)
             return false
         end
         local dobj = loadmodule_ret('/lib/devices/'..d.lib, nil, true)
-        udev.new_device(path, dobj)
+        udev.new_device(path, {device=dobj[d.key].device})
     elseif type == 'c' then
         local d = MAPDEVICES_CHAR[major][minor]
         if d == nil then
@@ -46,8 +46,7 @@ function lddev(path, type, major, minor)
             return false
         end
         local dobj = loadmodule_ret('/lib/devices/'..d.lib, nil, true)
-        udev.new_device(path, dobj)
-        --os.queueEvent("udev_new", path, dobj)
+        udev.new_device(path, {device=dobj[d.key].device})
     end
 end
 

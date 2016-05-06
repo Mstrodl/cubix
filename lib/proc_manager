@@ -313,6 +313,9 @@ end
 _G['pget_running'] = get_running
 
 os.currentUID = function()
+    if cubix.boot_flag then
+        return 0
+    end
     local proc = processes[running]
     if proc == nil or proc == -1 then
         ferror("proc.currentUID: proc == (nil or -1)")

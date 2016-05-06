@@ -145,7 +145,7 @@ end
 function general_file(mountpath, path, mode)
     local new_perm = 0
     if not paths[mountpath][path] then
-        new_perm = fsmanager.fileCurPerm()
+        new_perm = permission.fileCurPerm()
     else
         new_perm = paths[mountpath][path].perm
     end

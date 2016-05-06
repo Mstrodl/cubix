@@ -390,22 +390,24 @@ function from_extdev(name_dev, path_dev, type_dev)
     --name -> only a id
     --type_dev -> device drivers(something.lua)
     --returns a table with the device methods
-    local devmod = loadmodule_ret("/lib/devices/"..type_dev..".lua")
+    syslog.serlog(syslog.S_INFO, "extdev", "loading "..type_dev)
+    local devmod = loadmodule_ret("/lib/devices/"..type_dev..".lua", nil, true)
     devmod.setup(name_dev, path_dev)
     return devmod
 end
 
-EXTDEVICES = {}
-function os.internals._kernel.new_device(typedev, name, pth)
-    os.debug.debug_write("[extdev] "..name.." ("..typedev..") -> "..pth)
-    EXTDEVICES[name] = {devtype=typedev, path=pth}
-    os.internals._kernel.register_device(pth, {name=pth, device=from_extdev(name,pth,typedev)})
+function ext_device(typedev, name, pth)
+    if udev.new_device(pth, {name=pth, device=from_extdev(name,pth,typedev)}) then
+        syslog.serlog(syslog.S_OK, "extdev", "loaded at " .. pth)
+    else
+        syslog.serlog(syslog.S_ERR, "extdev", "error loading "..typedev)
+    end
 end
 
 --default devices
-os.internals._kernel.new_device("kbd", "cckbd", "/dev/stdin")
-os.internals._kernel.new_device("term", "ccterm", "/dev/stdout")
-os.internals._kernel.new_device("err", "ccterm-err", "/dev/stderr")
+ext_device("kbd", "cckbd", "/dev/stdin")
+ext_device("term", "ccterm", "/dev/stdout")
+ext_device("err", "ccterm-err", "/dev/stderr")
 
 os.list_devices = deepcopy(DEVICES)
 function dev_write(path, data)
@@ -415,7 +417,7 @@ _G['dev_write'] = dev_write
 
 --device functions
 function dev_read(path, bytes) --read from devices
-    return udev.device_read(path, data)
+    return udev.device_read(path, bytes)
 end
 _G['dev_read'] = dev_read
 
@@ -426,7 +428,7 @@ end
 _G['dev_available'] = dev_available
 
 function get_device(pth) --get the device object from its path
-    return os.list_devices[pth]
+    return os.get_nodes()[pth]
 end
 _G['get_device'] = get_device
 
