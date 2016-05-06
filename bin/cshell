@@ -374,7 +374,7 @@ function main(args)
             if cmd == 'exit' then --hardcoded command
                 return 0
             elseif cmd ~= nil then
-                if command ~= '' or not command:find(" ") then
+                if (#cmd ~= 0) then
                     table.insert(HISTORY, cmd)
                 end
                 sh_context = shcmd(cmd, sh_context)

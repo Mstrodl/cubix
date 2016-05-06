@@ -2,7 +2,7 @@
 --/boot/cubix: well, cubix!(at least the booting is here)
 
 AUTHOR = "Lukas Mendes"
-BUILD_DATE = "2016-05-05"
+BUILD_DATE = "2016-05-06"
 
 --  version format: major.revision.minor
 --      major: linear
@@ -322,6 +322,7 @@ _G['make_readonly'] = make_readonly
 
 --load syslog
 loadmodule("syslog", "/lib/syslog/syslog.lua")
+os.lib.syslog.syslog_boot()
 
 --acpi module
 if kflag.acpi then
@@ -535,7 +536,9 @@ os.debug = __debug
 term.clear()
 term.setCursorPos(1,1)
 
---idle thread
+os.lib.syslog.close_bflag()
+
+--idle thread(does nothing, but keeps the thread manager running)
 local idle_function = function()
     while true do
         sleep(10)
@@ -553,14 +556,13 @@ end
 function entropy_loader()
     while true do
         os.lib.evgather.tick_event()
-        sleep(0)
     end
 end
 
 --create threads and allocate them in starting list
 local idle_thread = libproc.thread.create_thread(idle_function, '-1:idle', -1, nil, 0.01)
 local init_thread = libproc.thread.create_thread(init_fun, '1:init', 1, nil, 0.8)
-local entropy_thread = libproc.thread.create_thread(entropy_loader, '0:entropy', 0, nil, 0.5)
+local entropy_thread = libproc.thread.create_thread(entropy_loader, '0:entropyd', 0, nil, 0.5)
 
 --start all threads(using a dummy thread because yeah)
 libproc.thread.start_thread(function()end, '-1:dummy', -1, nil, 0.005) --very low probability so it shouldn't run a lot

@@ -10,6 +10,7 @@ syslog.BOOT = syslog.INFO
 RELOADABLE = false
 
 local log_buffer = ''
+local syslog_boot_flag = false
 
 function pad(s, width, padder)
     padder = string.rep(padder or " ", math.abs(width))
@@ -37,11 +38,25 @@ function syslog_log(message)
     a.write('['..c..'] '..message..'\n')
     a.close()
 
+    if syslog_boot_flag then
+        local a = fs.open("/var/log/dmesg", 'a')
+        a.write('['..c..'] '..message..'\n')
+        a.close()
+    end
+
     print('['..c..'] '..message)
     log_buffer = log_buffer .. ('['..c..'] '..message..'\n')
 
     --os.sleep(math.random() / 16.)
     sleep(0)
+end
+
+function syslog_boot()
+    syslog_boot_flag = true
+end
+
+function close_bflag()
+    syslog_boot_flag = false
 end
 
 syslog.log = function(msg, level, screen_flag, color)
@@ -88,7 +103,7 @@ syslog.S_ERR = syslog.ERROR
 syslog.S_INFO = syslog.DEBUG
 
 syslog.serlog = function(logtype, service_name, message)
-    local serlog_str = "["..service_name.."] "
+    local serlog_str = ''
 
     if logtype == syslog.S_OK then
         serlog_str = serlog_str .. '[ OK ] '
@@ -97,6 +112,8 @@ syslog.serlog = function(logtype, service_name, message)
     else
         serlog_str = serlog_str .. '[ INFO ] '
     end
+
+    serlog_str = serlog_str .. "["..service_name.."] "
 
     serlog_str = serlog_str .. message
     return syslog.log(serlog_str, logtype)

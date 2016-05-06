@@ -8,12 +8,18 @@ local devices = {}
 local udev = {} --udev namespace
 
 local function udev_add_dev(path, devobj)
+    if (type(path) ~= 'string') or (type(devobj) ~= 'table') then
+        return ferror("udev_add_dev: invalid arguments")
+    end
+
     devices[path] = devobj
 
     local stripped = string.sub(path, 5, #path)
     device_nodes['/dev'][stripped] = {perm=077, device=devobj}
 
+    syslog.syslog_boot()
     syslog.serlog(syslog.S_OK, "udev", "new device: "..path)
+    syslog.close_bflag()
 end
 udev.new_device = udev_add_dev
 
@@ -144,12 +150,6 @@ local function file_object(mpath, path, mode)
     end
 
     return general_file(mpath, path, mode)
-
-    --[[if (not device_nodes[mpath][path]) and (mode ~= 'r') then
-        return ferror("devfs: error opening file "..(mpath..'/'..path))
-    end
-
-    return general_file(mpath, path, mode)]]
 end
 
 devfs.open = function(mountpath, path, mode)
@@ -167,13 +167,12 @@ udev.devfs = devfs
 function tick_event()
     local evt = {os.pullEvent()}
     if evt[1] == 'hotplug_new' then
-        udev_add_device(evt[2], evt[3])
+        udev_add_dev(evt[2], evt[3])
     elseif evt[1] == 'hotplug_del' then
-        udev_rmv_device(evt[2], evt[3])
+        udev_remove_dev(evt[2], evt[3])
     end
 end
 
 function libroutine()
     _G['udev'] = udev
-    print("udev.")
 end

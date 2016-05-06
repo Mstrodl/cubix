@@ -10,6 +10,7 @@ local _reboot = os.reboot
 local __clear_temp = function()
     os.debug.debug_write("[acpi] cleaning temporary")
     fs.delete("/tmp")
+    fs.delete("/var/log/dmesg")
     for _,v in ipairs(fs.list("/proc")) do
         local k = os.strsplit(v, '/')
         --os.debug.debug_write(k[#k]..";"..tostring(fs.isDir("/proc/"..v)), false)
