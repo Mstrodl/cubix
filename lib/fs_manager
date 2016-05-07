@@ -204,7 +204,7 @@ fsmanager.saveFS = function(mountpath)
 end
 
 fsmanager.sync = function()
-    os.debug.debug_write('[fsmanager:sync]')
+    syslog.serlog(syslog.S_INFO, "fsmanager:sync", "")
     for k,v in pairs(mounts) do
         os.debug.debug_write('[sync] saveFS: '..k)
         fsmanager.saveFS(k)
@@ -303,7 +303,8 @@ fsmanager.mount = function(device, filesystem, path)
         ferror("mount: mountpath is not a folder")
         return false
     end
-    os.debug.debug_write("[mount] mounting "..device..": "..filesystem.." at "..path, false)
+    --os.debug.debug_write("[mount] mounting "..device..": "..filesystem.." at "..path, false)
+    syslog.serlog(syslog.S_INFO, "mount", "mounting "..device..': '..filesystem.." at "..path)
     mounts[path] = {["fs"] = filesystem, ["dev"] = device}
     local r = fsmanager.loadFS(path, device)
     if not r then
@@ -367,7 +368,7 @@ function shutdown_procedure()
     local k = next(mounts)
     while k do
         if mounts[k] then
-            os.debug.debug_write('[fs_mngr] umounting '..mounts[k]['dev']..' at '..k)
+            syslog.serlog(syslog.S_INFO, "fs_mngr", "unmounting "..mounts[k]['dev']..' at '..k)
             fsmanager.saveFS(k)
             mounts[k] = nil
             --return {true}
@@ -511,11 +512,11 @@ fs.open = function (path, mode, perm)
 end
 
 function run_fstab()
-    os.debug.debug_write("[run_fstab] reading fstab")
-    if not fs.exists("/etc/fstab") then
-        os.debug.kpanic("/etc/fstab not found")
-    end
+    syslog.serlog(syslog.S_INFO, 'fstab', 'reading fstab')
     local h = fs.open("/etc/fstab", 'r')
+    if h == nil then
+        os.debug.kpanic("error opening fstab")
+    end
     local _fstab = h.readAll()
     h.close()
     local lines = os.strsplit(_fstab, '\n')

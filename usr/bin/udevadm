@@ -1,0 +1,22 @@
+#!/usr/bin/env lua
+
+UDEVADM_VERSION = '1'
+
+function main(args)
+    print("udevadm "..UDEVADM_VERSION)
+    if args[1] == 'add' then
+        local type = args[2]
+        print("add device of type "..type)
+        if not udev.supported(type) then
+            return ferror("udevadm: type not supported")
+        end
+        local ok, path = udev.hotplug.add(type)
+        if ok then
+            print("udevadm: added device of type "..type.." at "..path)
+        else
+            return ferror("udevadm: error adding device")
+        end
+    end
+end
+
+main({...})

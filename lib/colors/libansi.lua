@@ -24,6 +24,14 @@ ansicodes_1 = {
     [37]=colors.white,
 }
 
+coloransi = {
+    [colors.black]={30, 0},
+    [colors.blue]={34, 0},
+    [colors.green]={32, 0},
+    [colors.cyan]={36, 0},
+    [colors.red]={31, 0},
+}
+
 function get(code, code_scope)
     code = tonumber(code)
     code_scope = code_scope or 0
@@ -37,5 +45,10 @@ function get(code, code_scope)
     end
 end
 libansi.get = get
+
+function toAnsi(colorcode)
+    return coloransi[colorcode]
+end
+libansi.toColor = toColor
 
 _G['libansi'] = libansi

@@ -35,6 +35,7 @@ end
 
 function Pipe:write(message)
     self.pipe_buffer = self.pipe_buffer .. message
+    return #(strsplit(message, '\n'))
 end
 
 function Pipe:readAll()

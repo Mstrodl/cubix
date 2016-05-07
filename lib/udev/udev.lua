@@ -17,9 +17,11 @@ local function udev_add_dev(path, devobj)
     local stripped = string.sub(path, 5, #path)
     device_nodes['/dev'][stripped] = {perm=077, device=devobj}
 
-    syslog.syslog_boot()
-    syslog.serlog(syslog.S_OK, "udev", "new device: "..path)
-    syslog.close_bflag()
+    os.lib.syslog.syslog_boot()
+    syslog.serlog(syslog.S_INFO, "udev", "new device: "..path)
+    os.lib.syslog.close_bflag()
+
+    return true
 end
 udev.new_device = udev_add_dev
 
@@ -39,6 +41,20 @@ end
 
 udev.device_read = function(path, bytes)
     return devices[path].device.device_read(bytes)
+end
+
+udev.hotplug = {}
+
+udev.hotplug.add = function(type)
+    if type == 'peri' then
+        print("hotplug.add: peripheral")
+    elseif type == 'printer' then
+        print("hostplug.add: printer")
+    end
+end
+
+udev.hotplug.remove = function(path)
+
 end
 
 ------DEVFS------
@@ -167,9 +183,9 @@ udev.devfs = devfs
 function tick_event()
     local evt = {os.pullEvent()}
     if evt[1] == 'hotplug_new' then
-        udev_add_dev(evt[2], evt[3])
+        udev.hotplug.add(evt[2])
     elseif evt[1] == 'hotplug_del' then
-        udev_remove_dev(evt[2], evt[3])
+        udev.hotplug.remove(evt[2])
     end
 end
 

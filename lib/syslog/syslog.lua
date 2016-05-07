@@ -104,19 +104,23 @@ syslog.S_INFO = syslog.DEBUG
 
 syslog.serlog = function(logtype, service_name, message)
     local serlog_str = ''
+    local color = colors.orange
 
     if logtype == syslog.S_OK then
         serlog_str = serlog_str .. '[ OK ] '
+        color = colors.green
     elseif logtype == syslog.S_ERR then
         serlog_str = serlog_str .. '[ ERR ] '
+        color = colors.red
     else
         serlog_str = serlog_str .. '[ INFO ] '
+        color = colors.lightBlue
     end
 
     serlog_str = serlog_str .. "["..service_name.."] "
 
     serlog_str = serlog_str .. message
-    return syslog.log(serlog_str, logtype)
+    return syslog.log(serlog_str, logtype, nil, color)
 end
 
 function libroutine()

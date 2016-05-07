@@ -214,14 +214,30 @@ function run(self, arguments, pipe, env, normal_run)
     end
 
     local function handler()
+        local iowrapper = loadmodule_ret("/lib/modules/io_wrapper.lua", nil, true)
         env['program_pipe'] = pipe
         if type(pipe) == 'table' then
-            env['write'] = function(a)
-                pipe:write(a)
+            env['term'] = tmerge({}, term)
+            env['term']['write'] = function(str)
+                return pipe:write(str)
             end
-            env['print'] = function(a)
-                pipe:write(a..'\n')
+
+            env['io'] = tmerge({}, io)
+            env['io']['write'] = function(str)
+                return pipe:write(str)
             end
+
+            function write_pipe(d)
+                return pipe.write(pipe, d)
+            end
+
+            env['print'] = function(...)
+                return iowrapper.print_wrapped(write_pipe, unpack({...}))
+            end
+            env['write'] = function(str)
+                return iowrapper.wrapped_write(write_pipe, str)
+            end
+
             env['read'] = function()
                 return pipe:readLine()
             end

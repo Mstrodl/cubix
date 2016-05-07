@@ -8,7 +8,8 @@ local _shutdown = os.shutdown
 local _reboot = os.reboot
 
 local __clear_temp = function()
-    os.debug.debug_write("[acpi] cleaning temporary")
+    syslog.serlog(syslog.S_INFO, "acpi", "cleaning temporary")
+
     fs.delete("/tmp")
     fs.delete("/var/log/dmesg")
     for _,v in ipairs(fs.list("/proc")) do
@@ -20,23 +21,25 @@ local __clear_temp = function()
     end
     fs.makeDir("/tmp")
 
-    os.debug.debug_write("[acpi] save entropy pool")
+    syslog.serlog(syslog.S_INFO, "acpi", "save entropy pool")
     evgather.save_pool()
 end
 
 local function acpi_shutdown()
-    os.debug.debug_write("[acpi_shutdown]")
+    syslog.log(syslog.S_INFO, "acpi_shutdown", "")
     if permission.grantAccess(fs.perms.SYS) then
-        os.debug.debug_write("[shutdown] shutting down for system halt")
+        syslog.serlog(syslog.S_OK, "shutdown", "shutting down for system halt")
         _G['CUBIX_TURNINGOFF'] = true
-        os.debug.debug_write("[shutdown] sending SIGKILL to all processes")
-        if not os.__boot_flag then --still without proper userspace
+
+        syslog.serlog(syslog.S_OK, "shutdown", "sending SIGKILL to all processes")
+        if not cubix.boot_flag then --proper userspace
             os.lib.proc.__killallproc()
             os.lib.fs_mngr.shutdown_procedure()
         end
+
         os.sleep(1)
         __clear_temp()
-        os.debug.debug_write("[shutdown] sending HALT.")
+        syslog.serlog(syslog.S_INFO, "shutdown", "sending HALT.")
         os.sleep(.5)
         _shutdown()
     else

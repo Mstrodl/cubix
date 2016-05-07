@@ -15,7 +15,7 @@ function collectFiles(dir, stripPath, table)
 
     local fixPath = fsmanager.stripPath(stripPath, dir)
     table[dir] = fsmanager.getInformation(dir)
-    local files = fs.list(dir)
+    local files = oldfs.list(dir)
 
     if dir == '/' then dir = '' end
     if fixPath == '/' then fixPath = '' end

@@ -2,7 +2,7 @@
 --/boot/cubix: well, cubix!(at least the booting is here)
 
 AUTHOR = "Lukas Mendes"
-BUILD_DATE = "2016-05-06"
+BUILD_DATE = "2016-05-07"
 
 --  version format: major.revision.minor
 --      major: linear
@@ -149,6 +149,12 @@ if kflag.quiet then
     __debug.testcase = function()
     end
     __debug.ferror = function()end
+end
+
+local old_clock = os.clock
+local started_time = os.clock()
+os.clock = function()
+    return old_clock() - started_time
 end
 
 --Welcome message
