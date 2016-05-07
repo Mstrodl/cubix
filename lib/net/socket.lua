@@ -1,30 +1,19 @@
 
-AF_INET
-SOCK_STREAM
-IPPROTO_IP
+AF_INET = 1
 
-in_addr = class(function(self)
-    self.s_addr = 0
+SOCK_STREAM = 1
+SOCK_NETLINK = 2
+
+IPPROTO_IP = 1
+
+socket = class(function(self, sockcxt, socktype)
+    self.cxt = sockcxt
+    self.stype = socktype
+    self.in_addr = sockaddr()
 end)
 
-sockaddr_in = class(function(self)
-    self.sin_family = 0
-    self.sin_port = 0
-    self.in_addr = in_addr()
-    self.sin_zero = '0'
-end)
-
-sockaddr = class(function(self)
-    self.sa_family = 0
-    self.sa_data = Buffer.new('string', 14)
-end)
-
-function socket_socket(af, type, proto)
-    local descriptor = 1
-    return descriptor
-end
-
-function socket_connect(desc, server)
+function socket:connect(server_data)
+    self.out_addr = sockaddr()
 end
 
 function libroutine()

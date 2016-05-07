@@ -168,12 +168,70 @@ local function file_object(mpath, path, mode)
     return general_file(mpath, path, mode)
 end
 
+function really_list_files(mountpath)
+    local result = {}
+    for k,v in pairs(device_nodes[mountpath]) do
+        table.insert(result, k)
+    end
+    return result
+end
+
+function list_files(mountpath)
+    --show one level of things
+    local result = {}
+    for k,v in pairs(device_nodes[mountpath]) do
+        if k:find("/") then
+            if string.sub(k,1,1) == '/' and strcount(k, '/') == 1 then
+                table.insert(result, string.sub(k, 1))
+            end
+        else
+            table.insert(result, k)
+        end
+    end
+    return result
+end
+
+devfs.list = function(mountpath, path)
+    if path == '/' or path == '' or path == nil then
+        --all files in mountpath
+        return list_files(mountpath)
+    else
+        --get relevant ones
+        local all = really_list_files(mountpath)
+        local res = {}
+        for k,v in ipairs(all) do
+            local cache = string.sub(v, 1, #path)
+            if string.sub(v, 1, #path) == string.sub(path, 2)..'/' and cache ~= '' then
+                table.insert(res, string.sub(v, #path + 1))
+            end
+        end
+        return res
+    end
+end
+
+devfs.exists = function(mountpath, path)
+    --print("exists: "..path)
+    if path == nil or path == '' then
+        if device_nodes[mountpath] then
+            return true
+        else
+            return false
+        end
+    end
+    --os.viewTable(paths[mountpath][path])
+    return device_nodes[mountpath][path] ~= nil
+end
+
 devfs.open = function(mountpath, path, mode)
     return file_object(mountpath, path, mode)
 end
 
 devfs.exists = function(mountpath, path)
     return false
+end
+
+devfs.getSize = function(mountpath, path)
+    return 0
 end
 
 udev.devfs = devfs
