@@ -146,7 +146,7 @@ end
 function main_run(file, window)
     --run a file with determined _ENV
     --it seems that i can not do this so i've put the window object into args
-    os.run({}, file, {window})
+    os.run({['main_window']=window}, file, {})
 end
 
 function Window:load_itself()

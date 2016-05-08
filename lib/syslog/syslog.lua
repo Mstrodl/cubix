@@ -123,6 +123,14 @@ syslog.serlog = function(logtype, service_name, message)
     return syslog.log(serlog_str, logtype, nil, color)
 end
 
+function syskpanic(msg)
+    local cxt = lx.get_screen()
+    local x, y = cxt:draw_rectangle(5, 5, 20, 5, colors.red)
+    cxt:draw_text(x+1, y+1, 'kpanic')
+    cxt:draw_text(x+1, y+2, msg)
+    khalt()
+end
+
 function libroutine()
     syslog.kpanic = os.debug.kpanic
 

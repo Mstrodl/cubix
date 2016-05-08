@@ -102,7 +102,7 @@ function libroutine()
     _G['localtime'] = localtime
     _G['asctime'] = asctime
     _G['strtime'] = strtime
-    os.debug.debug_write("[time] testing time")
-    os.debug.debug_write("[time] time at tz 0,0: "..strtime(0,0))
-    os.debug.debug_write("[time] time at default tz: "..strtime())
+    --os.debug.debug_write("[time] testing time")
+    --os.debug.debug_write("[time] time at tz 0,0: "..strtime(0,0))
+    --os.debug.debug_write("[time] time at default tz: "..strtime())
 end

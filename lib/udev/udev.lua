@@ -1,7 +1,5 @@
 -- udev: device manager
 
-loadmodule_ret("")
-
 local device_nodes = {}
 local devices = {}
 
@@ -14,8 +12,8 @@ local function udev_add_dev(path, devobj)
 
     devices[path] = devobj
 
-    local stripped = string.sub(path, 5, #path)
-    device_nodes['/dev'][stripped] = {perm=077, device=devobj}
+    local stripped = string.sub(path, 6, #path)
+    device_nodes['/dev'][stripped] = {perm='077', device=devobj}
 
     os.lib.syslog.syslog_boot()
     syslog.serlog(syslog.S_INFO, "udev", "new device: "..path)
@@ -209,8 +207,11 @@ devfs.list = function(mountpath, path)
     end
 end
 
+devfs.open = function(mountpath, path, mode)
+    return file_object(mountpath, path, mode)
+end
+
 devfs.exists = function(mountpath, path)
-    --print("exists: "..path)
     if path == nil or path == '' then
         if device_nodes[mountpath] then
             return true
@@ -218,16 +219,7 @@ devfs.exists = function(mountpath, path)
             return false
         end
     end
-    --os.viewTable(paths[mountpath][path])
     return device_nodes[mountpath][path] ~= nil
-end
-
-devfs.open = function(mountpath, path, mode)
-    return file_object(mountpath, path, mode)
-end
-
-devfs.exists = function(mountpath, path)
-    return false
 end
 
 devfs.getSize = function(mountpath, path)

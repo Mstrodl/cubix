@@ -10,7 +10,7 @@ function main(args)
         usage()
         return 0
     end
-    local alias, path = args[1], args[2]
+    local alias, path = args[1], shell.resolve(args[2])
     os.internals.loadmodule(alias, path)
 end
 

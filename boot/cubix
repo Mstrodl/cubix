@@ -2,7 +2,7 @@
 --/boot/cubix: well, cubix!(at least the booting is here)
 
 AUTHOR = "Lukas Mendes"
-BUILD_DATE = "2016-05-07"
+BUILD_DATE = "2016-05-08"
 
 --  version format: major.revision.minor
 --      major: linear
@@ -209,9 +209,11 @@ function loadmodule(nmodule, path, dflag)
     os.debug.debug_write('[mod] load: '..nmodule, dflag)
 
     local mod_tbl = load_file(path)
-    if not mod_tbl then
+    if not mod_tbl and (cubix.boot_flag) then
         os.debug.kpanic("[mod] not loaded: "..nmodule, dflag)
         return false
+    elseif not mod_tbl then
+        return os.debug.debug_write("[mod] error loading "..nmodule, dflag, true)
     end
 
     _G[nmodule] = mod_tbl
@@ -465,6 +467,9 @@ loadmodule("login", "/lib/login_manager")
 
 --Pipe manager
 loadmodule("pipe", "/lib/pipe_manager")
+
+--Sockets
+loadmodule("socket", "/lib/net/socket.lua")
 
 --Time module
 loadmodule("time", "/lib/time")

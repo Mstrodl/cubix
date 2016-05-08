@@ -9,6 +9,12 @@ function lx_start_default()
     os.internals.loadmodule("lxClient", "/lib/luaX/lxClient.lua")
     os.internals.loadmodule("lxWindow", "/lib/luaX/lxWindow.lua")
     os.internals.loadmodule("lxMouse", "/lib/luaX/lxMouse.lua")
+    --[[
+    os.internals.loadmodule("lx", "/lib/luaX/core/lx.lua")
+    os.internals.loadmodule("lx", "/lib/luaX/core/lx_server.lua")
+    os.internals.loadmodule("lx", "/lib/luaX/client/lx_client.lua")
+    os.internals.loadmodule("lx", "/lib/luaX/modules/lxWindow/lx_window.lua")
+    ]]
     local lxterm = os.lib.lxWindow.Window.new("/g/lxterm/lxterm.lxw")
     os.lib.lx.blank()
     os.lib.lxClient.loadWindow(lxterm)

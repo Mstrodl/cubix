@@ -3,6 +3,13 @@
 
 local RUNLEVELFUNC = {}
 
+function run_scripts(runlevel)
+    local runlevel_folder = "/etc/rc"..tostring(runlevel)..'.d/'
+    for k,v in pairs(fs.list(runlevel_folder)) do
+        shell.run(fs.combine(runlevel_folder,v))
+    end
+end
+
 function runlevel_0()
     if permission.grantAccess(fs.perms.ROOT) then
         os.shutdown()
@@ -12,9 +19,6 @@ end
 
 function runlevel_1()
     --single-user
-    for k,v in pairs(fs.list("/etc/rc1.d/")) do
-        shell.run(fs.combine("/etc/rc1.d",v))
-    end
     while true do
         local init_proc = fork('/sbin/login')
         prexec(init_proc, nil, nil, nil, nil, true)
@@ -75,6 +79,7 @@ function main(args)
         end
     end
     os.lib.tty.current_tty("/dev/tty1")
+    run_scripts(runlevel)
     RUNLEVELFUNC[runlevel]()
     return 0
 end

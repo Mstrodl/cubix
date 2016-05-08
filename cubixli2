@@ -2,8 +2,8 @@
 --cubix_live_installer(cubixli): starts a enviroment where the user can install cubix
 
 AUTHOR = "Lukas Mendes"
-VERSION = "0.2.2"
-BUILD_DATE = "2016-04-30"
+VERSION = "0.2.3"
+BUILD_DATE = "2016-05-08"
 
 --[[
     Cubix Live Installer, version 2
@@ -463,12 +463,10 @@ function smallyapi(args)
 
     for k,pkg in ipairs(args) do
         if pkg == 'base-latest' then
-            debug_write("Downloading Latest cubix from github", colors.yellow)
-            shell.run('pastebin run W5ZkVYSi lkmnds cubix cubix-dev') --get development cubix
+            debug_write("Downloading development cubix from github", colors.yellow)
+            shell.run('pastebin run W5ZkVYSi lkmnds cubix') --get master branch(which is the development branch)
             shell.run("FINISHINSTALL")
-            if fs.exists('json') then --remove json library because gitget uses it
-                shell.run("rm json")
-            end
+            fs.delete("/json")
         else
             if pkg_install(pkg) then
                 if pkg == 'base' then
@@ -666,7 +664,7 @@ SHCMD['uname'] = uname
 SHCMD['nano'] = nano
 SHCMD['reboot'] = front_reboot
 
-SHDMD['license'] = license
+SHCMD['license'] = license
 
 --cubix install tools
 SHCMD['smallyapi'] = smallyapi
@@ -736,6 +734,9 @@ function main()
             return 0
         end
     end
+
+    term.clear()
+    term.setCursorPos(1,1)
 
     if load_services() then
         start_shell()

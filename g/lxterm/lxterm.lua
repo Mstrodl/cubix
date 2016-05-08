@@ -1,15 +1,13 @@
 --/g/lxterm/lxterm.lua
 --the lxterm.lxw will load lxterm.lua, which will configure the window and register the events as expected
 
-local windowl = ...
-
 function main()
     if not os.lib.lxWindow then
         os.ferror("lxterm: lxWindow not loaded")
         return 0
     end
     --get the Main Window object
-    local Main = windowl[1]
+    local Main = main_window
 
     --Set the title of the window
     Main:set_title("lxterm")

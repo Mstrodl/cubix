@@ -6,14 +6,13 @@ function main()
     -- create socket
     local s = socket.new(socket.AF_INET, socket.SOCK_STREAM)
 
-    -- connect to test server
-    s:connect({"0.0.0.1", 2})
+    s:bind({"0.0.0.1", 2})
 
-    -- send data to server
-    s:send("TEST_SERVER")
+    if s:recv(1024) == 'TEST_SERVER' then
+        s:send("TESTED.")
+    end
 
-    -- recieve data from server
-    print(s:recv(2048))
+    print(s:recv(2024))
 end
 
 main()
