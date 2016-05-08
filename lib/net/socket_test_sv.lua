@@ -8,11 +8,15 @@ function main()
 
     s:bind({"0.0.0.1", 2})
 
-    if s:recv(1024) == 'TEST_SERVER' then
-        s:send("TESTED.")
+    s:listen(1)
+    local c = s:accept()
+
+    if c:recv(1024) == 'TEST_SERVER' then
+        c:send("TESTED.")
     end
 
-    print(s:recv(2024))
+    print(c:recv(2024))
+    print("ded")
 end
 
 main()

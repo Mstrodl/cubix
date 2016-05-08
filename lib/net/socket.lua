@@ -17,6 +17,13 @@ socket = class(function(self, addr_type, _type)
     self.link = {}
 end)
 
+SocketLink = class(function(self, sd_1, sd_2)
+    self.b1 = StringIO()
+    self.b2 = StringIO()
+    self.d1 = sd_1
+    self.d2 = sd_2
+end)
+
 function init_cxt(addr, port)
     if not cxt[addr] then
         cxt[addr] = {}
@@ -39,6 +46,8 @@ function socket:bind(server)
     if server_sock ~= nil then
         return ferror("connect: serv sockets already in")
     end
+
+    self.link = SocketLink(self.sockid, server_sock.sockid)
 
     return true
 end

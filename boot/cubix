@@ -502,6 +502,8 @@ loadmodule("primegen", "/lib/crypto/gen_prime.lua")
 --RSA lib
 loadmodule("rsa", "/lib/crypto/rsa/rsa.lua")
 
+--Buffer and StringIO
+loadmodule("libbuf", "/lib/modules/BufferIO.lua")
 
 --print to pipes(doesn't work since the proc change)
 os.pprint = function(message, pipe, double)
