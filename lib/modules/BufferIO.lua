@@ -1,35 +1,10 @@
-
-Buffer = class(function(self, btype, size)
-    if btype == 'string' then
-        self.obj = ''
-    elseif btype == 'number' then
-        self.obj = 0
-    end
-    self.siz = self.size
-end)
-
-function Buffer:get_size()
-    return self.siz
-end
-
-function Buffer:read(size)
-end
-
-function Buffer:write(data)
-end
-
-function Buffer:all()
-    return self:read(self:get_size())
-end
-
 StringIO = class(function(self, buf)
     buf = buf or ''
     self.buf = tostring(buf)
     self.len = #buf
-    self.buflist = {}
-    self.pos = 0
+    self.cur = 1
+    self.littlepos = 1
     self.closed = false
-    self.softspace = 0
 end)
 
 function StringIO:close()
@@ -40,128 +15,90 @@ function StringIO:close()
     end
 end
 
-function StringIO:seek(pos, mode)
-    mode = mode or 0
-    if self.closed then
-        return ferror("StringIO: Operation on closed file")
-    end
-    if self.buflist then
-        self.buf = self.buf .. table.concat(self.buflist, '')
-        self.buflist = {}
-    end
-    if mode == 1 then
-        pos = pos + self.pos
-    elseif mode == 2 then
-        pos = pos + self.len
-    end
-    self.pos = tmax({0, pos})
+function StringIO:write(str)
+    self.buf = self.buf .. str
+    self.len = #self.buf
 end
 
-function StringIO:tell()
-    return self.pos
-end
-
-function StringIO:read(n)
-    n = n or -1
-    if self.closed then
-        return ferror("StringIO: Operation on closed file")
-    end
-
-    if self.buflist then
-        self.buf = self.buf .. table.concat(self.buflist, '')
-        self.buflist = {}
-    end
-
-    local newpos
-    if n < 0 then
-        newpos = self.len
-    else
-        newpos = tmin({self.pos+n, self.len})
-    end
-
-    r = {unpack(tstr(self.buf), self.pos, newpos)}
-    self.pos = newpos
+function StringIO:read(bytes)
+    local r = string.sub(self.buf, self.cur, (self.cur + bytes))
+    self.cur = self.cur + #r
     return r
 end
 
-function StringIO:readline(length)
-    length = length or nil
-    if self.closed then
-        return ferror("StringIO: Operation on closed file")
-    end
-
-    if self.buflist then
-        self.buf = self.buf .. table.concat(self.buflist, '')
-        self.buflist = {}
-    end
-
-    local i = string.find(self.buf, '\n', self.pos)
-    local newpos
-
-    if i < 0 then
-        newpos = self.len
-    else
-        newpos = i+1
-    end
-
-    if length ~= nil then
-        if self.pos + length < newpos then
-            newpos = self.pos + length
-        end
-    end
-
-    local r = {unpack(tstr(self.buf), self.pos, newpos)}
-    self.pos = newpos
-    return table.concat(r, '')
-end
-
-function StringIO:write(s)
-    if self.closed then
-        return ferror("StringIO: Operation on closed file")
-    end
-    if not s then return end
-
-    s = tostring(s)
-    if self.pos > self.len then
-        self.buflist[#self.buflist + 1] = string.rep('\0', self.pos - self.len)
-        self.len = self.pos
-    end
-
-    newpos = self.pos + #s
-
-    if self.pos < self.len then
-        if self.buflist then
-            self.buf = self.buf .. table.concat(self.buflist, '')
-            self.buflist = {}
-        end
-        self.buflist = {{unpack(tstr(self.buf), 1, self.pos)}, s, {unpack(tstr(self.buf), self.pos)}}
-        self.buf = ''
-        if newpos > self.len then
-            self.len = newpos
-        end
-    else
-        self.buflist[#self.buflist + 1] = s
-        self.len = newpos
-    end
-    self.pos = newpos
-end
-
 function test_stringIO()
-    sleep(1)
-
+    syslog.serlog(syslog.S_INFO, 'BufferIO', 'testing')
     s = StringIO()
-    
-    s:write("trolei você")
 
-    print(s:read(128))
+    s:write("trolei você")
+    print('data', s:read(64))
+
+    s:write("trolei você denovo")
+    print('data', s:read(64))
+
+    s:write("trolei você pela segunda vez")
+    print('data', s:read(64))
+
+    s:write("terceira vez q trolo abcdefghijklmnopqrs")
+    print('data', s:read(16))
+
+    print('data', s:read(16))
 
     s:close()
 
-    sleep(2)
+    sleep(0)
+end
+
+Buffer = class(function(self, btype, size)
+    if btype == 'string' then
+        self.obj = StringIO()
+    elseif btype == 'number' then
+        self.obj = 0
+    end
+    self.type = btype
+    self.size = size
+end)
+
+function Buffer:read(size)
+    if self.type == 'string' then
+        return self.obj.read(self.obj, size)
+    elseif self.type == 'number' then
+        ---???
+        return
+    else
+        return ferror("Buffer: buffer of undefined type")
+    end
+end
+
+function Buffer:write(data)
+    if (#data + #self.obj) > self.size then
+        local addr = string.sub(tostring(self), 8)
+        ferror("Buffer: buffer overflow at "..addr)
+        os.send_ev({'buffer_overflow', addr}) --anyone can handle this.
+    end
+
+    if self.type == 'string' then
+        return self.obj.write(self.obj, data)
+    elseif self.type == 'number' then
+        ---???
+        return
+    else
+        return ferror("Buffer: buffer of undefined type")
+    end
+end
+
+function test_buffer()
+    local b = Buffer('string', 10)
+    b:write('1298341093584203958230')
+
+    local b2 = Buffer('string', 16)
+    b2:write("abc")
+    print(b2:read(2))
+
+    sleep(3)
 end
 
 function libroutine()
     _G["Buffer"] = Buffer
     _G["StringIO"] = StringIO
-    test_stringIO()
 end

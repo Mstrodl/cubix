@@ -502,6 +502,9 @@ loadmodule("primegen", "/lib/crypto/gen_prime.lua")
 --RSA lib
 loadmodule("rsa", "/lib/crypto/rsa/rsa.lua")
 
+--Event Library
+loadmodule("libev", "/lib/modules/libev.lua")
+
 --Buffer and StringIO
 loadmodule("libbuf", "/lib/modules/BufferIO.lua")
 

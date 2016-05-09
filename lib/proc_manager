@@ -48,6 +48,32 @@ function __killallproc()
     end
 end
 
+--signals
+
+signals = {}
+
+signals.SIGOK = 0
+signals.SIGERR = 1
+signals.SIGFLT = 2
+
+local translation = {
+    [signals.SIGERR]='General Error',
+    [signals.SIGFLT]='Segmentation Fault',
+}
+
+function sys_signal(sig)
+    ferror("sys_signal: "..translation[sig])
+    return true
+end
+
+function sys_event(evt)
+    if evt[1] == 'buffer_overflow' then
+        return sys_signal(signals.SIGFLT)
+    end
+end
+
+--Process and Thread Manager
+
 Process = function(file)
     local self = {}
     pid_last = pid_last + 1
@@ -106,12 +132,19 @@ local function nthreads()
 end
 libproc.thread.nthreads = nthreads
 
+local running_tid = 0
+
+libproc.thread.rtid = function()
+    return running_tid
+end
+
 local function tick(t, evt, ...)
     if t.dead then return end
     if t.filter ~= nil and evt ~= t.filter then return end
     if evt == 'terminate' and t.blockTerm then return end
 
     t.st_time = os.clock()
+    running_tid = t.tid
     coroutine.resume(t.cr, evt, ...)
 
     --calculate time that the thread made to execute
@@ -154,7 +187,14 @@ local function tick_all()
 
     for k, thread in pairs(threads) do
         --tick thread with unpacked event
-        tick(thread, unpack(evt))
+        if libev then
+            tick(thread, unpack(evt))
+            -- if sys_signal(evt) then
+            --     thread.dead = true
+            -- end
+        else
+            tick(thread, unpack(evt))
+        end
 
         --if dead, remove him from threads list
         if thread.dead then
@@ -441,4 +481,5 @@ libproc.thread.copy_threads = copy_threads
 function libroutine()
     _G['new_process'] = Process
     _G['libproc'] = libproc
+    _G['signals'] = signals
 end
