@@ -7,8 +7,8 @@ libev = {}
 local signalers = {}
 local eid_last = 1
 
-local oldqueueEvent = os.queueEvent
-local oldpullEvent = os.pullEvent
+local oldqueueEvent = deepcopy(os.queueEvent)
+local oldpullEvent = deepcopy(os.pullEvent)
 
 os.send_ev = function(event)
     local who_did_it = libproc.thread.rtid()
@@ -22,7 +22,7 @@ os.send_ev = function(event)
     local eid = eid_last + 1
     eid_last = eid_last + 1
 
-    signalers[who_did_it][len] = {eid, evt}
+    signalers[who_did_it][len] = {eid, event}
     return oldqueueEvent(unpack(event))
 end
 
@@ -35,11 +35,11 @@ os.queueEvent = function(...)
 end
 
 os.pullEvent = function()
-    return os.get_ev()
+    return unpack(os.get_ev())
 end
 
 libev.get_signalers = function()
-    return deepcopy(signalers)
+    return signalers
 end
 
 libev.push = os.send_ev

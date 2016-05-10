@@ -305,7 +305,7 @@ local function run_itself(self, arguments, parent_proc, pipe, enviroment, normal
 
     if self.parent == nil or self.parent == '' then
         --If the parent is not set, set it to init
-        set_parent(self, os.__init_process)
+        set_parent(self, processes[1])
     end
 
     --default things

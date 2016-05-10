@@ -206,32 +206,48 @@ function loadmodule(nmodule, path, dflag)
         return 0
     end
 
-    os.debug.debug_write('[mod] load: '..nmodule, dflag)
+    if syslog then
+        syslog.serlog(syslog.S_INFO, 'mod:load', nmodule)
+    else
+        os.debug.debug_write('[mod:load] '..nmodule, dflag)
+    end
 
     local mod_tbl = load_file(path)
     if not mod_tbl and (cubix.boot_flag) then
         os.debug.kpanic("[mod] not loaded: "..nmodule, dflag)
         return false
     elseif not mod_tbl then
-        return os.debug.debug_write("[mod] error loading "..nmodule, dflag, true)
+        if syslog then
+            return syslog.serlog(syslog.S_ERR, 'mod', 'error loading '..nmodule)
+        else
+            return os.debug.debug_write("[mod] libroutine() not found", dflag, true)
+        end
     end
 
     _G[nmodule] = mod_tbl
     if mod_tbl.libroutine ~= nil then
         mod_tbl.libroutine()
     else
-        os.debug.debug_write("[mod] libroutine() not found", dflag, true)
+        if syslog then
+            syslog.serlog(syslog.S_ERR, 'mod', 'libroutine not found')
+        else
+            os.debug.debug_write("[mod] libroutine() not found", dflag, true)
+        end
         sleep(.3)
     end
 
     os.lib[nmodule] = mod_tbl
-    isReloadable[nmodule] = os.lib[nmodule].RELOADABLE
+    isReloadable[nmodule] = mod_tbl.RELOADABLE
+    mod_order[#mod_order + 1] = nmodule
 
     term.set_term_color(colors.green)
-    os.debug.debug_write('[mod] loaded: '..nmodule, dflag)
+    if syslog then
+        syslog.serlog(syslog.S_OK, 'mod', 'loaded: '..nmodule)
+    else
+        os.debug.debug_write('[mod] loaded: '..nmodule, dflag)
+    end
     term.set_term_color(colors.white)
-
-    mod_order[#mod_order + 1] = nmodule
+    return true
 end
 
 --unload a module
@@ -508,20 +524,6 @@ loadmodule("libev", "/lib/modules/libev.lua")
 --Buffer and StringIO
 loadmodule("libbuf", "/lib/modules/BufferIO.lua")
 
---print to pipes(doesn't work since the proc change)
-os.pprint = function(message, pipe, double)
-    if double == nil then double = false end
-    if message == nil then message = '' end
-    if pipe ~= nil then
-        pipe:write(message..'\n')
-        if double then
-            print(message)
-        end
-    else
-        print(message)
-    end
-end
-
 term.clear()
 term.setCursorPos(1,1)
 
@@ -552,45 +554,48 @@ os.debug = __debug
 term.clear()
 term.setCursorPos(1,1)
 
+-- convenient flag so that the bloody user
+-- doesn't see 1000 debug messages when the system boots
 os.lib.syslog.close_bflag()
 
 --idle thread(does nothing, but keeps the thread manager running)
 local idle_function = function()
     while true do
-        sleep(10)
+        sleep(30)
     end
 end
 
 --finally, run the init process!
 function init_fun()
     local init_proc = fork(kflag.init) --create a new process based on the running parent
-    os.__init_process = init_proc
-
     prexec(init_proc, {kflag.sRunlevel}, nil, nil, nil, true)
 end
 
-function entropy_loader()
+function evgather_loader()
     while true do
         os.lib.evgather.tick_event()
     end
 end
 
---create threads and allocate them in starting list
-local idle_thread = libproc.thread.create_thread(idle_function, '-1:idle', -1, nil, 0.01)
-local init_thread = libproc.thread.create_thread(init_fun, '1:init', 1, nil, 0.8)
-local entropy_thread = libproc.thread.create_thread(entropy_loader, '0:entropyd', 0, nil, 0.5)
+--Idle Thread: always send a signal every 30 sec
+local idle_thread = libproc.thread.create_thread(idle_function, '-1:idle', -1, nil)
+--Init Thread: load init process
+local init_thread = libproc.thread.create_thread(init_fun, '1:init', 1, nil)
+--evgather Thread: always feed evgather
+local evgather_thread = libproc.thread.create_thread(evgather_loader, '0:evgatherd', 0, nil, 0.5)
 
---start all threads(using a dummy thread because yeah)
+--start all threads using a dummy thread as first thread
+--because then start_thread executes, it executes tick_all as well
 libproc.thread.start_thread(function()end, '-1:dummy', -1, nil, 0.005) --very low probability so it shouldn't run a lot
 
---if something goes wrong in kflag.init(such as kill or a monster), just halt
+--if something goes wrong in everything, halt.
 os.system_halt()
 
 end
 
 end
 
---other make_readonly function stripped
+--other make_readonly function without the proc parts
 function mk_rdonly(table)
     local temporary = {}
     setmetatable(temporary, {

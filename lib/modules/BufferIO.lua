@@ -89,7 +89,7 @@ end
 
 function test_buffer()
     local b = Buffer('string', 10)
-    b:write('1298341093584203958230')
+    b:write('1298341093584203958230') --trigger buffer overflow
 
     local b2 = Buffer('string', 16)
     b2:write("abc")
