@@ -1,3 +1,61 @@
+0.5.2 - 0.5.3 (03-06-2016)
+  Major changes:
+    cshell:
+        +Major rewrite of the code
+        +Piping between processes
+        +cshell scripts
+        +PS1 variable
+        +"threading" by using the '&' char
+
+    proc:
+        +Major rewrite of the code(again)
+        -os.runfile_proc -> os.runfile
+        +fork, prexec, kill(pid, sig)
+        +Threading is possible!
+        +Permission check in executables
+
+    +random:
+        +Mersenne Twister as the default PRNG
+        +ISAAC as the default CSPRNG in Cubix
+        +Event Gather(to seed the CSPRNG)
+        +lots of random functions
+            rand(), randrange(min,max), getrandbits...
+
+    +crypto:
+        +Crypto library for Cubix
+        +RSA functions(wip)
+
+    login:
+        +change sha256 work factor to 7 rounds
+
+    yapi:
+        +full system upgrade
+
+    New libs:
+        syslog: default logging system after boot
+        libev: manage events
+        socket, network: network libraries
+        bigint: BIG INTEGERS.
+
+    fs:
+        +Bugfixes
+        +devfs and procfs
+
+    dev:
+        +udev, the device manager.
+        +/dev/random and /dev/urandom are merged
+
+  New binaries:
+    +/bin/chmod: change permissions of file
+    +/usr/bin/threadlist: list running threads
+    +/sbin/fdisk: corelibs
+    +/sbin/halt: corelibs
+    +/usr/bin/udevadm: manages hotplug
+
+  CubixLI:
+    +Check against file conflicts before install
+
+
 0.5.1 - 0.5.2 (28-03-2016)
 
   Major changes:
