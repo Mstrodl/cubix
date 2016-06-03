@@ -6,7 +6,6 @@ SOCK_STREAM = 1
 IPPROTO_IP = 1
 
 local last_id = 0
-
 local cxt = {}
 
 socket = class(function(self, addr_type, _type)
@@ -15,6 +14,11 @@ socket = class(function(self, addr_type, _type)
     self.sockid = last_id + 3
     self.type = ''
     self.link = {}
+
+    self.max = 0
+    self.sock_cache = {}
+
+    last_id = last_id + 1
 end)
 
 SocketLink = class(function(self, sd_1, sd_2)
@@ -52,6 +56,21 @@ function socket:bind(server)
     return true
 end
 
+function socket:accept(numcli)
+    -- accept max connection of numcli
+    self.max = numcli
+end
+
+function socket:accept()
+    -- return new socket if possible
+    if self.sock_count > self.max_sock then
+        return ferror("accept: max connections execceded")
+    end
+
+    local sock = self.sock_cache:pop()
+    return sock
+end
+
 function socket:connect(server)
     self.type = 'cli'
 
@@ -74,10 +93,11 @@ function socket:connect(server)
 end
 
 function socket:send(data)
-    return #data
+    return self.link.b2:write(data)
 end
 
 function socket:recv(bytes)
+    local data = self.link.b1:read(bytes)
     return data
 end
 

@@ -4,7 +4,7 @@ function main()
     socket = os.lib.socket
 
     -- create socket
-    local s = socket.new(socket.AF_INET, socket.SOCK_STREAM)
+    local s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
     -- connect to test server
     s:connect({"0.0.0.1", 2})
