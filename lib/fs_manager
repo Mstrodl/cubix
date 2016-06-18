@@ -335,7 +335,7 @@ fsmanager.umount_dev = function(dev)
     if not permission.grantAccess(fs.perms.SYS) then
         return {false, 'system permission is required to umount'}
     end
-    if dev == '/dev/hdd' then
+    if dev == '/dev/hda' then
         return {false, "device is busy"}
     end
     local k = next(mounts)
@@ -500,6 +500,7 @@ fs.open = function (path, mode, perm)
     for k,v in pairs(mounts) do
         if string.sub(path, 1, #k) == k and k ~= '/' then
             --mounted path ahead
+            -- set device to busy
             return fsdrivers[mounts[k]['fs']].open(k, string.sub(path, #k + 2), mode)
         end
     end

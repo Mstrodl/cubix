@@ -2,7 +2,7 @@
 --/boot/cubix: well, cubix!(at least the booting is here)
 
 AUTHOR = "Lukas Mendes"
-BUILD_DATE = "2016-06-03"
+BUILD_DATE = "2016-06-18"
 
 --  version format: major.revision.minor
 --      major: linear
@@ -151,6 +151,7 @@ if kflag.quiet then
     __debug.ferror = function()end
 end
 
+--hack so that when system starts the clock startes at 0 as well
 local old_clock = os.clock
 local started_time = os.clock()
 os.clock = function()
