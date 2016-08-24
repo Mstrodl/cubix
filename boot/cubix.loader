@@ -1,0 +1,7 @@
+if os.loadAPI("/boot/cubix-initramfs") then
+    print("[cubix] loaded initramfs.")
+else
+    term.set_term_color(colors.red)
+    print("[cubix] initramfs error, can't start kernel.")
+    while true do sleep(0) end
+end

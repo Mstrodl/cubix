@@ -1,8 +1,8 @@
 #!/usr/bin/env lua
 --libcubix: compatibility for cubix
 
-AUTHOR = 'Lukas Mendes'
-VERSION = '0.2'
+AUTHOR = 'Luna Mendes'
+VERSION = '0.3'
 
 --[[
 
@@ -21,6 +21,13 @@ Libcubix was created to make programs writed in Pure Lua to use some of
 the functions in Cubix, without making the programs to be run at Cubix enviroment
 
 ]]
+
+-- install compatibility between color and non-color computers
+term.set_term_color = function (c)
+    if term.isColor() then
+        term.setTextColor(c)
+    end
+end
 
 os.viewTable = function (t)
     if t == nil then return 0 end
