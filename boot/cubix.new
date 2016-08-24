@@ -28,5 +28,58 @@ function halt()
     while true do sleep(0) end
 end
 
+function ferror(message)
+    term.set_term_color(colors.red)
+    print(message)
+    term.set_term_color(colors.white)
+end
+
+cubix = {}
+local boot_flag = false
+
+cubix.load = function(module_name, path)
+    if os.loadAPI(path) then
+        return true
+    else
+        print("Error loading ", module_name)
+        return false
+    end
+end
+
+cubix.boot = function ()
+    if boot_flag then
+        return ferror("cubix.boot: cubix already booted!")
+    end
+    boot_flag = true
+
+    -- system clock starts at 0
+    local old_clock = os.clock
+    local started_time = os.clock()
+    os.clock = function()
+        return old_clock() - started_time
+    end
+
+    -- show welcome message
+    term.set_term_color(colors.green)
+    print("Welcome to Cubix "..CUBIX_VERSION..'!')
+    term.set_term_color(colors.white)
+    os.sleep(.5)
+
+    --[[
+        Lib loading process:
+        syslog
+    ]]
+
+    if cubix.load('cdbg', '/lib/debug.lua') then
+        cdbg.debug("Bootstrapped debug module")
+    end
+
+    if cubix.load('syslog', '/lib/syslog.lua') then
+        syslog.log("Loaded syslog")
+    end
+end
+
+cubix.boot()
+
 print("[cubix] hlt.")
 halt()
