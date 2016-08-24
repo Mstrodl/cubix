@@ -1,5 +1,5 @@
 set root=(hdd)
 load_video
 insmod kernel
-kernel /boot/cubix quiet nodebug
+kernel /boot/cubix.loader quiet nodebug
 boot

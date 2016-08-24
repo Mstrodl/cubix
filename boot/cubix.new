@@ -14,7 +14,7 @@ VER_REV = 0
 VER_FLAG = '-rc1'
 CUBIX_VERSION = VER_MAJOR..'.'..VER_MINOR..'.'..VER_REV..VER_FLAG
 
-STABLE = ((VERSION_REV % 2) == 0) and ((VERSION_MINOR % 2) == 0)
+STABLE = ((VER_REV % 2) == 0) and ((VER_REV % 2) == 0)
 
 if STABLE then
     -- supress pullEvent
@@ -23,3 +23,10 @@ if STABLE then
 else
     print("[cubix] loading unstable")
 end
+
+function halt()
+    while true do sleep(0) end
+end
+
+print("[cubix] hlt.")
+halt()
