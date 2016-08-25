@@ -1,5 +1,5 @@
 set root=(hdd)
 load_video
 insmod kernel
-kernel /boot/cubix.loader acpi splash
+kernel /boot/cubix acpi splash
 boot

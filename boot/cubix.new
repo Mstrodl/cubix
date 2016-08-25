@@ -24,6 +24,25 @@ else
     print("[cubix] loading unstable")
 end
 
+local kernel_flags = {}
+for _,v in ipairs({...}) do
+    if v == 'quiet' then
+        kernel_flags.quiet = true
+    elseif v == 'splash' then
+        kernel_flags.splash = true
+    elseif v == 'noacpi' then
+        kernel_flags.noacpi = true
+
+    elseif string.sub(v, 0, 4) == 'init' then
+        k = os.strsplit(v, '=')
+        kernel_flags.init = k[2]
+    elseif string.sub(v, 0, 8) == 'runlevel' then
+        k = os.strsplit(v, '=')
+        kernel_flags.sRunlevel = k[2]
+    end
+
+end
+
 function halt()
     while true do sleep(0) end
 end
@@ -145,11 +164,26 @@ cubix.boot = function ()
 
     --[[
         Lib loading process:
-        syslog
+        syslog, acpi
     ]]
 
     if cubix.load('syslog', '/lib/syslog/syslog.lua') then
         syslog.log("Loaded syslog")
+        lib.syslog.syslog_boot()
+    else
+        halt()
+    end
+
+    if not kernel_flags.noacpi then
+        if not cubix.load("acpi", '/lib/acpi.lua') then
+            halt()
+        end
+    end
+
+    if cubix.load("pm", '/lib/base/procman.lua') then
+        lib.pm.setup()
+    else
+        halt()
     end
 end
 
