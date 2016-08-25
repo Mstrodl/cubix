@@ -36,14 +36,92 @@ end
 
 cubix = {}
 local boot_flag = false
+cubix.boot_flag = boot_flag
+_G['cubix'] = cubix
 
-cubix.load = function(module_name, path)
-    if os.loadAPI(path) then
-        return true
+local function load_file(pth)
+    -- just some tweaks to os.loadAPI
+    local n = fs.getName(pth)
+
+    local tEnv = {}
+    setmetatable( tEnv, { __index = _G } )
+    local fnAPI, err = loadfile( pth, tEnv )
+    if fnAPI then
+        local ok, err = pcall( fnAPI )
+        if not ok then
+            printError( err )
+            return false
+        end
     else
-        print("Error loading ", module_name)
+        printError( err )
         return false
     end
+
+    local lib_exported = {}
+    for k,v in pairs( tEnv ) do
+        if k ~= "_ENV" then
+            lib_exported[k] =  v
+        end
+    end
+
+    return lib_exported
+end
+
+local isReloadable = {}
+local mod_order = {}
+
+lib = {}
+_G['lib'] = lib
+
+cubix.load = function(module_name, path)
+    if isReloadable[module_name] ~= nil and isReloadable[module_name] == false then
+        print("[mod] cannot reload "..module_name..", please reboot!")
+        return false
+    end
+
+    if syslog then
+        syslog.serlog(syslog.S_INFO, 'mod:load', module_name)
+    else
+        print('[mod:load] '..module_name)
+    end
+
+    local mod_tbl = load_file(path)
+    if not mod_tbl and (cubix.boot_flag) then
+        os.debug.kpanic("[mod] not loaded: "..module_name)
+        return false
+
+    elseif not mod_tbl then
+        if syslog then
+            return syslog.serlog(syslog.S_ERR, 'mod', 'error loading '..module_name)
+        else
+            return print("[mod] libroutine() not found")
+        end
+    end
+
+    _G[module_name] = mod_tbl
+    if mod_tbl.libroutine ~= nil then
+        mod_tbl.libroutine()
+    else
+        if syslog then
+            syslog.serlog(syslog.S_ERR, 'mod', 'libroutine not found')
+        else
+            print("[mod] libroutine() not found")
+        end
+        sleep(.3)
+    end
+
+    lib[module_name] = mod_tbl
+    isReloadable[module_name] = mod_tbl.RELOADABLE
+    mod_order[#mod_order + 1] = module_name
+
+    term.set_term_color(colors.green)
+    if syslog then
+        syslog.serlog(syslog.S_OK, 'mod', 'loaded: '..module_name)
+    else
+        print('[mod] loaded: '..module_name)
+    end
+    term.set_term_color(colors.white)
+    return true
 end
 
 cubix.boot = function ()
@@ -70,11 +148,7 @@ cubix.boot = function ()
         syslog
     ]]
 
-    if cubix.load('cdbg', '/lib/debug.lua') then
-        cdbg.debug("Bootstrapped debug module")
-    end
-
-    if cubix.load('syslog', '/lib/syslog.lua') then
+    if cubix.load('syslog', '/lib/syslog/syslog.lua') then
         syslog.log("Loaded syslog")
     end
 end

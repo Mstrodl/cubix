@@ -38,11 +38,11 @@ function syslog_log(message)
     a.write('['..c..'] '..message..'\n')
     a.close()
 
-    if syslog_boot_flag then
+    --[[if syslog_boot_flag then
         local a = fs.open("/var/log/dmesg", 'a')
         a.write('['..c..'] '..message..'\n')
         a.close()
-    end
+    end]]
 
     print('['..c..'] '..message)
     log_buffer = log_buffer .. ('['..c..'] '..message..'\n')
@@ -132,7 +132,7 @@ function syskpanic(msg)
 end
 
 function libroutine()
-    syslog.kpanic = os.debug.kpanic
+    -- syslog.kpanic = os.debug.kpanic
 
     _G['os']['debug'] = syslog
     _G['debug'] = syslog
