@@ -52,6 +52,7 @@ function ferror(message)
     print(message)
     term.set_term_color(colors.white)
 end
+_G['ferror'] = ferror
 
 cubix = {}
 local boot_flag = false
@@ -180,11 +181,12 @@ cubix.boot = function ()
         end
     end
 
-    if cubix.load("pm", '/lib/base/procman.lua') then
-        lib.pm.setup()
-    else
+    if not cubix.load("pm", '/lib/base/procman.lua') then
         halt()
     end
+
+    threading.new_thread(0, '0:kernel', function()end)
+    threading.evloop_start()
 end
 
 cubix.boot()
