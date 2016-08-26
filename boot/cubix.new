@@ -94,6 +94,10 @@ local isReloadable = {}
 local mod_order = {}
 
 lib = {}
+lib.get = function(path)
+    return load_file(path)
+end
+
 _G['lib'] = lib
 
 cubix.load = function(module_name, path)
@@ -188,18 +192,18 @@ cubix.boot = function ()
         halt()
     end
 
-    --idle thread(does nothing, but keeps the thread manager running)
+    -- idle thread(does nothing, but keeps the thread manager running)
     local function idle_function()
         while true do
             sleep(30)
         end
     end
 
-    --finally, run the init process!
+    -- thread to run /sbin/init
     local function init_function()
         local init_proc = fork(kernel_flags.init) --create a new process based on the running parent
-        prexec(init_proc, {kernel_flags.sRunlevel},
-            nil, nil, nil, true)
+        return prexec(init_proc, {kernel_flags.sRunlevel},
+            nil, nil, true)
     end
 
     threading.new_thread(-1, '-1:kernel', function()end)
