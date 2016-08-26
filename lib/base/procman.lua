@@ -120,6 +120,28 @@ threading.evloop_start = function()
     return ferror("evloop: ended")
 end
 
+--[[
+    Implement lib functions(fork, etc..)
+]]
+
+function fork(f)
+    --[[
+        fork(
+            f : str
+        ) : Process
+
+        Creates a Process based on the filepath to the program given
+    ]]
+    local p = Process(f)
+    local fpid = fork_pid
+    if fpid == nil then
+        fpid = running
+    end
+    set_parent(p, processes[fpid])
+    return p
+end
+_G['fork'] = fork
+
 function libroutine()
     _G['threading'] = threading
 end
