@@ -192,6 +192,10 @@ cubix.boot = function ()
         halt()
     end
 
+    if not cubix.load("auth", '/lib/base/cauth.lua') then
+        halt()
+    end
+
     -- idle thread(does nothing, but keeps the thread manager running)
     local function idle_function()
         while true do

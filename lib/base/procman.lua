@@ -8,6 +8,8 @@
     Thread manager
 ]]
 
+RELOADABLE = false
+
 local thr_normal = {}
 local thr_starting = {}
 local thr_tidlast = 0
@@ -108,7 +110,7 @@ local function ev_tick_all()
     -- remove all dead threads
     if dead ~= nil then
         for _,v in ipairs(dead) do
-            print("dead", thr_normal[v].id)
+            -- print("dead", thr_normal[v].id)
             table.remove(thr_normal, v)
         end
     end
