@@ -14,7 +14,7 @@ VER_REV = 0
 VER_FLAG = '-rc1'
 CUBIX_VERSION = VER_MAJOR..'.'..VER_MINOR..'.'..VER_REV..VER_FLAG
 
-STABLE = ((VER_REV % 2) == 0) and ((VER_REV % 2) == 0)
+STABLE = ((VER_MINOR % 2) == 0) and ((VER_REV % 2) == 0)
 
 if STABLE then
     -- supress pullEvent
@@ -30,8 +30,6 @@ for _,v in ipairs({...}) do
         kernel_flags.quiet = true
     elseif v == 'splash' then
         kernel_flags.splash = true
-    elseif v == 'noacpi' then
-        kernel_flags.noacpi = true
 
     elseif string.sub(v, 0, 4) == 'init' then
         k = os.strsplit(v, '=')
