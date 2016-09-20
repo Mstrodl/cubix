@@ -136,7 +136,7 @@ local function thread_tick_all()
         if thread.dead then
             if dead == nil then dead = {} end
             table.insert(dead, k - #dead) --catalogue thread as dead
-            killpid(thread.pid) --kill proces related to the thread
+            --killpid(thread.pid) --kill proces related to the thread
         end
     end
 
@@ -163,8 +163,4 @@ end
 function libroutine()
     print("process manager")
     _G["threading"] = threading
-    print(threading)
-    threading.start_thread_s(function()
-        print("THREADING")
-    end)
 end

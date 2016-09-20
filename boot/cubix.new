@@ -179,7 +179,18 @@ cubix.boot = function ()
     sysload("acpi", "/lib/acpi.lua")
 
     sysload("pm", "/lib/base/procman.lua")
-    lib.pm.setup()
+    sysload("libev", "/lib/modules/libev.lua")
+    -- sysload("udev", "/lib/base/dman.lua")
+    -- sysload("time", "/lib/base/time.lua")
+    -- sysload("fs", "/lib/base/fs.lua")
+    -- sysload("hash", "/lib/base/hash.lua")
+    -- sysload("tty", "/lib/base/tty.lua")
+    -- sysload("pam", "/lib/base/pam.lua")
+    -- sysload("io", "/lib/base/io.lua")
+    -- sysload("cache", "/lib/base/cache.lua")
+
+    -- idle thread
+    threading.start_thread_s(function()end)
 end
 
 cubix.boot()

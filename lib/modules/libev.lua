@@ -11,7 +11,7 @@ local oldqueueEvent = deepcopy(os.queueEvent)
 local oldpullEvent = deepcopy(os.pullEvent)
 
 os.send_ev = function(event)
-    local who_did_it = libproc.thread.rtid()
+    local who_did_it = threading.rtid()
     if not signalers[who_did_it] then
         signalers[who_did_it] = {}
     end
