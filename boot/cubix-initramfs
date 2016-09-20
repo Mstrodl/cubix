@@ -299,6 +299,11 @@ function reduce(f, seq, init_val)
 end
 _G['reduce'] = reduce
 
+function printf(...)
+    local args = {...}
+    return string.format(args[1], unpack(args, 2))
+end
+
 function generate_lcubix(type, path)
     if type == 'all' then
         local h = fs.open("/boot/libcubix", 'r')
