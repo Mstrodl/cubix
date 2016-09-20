@@ -52,13 +52,13 @@ os.tail = function(t)
 end
 _G['tail'] = os.tail
 
-os.strsplit = function (inputstr, sep)
+function string.split (inputstr, sep)
     if sep == nil then
         sep = "%s"
     end
     if type(inputstr) ~= 'string' then
         term.set_term_color(colors.red)
-        print("os.strsplit: type(inputstr) == "..type(inputstr))
+        print("strsplit: type(inputstr) == "..type(inputstr))
         term.set_term_color(colors.white)
         return 1
     end
@@ -72,7 +72,7 @@ os.strsplit = function (inputstr, sep)
     end
     return t
 end
-_G['strsplit'] = os.strsplit
+os.strsplit = string.split -- ackwards compatibility
 
 function strcount(str, char)
     local c = 0

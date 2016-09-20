@@ -32,10 +32,10 @@ for _,v in ipairs({...}) do
         kernel_flags.splash = true
 
     elseif string.sub(v, 0, 4) == 'init' then
-        k = os.strsplit(v, '=')
+        k = string.split(v, '=')
         kernel_flags.init = k[2]
     elseif string.sub(v, 0, 8) == 'runlevel' then
-        k = os.strsplit(v, '=')
+        k = string.split(v, '=')
         kernel_flags.sRunlevel = k[2]
     end
 
@@ -92,7 +92,8 @@ _G['lib'] = lib
 
 cubix.load = function(module_name, path)
     if isReloadable[module_name] ~= nil and isReloadable[module_name] == false then
-        print("[mod] cannot reload "..module_name..", please reboot!")
+        --print("[mod] cannot reload "..module_name..": module locked")
+        printf("[mod] cannot reload %s: module locked", module_name)
         return false
     end
 
