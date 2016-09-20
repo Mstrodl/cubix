@@ -142,6 +142,12 @@ cubix.load = function(module_name, path)
     return true
 end
 
+function sysload(m_name, m_path)
+    if not cubix.load(m_name, m_path) then
+        halt()
+    end
+end
+
 cubix.boot = function ()
     if boot_flag then
         return ferror("cubix.boot: cubix already booted!")
@@ -166,24 +172,14 @@ cubix.boot = function ()
         syslog, acpi
     ]]
 
-    if cubix.load('syslog', '/lib/syslog/syslog.lua') then
-        syslog.log("Loaded syslog")
-        lib.syslog.syslog_boot()
-    else
-        halt()
-    end
+    sysload("syslog", "/lib/syslog/syslog.lua")
+    syslog.log("Loaded syslog")
+    lib.syslog.syslog_boot()
 
-    if not kernel_flags.noacpi then
-        if not cubix.load("acpi", '/lib/acpi.lua') then
-            halt()
-        end
-    end
+    sysload("acpi", "/lib/acpi.lua")
 
-    if cubix.load("pm", '/lib/base/procman.lua') then
-        lib.pm.setup()
-    else
-        halt()
-    end
+    sysload("pm", "/lib/base/procman.lua")
+    lib.pm.setup()
 end
 
 cubix.boot()
