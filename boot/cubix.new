@@ -118,7 +118,8 @@ cubix.load = function(module_name, path)
 
     elseif not mod_tbl then
         if syslog then
-            return syslog.serlog(syslog.S_ERR, 'mod', 'error loading '..module_name)
+            syslog.serlog(syslog.S_ERR, 'mod', 'error loading '..module_name)
+            return false
         else
             return print("[mod] libroutine() not found")
         end
@@ -188,8 +189,8 @@ cubix.boot = function ()
 
     sysload("pm", "/lib/base/procman.lua")
     sysload("libev", "/lib/modules/libev.lua")
-    -- sysload("udev", "/lib/base/dman.lua")
-    -- sysload("time", "/lib/base/time.lua")
+    sysload("udev", "/lib/base/dman.lua")
+    sysload("time", "/lib/base/time.lua")
     -- sysload("fs", "/lib/base/fs.lua")
     -- sysload("hash", "/lib/base/hash.lua")
     -- sysload("tty", "/lib/base/tty.lua")

@@ -299,10 +299,17 @@ function reduce(f, seq, init_val)
 end
 _G['reduce'] = reduce
 
-function printf(...)
+function rprintf(...)
     local args = {...}
     return string.format(args[1], unpack(args, 2))
 end
+_G['rprintf'] = rprintf
+
+function printf(...)
+    local args = {...}
+    print(string.format(args[1], unpack(args, 2)))
+end
+_G['printf'] = printf
 
 function generate_lcubix(type, path)
     if type == 'all' then
