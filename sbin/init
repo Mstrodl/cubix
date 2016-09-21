@@ -65,6 +65,7 @@ RUNLEVELFUNC[5] = runlevel_5
 RUNLEVELFUNC[6] = runlevel_6
 
 function main(args)
+    print("/sbin/init: start")
     if args[1] ~= nil then
         runlevel = tonumber(args[1])
     else
@@ -78,7 +79,7 @@ function main(args)
             return 1
         end
     end
-    os.lib.tty.current_tty("/dev/tty1")
+    lib.tty.current_tty("/dev/tty1")
     run_scripts(runlevel)
     RUNLEVELFUNC[runlevel]()
     return 0

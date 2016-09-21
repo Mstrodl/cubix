@@ -160,7 +160,159 @@ function thread_start_all()
     end
 end
 
+--[[
+    Process Manager
+]]
+
+local pid_last = 0
+
+Process = function(file)
+    local self = {}
+    pid_last = pid_last + 1
+
+    -- Set basic stuff that identifies a process
+    --[[
+        pid : int
+        file : str
+        parent : Process
+        childs : table of Process
+    ]]
+    self.pid = pid_last
+    self.file = file
+    self.parent = nil
+    self.childs = {}
+
+    -- Set more stuff that represents who and what (the process) is going to do
+    --[[
+        Who is running the process
+        user : str
+        uid : int
+
+        What is it's arguments and TTY
+        lineargs : str
+        tty : str
+    ]]
+    self.user = ''
+    self.uid = -1
+    self.lineargs = ''
+    self.tty = ''
+
+    -- Thread that represents the process
+    self.thread = nil
+
+    syslog.log("[pm] new: "..self.file, syslog.INFO)
+    return self
+end
+
+local processes = {}
+local running = 0
+local cc_os_run = os.run
+
+function pr_run(process, args, pipe, env, use_thread)
+
+    if not env then
+        env = {}
+    end
+    -- lib.pam.default()
+
+    --[[local cur_user = lib.pam.current_user()
+
+    if not fs.verifyPerm(process.file, cur_user, 'x') then
+        return ferror("pm.run: perm error")
+    end
+
+    if cur_user == '' then
+        process.user = 'root'
+    else
+        process.user = cur_user
+    end
+
+    process.uid = lib.pam.userUID()
+    processes[process.pid] = process
+
+    local ctty = lib.tty.getcurrentTTY()
+    if ctty == nil or ctty == {} or ctty == '' then
+        process.tty = '/dev/netty' -- Non-Existing TTY
+    else
+        process.tty = ctty.id
+    end]]
+
+    -- same logic as old proc_manager
+    local function handler()
+        local iowrapper = lib.get("/lib/modules/io_wrapper.lua")
+
+        -- manage pipes
+        if type(pipe) == 'table' then
+            env['program_pipe'] = pipe
+
+            env['term'] = tmerge({}, term)
+            env['term']['write'] = function(str)
+                return pipe:write(str)
+            end
+
+            env['io'] = tmerge({}, io)
+            env['io']['write'] = function(str)
+                return pipe:write(str)
+            end
+
+            function write_pipe(d)
+                return pipe.write(pipe, d)
+            end
+
+            env['print'] = function(...)
+                return iowrapper.print_wrapped(write_pipe, unpack({...}))
+            end
+            env['write'] = function(str)
+                return iowrapper.wrapped_write(write_pipe, str)
+            end
+
+            env['read'] = function()
+                return pipe:readLine()
+            end
+        end
+
+        os.run(env, process.file, unpack(args, 1))
+    end
+
+
+    running = process.pid
+    if not use_thread then
+        handler()
+        --killproc(process)
+    else
+        process.thread = threading.start_thread(handler,
+            tostring(process.pid)..':'..tostring(process.file),
+            process.pid)
+    end
+
+    return
+end
+
+--[[
+    Implement lib functions(fork, etc..)
+]]
+
+function fork(f)
+    --[[
+        fork(
+            f : str
+        ) : Process
+
+        Creates a Process based on the filepath to the program given
+    ]]
+    local p = Process(f)
+    local fpid = running
+    p.parent = processes[fpid]
+    --set_parent(p, processes[fpid])
+    return p
+end
+
+function prexec(process, args, pipe, env, use_thread)
+    return pr_run(process, args, pipe, env, use_thread)
+end
+
 function libroutine()
-    print("process manager")
-    _G["threading"] = threading
+    _G['fork'] = fork
+    _G['prexec'] = prexec
+    _G['threading'] = threading
 end

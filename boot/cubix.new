@@ -24,7 +24,10 @@ else
     print("[cubix] loading unstable")
 end
 
-local kernel_flags = {}
+local kernel_flags = {
+    ['init'] = '/sbin/init',
+    ['runlevel'] = '1',
+}
 for _,v in ipairs({...}) do
     if v == 'quiet' then
         kernel_flags.quiet = true
@@ -50,6 +53,7 @@ function ferror(message)
     print(message)
     term.set_term_color(colors.white)
 end
+_G['ferror'] = ferror
 
 cubix = {}
 local boot_flag = false
@@ -88,6 +92,10 @@ local isReloadable = {}
 local mod_order = {}
 
 lib = {}
+lib.get = function(path)
+    return load_file(path)
+end
+
 _G['lib'] = lib
 
 cubix.load = function(module_name, path)
@@ -172,6 +180,7 @@ cubix.boot = function ()
         syslog, acpi
     ]]
 
+<<<<<<< HEAD
     sysload("syslog", "/lib/syslog/syslog.lua")
     syslog.log("Loaded syslog")
     lib.syslog.syslog_boot()
@@ -191,6 +200,29 @@ cubix.boot = function ()
 
     -- idle thread
     threading.start_thread_s(function()end)
+
+    --[[if not cubix.load("auth", '/lib/base/cauth.lua') then
+        halt()
+    end
+
+    -- idle thread(does nothing, but keeps the thread manager running)
+    local function idle_function()
+        while true do
+            sleep(30)
+        end
+    end
+
+    -- thread to run /sbin/init
+    local function init_function()
+        local init_proc = fork(kernel_flags.init) --create a new process based on the running parent
+        return prexec(init_proc, {kernel_flags.sRunlevel},
+            nil, nil, true)
+    end
+
+    threading.new_thread(-1, '-1:kernel', function()end)
+    threading.new_thread(0, '0:idle', idle_function)
+    threading.new_thread(1, '1:init', init_function)
+    threading.evloop_start()]]
 end
 
 cubix.boot()
