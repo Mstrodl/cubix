@@ -159,6 +159,7 @@ function thread_start_all()
         return ferror("thread_man: already started")
     end
 end
+threading.start = thread_start_all
 
 --[[
     Process Manager
