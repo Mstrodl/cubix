@@ -180,7 +180,6 @@ cubix.boot = function ()
         syslog, acpi
     ]]
 
-<<<<<<< HEAD
     sysload("syslog", "/lib/syslog/syslog.lua")
     syslog.log("Loaded syslog")
     lib.syslog.syslog_boot()
