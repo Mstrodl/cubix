@@ -168,48 +168,46 @@ threading.start = thread_start_all
 local pid_last = 0
 
 Process = function(file)
-    local self = {}
     pid_last = pid_last + 1
+    local p = {
+        pid = pid_last,
+        -- Set basic stuff that identifies a process
+        --[[
+            pid : int
+            file : str
+            parent : Process
+            childs : table of Process
+        ]]
+        pid = pid_last,
+        file = file,
+        parent = nil,
+        childs = {},
+        -- Set more stuff that represents who and what (the process) is going to do
+        --[[
+            Who is running the process
+            user : str
+            uid : int
 
-    -- Set basic stuff that identifies a process
-    --[[
-        pid : int
-        file : str
-        parent : Process
-        childs : table of Process
-    ]]
-    self.pid = pid_last
-    self.file = file
-    self.parent = nil
-    self.childs = {}
+            What is it's arguments and TTY
+            lineargs : str
+            tty : str
+        ]]
+        user = '',
+        uid = -1,
+        lineargs = '',
+        tty = '',
+        thread = nil
+    }
 
-    -- Set more stuff that represents who and what (the process) is going to do
-    --[[
-        Who is running the process
-        user : str
-        uid : int
-
-        What is it's arguments and TTY
-        lineargs : str
-        tty : str
-    ]]
-    self.user = ''
-    self.uid = -1
-    self.lineargs = ''
-    self.tty = ''
-
-    -- Thread that represents the process
-    self.thread = nil
-
-    syslog.log("[pm] new: "..self.file, syslog.INFO)
-    return self
+    syslog.log("[pm] new: "..p.file, syslog.INFO)
+    return p
 end
 
-local processes = {}
-local running = 0
-local cc_os_run = os.run
+local processes = {} -- list of processes based on PID
+local running = 0 -- pid of running process
+local cc_os_run = os.run -- normal os.run from CC
 
-function pr_run(process, args, pipe, env, use_thread)
+local function pr_run(process, args, pipe, env)
 
     if not env then
         env = {}
@@ -281,7 +279,8 @@ function pr_run(process, args, pipe, env, use_thread)
         handler()
         --killproc(process)
     else
-        process.thread = threading.start_thread(handler,
+        --TODO: simpler method to use threads
+        process.thread = threading.new_thread(handler,
             tostring(process.pid)..':'..tostring(process.file),
             process.pid)
     end
@@ -290,7 +289,7 @@ function pr_run(process, args, pipe, env, use_thread)
 end
 
 --[[
-    Implement lib functions(fork, etc..)
+    Implement libproc functions(fork, execp etc..)
 ]]
 
 function fork(f)
@@ -308,12 +307,24 @@ function fork(f)
     return p
 end
 
-function prexec(process, args, pipe, env, use_thread)
-    return pr_run(process, args, pipe, env, use_thread)
+function execg(process, args, env, pipe)
+    return pr_run(process, args, pipe, env)
+end
+
+function execv(path, args)
+    return pr_run(fork(path), args, nil, nil)
+end
+
+function execve(path, args, env)
+    return pr_run(fork(path), args, env, nil)
+end
+
+function execvp(path, args, env)
+    --TODO: $PATH variable
 end
 
 function libroutine()
     _G['fork'] = fork
-    _G['prexec'] = prexec
+    _G['execv'] = execv
     _G['threading'] = threading
 end

@@ -203,6 +203,10 @@ cubix.boot = function ()
         while true do sleep(100) end
     end)
 
+    threading.new_thread(function()
+        return execv(kernel_flags.init, {kernel_flags.runlevel})
+    end)
+
     threading.start()
 
     --[[threading.new_thread(function()
