@@ -20,8 +20,7 @@ end
 function runlevel_1()
     --single-user
     while true do
-        local init_proc = fork('/sbin/login')
-        prexec(init_proc, nil, nil, nil, nil, true)
+        execv('/sbin/login', {})
     end
 end
 
@@ -70,16 +69,16 @@ function main(args)
         runlevel = tonumber(args[1])
     else
         if fs.exists("/etc/inittab") then
-            local inittab = fs.open("/etc/inittab", 'r')
-            local r = os.strsplit(inittab.readAll(), ':')[2]
+            local r = string.split(fs_readall("/etc/inittab"), ':')[2]
             runlevel = tonumber(r)
-            inittab.close()
         else
             os.debug.kpanic("[init] /etc/inittab not found")
             return 1
         end
     end
-    lib.tty.current_tty("/dev/tty1")
+    if lib.tty then
+        lib.tty.current_tty("/dev/tty1")
+    end
     run_scripts(runlevel)
     RUNLEVELFUNC[runlevel]()
     return 0
