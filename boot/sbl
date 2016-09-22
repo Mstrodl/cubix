@@ -84,13 +84,13 @@ function CUI(m)
         cprint("Select a OS to load")
         cprint("[up/down & enter]")
 
-        a, b= os.pullEventRaw()
+        a, b = os.pullEventRaw()
         if a == "key" then
-            if b==200 and n>1 then n=n-1 end
-            if b==208 and n<l then n=n+1 end
-            if b==28 then break end --break loop
-            if b==46 then kpress = 'c' break end --command line
-            if b==18 then kpress = 'e' break end --edit bootscript
+            if b == 200 and n>1 then n=n-1 end
+            if b == 208 and n<l then n=n+1 end
+            if b == 28 then break end --break loop
+            if b == 46 then kpress = 'c' break end --command line
+            if b == 18 then kpress = 'e' break end --edit bootscript
         end
     end
     term.clear()

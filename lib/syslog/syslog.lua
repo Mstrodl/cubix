@@ -44,7 +44,7 @@ function syslog_log(message)
         a.close()
     end]]
 
-    print('['..c..'] '..message)
+    printf('[%s] %s', c, message)
     log_buffer = log_buffer .. ('['..c..'] '..message..'\n')
 
     --os.sleep(math.random() / 16.)
