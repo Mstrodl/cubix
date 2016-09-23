@@ -49,6 +49,11 @@ local function acpi_shutdown()
 end
 
 local function acpi_reboot()
+    --[[
+    if not lib.auth.grant(perm.sys) then
+        return ferror("Access Denied")
+    end
+    ]]
     syslog.serlog(syslog.S_INFO, 'acpi_reboot', '')
     --if permission.grantAccess(fs.perms.SYS) then
     if lib.auth.grant(lib.auth.system_perm) then

@@ -103,24 +103,26 @@ syslog.S_ERR = syslog.ERROR
 syslog.S_INFO = syslog.DEBUG
 
 syslog.serlog = function(logtype, service_name, message)
-    local serlog_str = ''
+    local serlog_type = ''
     local color = colors.orange
 
     if logtype == syslog.S_OK then
-        serlog_str = serlog_str .. '[ OK ] '
+        serlog_type = '[ OK ] '
         color = colors.green
     elseif logtype == syslog.S_ERR then
-        serlog_str = serlog_str .. '[ ERR ] '
+        serlog_type = '[ ERR ] '
         color = colors.red
     else
-        serlog_str = serlog_str .. '[ INFO ] '
+        serlog_type = '[ INFO ] '
         color = colors.lightBlue
     end
 
-    serlog_str = serlog_str .. "["..service_name.."] "
-
-    serlog_str = serlog_str .. message
+    local serlog_str = rprintf("%s[%s] %s", serlog_type, service_name, message)
     return syslog.log(serlog_str, logtype, nil, color)
+end
+
+syslog.serlog_info = function(sname, msg)
+    return syslog.serlog(syslog.S_INFO, sname, msg)
 end
 
 function syskpanic(msg)
