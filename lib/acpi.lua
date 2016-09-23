@@ -22,7 +22,7 @@ local __clear_temp = function()
     fs.makeDir("/tmp")
 
     syslog.serlog(syslog.S_INFO, "acpi", "save entropy pool")
-    evgather.save_pool()
+    -- evgather.save_pool()
 end
 
 local function acpi_shutdown()
@@ -49,16 +49,16 @@ local function acpi_shutdown()
 end
 
 local function acpi_reboot()
-    syslog.serlog(syslog.S_INFO, 'acpi_reboot')
+    syslog.serlog(syslog.S_INFO, 'acpi_reboot', '')
     --if permission.grantAccess(fs.perms.SYS) then
     if lib.auth.grant(lib.auth.system_perm) then
         syslog.serlog(syslog.S_INFO, 'reboot', "system reboot")
         _G['CUBIX_REBOOTING'] = true
         syslog.serlog(syslog.S_INFO, 'reboot', "sending SIGKILL to all processes")
         if not os.__boot_flag then --still without proper userspace
-            lib.proc.__killallproc()
+            -- lib.proc.__killallproc()
             syslog.serlog(syslog.S_INFO, 'reboot', "unmounting drives")
-            lib.fs.shutdown_procedure()
+            -- lib.fs.shutdown_procedure()
         end
         sleep(1)
         __clear_temp()
