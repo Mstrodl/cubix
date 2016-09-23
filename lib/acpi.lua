@@ -49,20 +49,21 @@ local function acpi_shutdown()
 end
 
 local function acpi_reboot()
-    os.debug.debug_write("[acpi_reboot]")
-    if permission.grantAccess(fs.perms.SYS) then
-        os.debug.debug_write("[reboot] shutting down for system reboot")
+    syslog.serlog(syslog.S_INFO, 'acpi_reboot')
+    --if permission.grantAccess(fs.perms.SYS) then
+    if lib.auth.grant(lib.auth.system_perm) then
+        syslog.serlog(syslog.S_INFO, 'reboot', "system reboot")
         _G['CUBIX_REBOOTING'] = true
-        os.debug.debug_write("[reboot] sending SIGKILL to all processes")
+        syslog.serlog(syslog.S_INFO, 'reboot', "sending SIGKILL to all processes")
         if not os.__boot_flag then --still without proper userspace
-            os.lib.proc.__killallproc()
-            os.debug.debug_write("[reboot] unmounting drives")
-            os.lib.fs_mngr.shutdown_procedure()
+            lib.proc.__killallproc()
+            syslog.serlog(syslog.S_INFO, 'reboot', "unmounting drives")
+            lib.fs.shutdown_procedure()
         end
-        os.sleep(1)
+        sleep(1)
         __clear_temp()
-        os.debug.debug_write("[reboot] sending RBT.")
-        os.sleep(.5)
+        syslog.serlog(syslog.S_OK, 'reboot', "sending RBT.")
+        sleep(.5)
         _reboot()
     else
         os.ferror("acpi_reboot: cannot reboot without SYSTEM permission")

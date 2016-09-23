@@ -87,6 +87,7 @@ local function load_file(pth)
 
     return lib_exported
 end
+cubix.load_file = load_file
 
 local isReloadable = {}
 local mod_order = {}
@@ -191,10 +192,11 @@ cubix.boot = function ()
     sysload("libev", "/lib/modules/libev.lua")
     sysload("udev", "/lib/base/dman.lua")
     sysload("time", "/lib/base/time.lua")
+    sysload("crypto", "/lib/crypto/crypto.lua")
     -- sysload("hash", "/lib/cauth/hash.lua")
     -- sysload("fs", "/lib/base/fs.lua")
     -- sysload("tty", "/lib/base/tty.lua")
-    -- sysload("pam", "/lib/cauth/pam.lua")
+    sysload("auth", "/lib/base/auth/cauth.lua")
     -- sysload("io", "/lib/base/io.lua")
     -- sysload("cache", "/lib/base/cache.lua")
 
@@ -204,38 +206,11 @@ cubix.boot = function ()
     end)
 
     threading.new_thread(function()
-        return execv(kernel_flags.init, {kernel_flags.runlevel})
+        --return execv(kernel_flags.init, {kernel_flags.runlevel})
+        return execv("/bin/lua", {})
     end)
 
     threading.start()
-
-    --[[threading.new_thread(function()
-        local init = fork(kernel_flags.init)
-        return prexec(init, {kernel_flags.runlevel})
-    end)]]
-
-    --[[if not cubix.load("auth", '/lib/base/cauth.lua') then
-        halt()
-    end
-
-    -- idle thread(does nothing, but keeps the thread manager running)
-    local function idle_function()
-        while true do
-            sleep(30)
-        end
-    end
-
-    -- thread to run /sbin/init
-    local function init_function()
-        local init_proc = fork(kernel_flags.init) --create a new process based on the running parent
-        return prexec(init_proc, {kernel_flags.sRunlevel},
-            nil, nil, true)
-    end
-
-    threading.new_thread(-1, '-1:kernel', function()end)
-    threading.new_thread(0, '0:idle', idle_function)
-    threading.new_thread(1, '1:init', init_function)
-    threading.evloop_start()]]
 end
 
 cubix.boot()
