@@ -126,7 +126,7 @@ cubix.load = function(module_name, path)
         end
     end
 
-    _G[module_name] = mod_tbl
+    -- _G[module_name] = mod_tbl
     if mod_tbl.libroutine ~= nil then
         mod_tbl.libroutine()
     else
@@ -194,7 +194,7 @@ cubix.boot = function ()
     sysload("time", "/lib/base/time.lua")
     sysload("crypto", "/lib/crypto/crypto.lua")
     -- sysload("hash", "/lib/cauth/hash.lua")
-    -- sysload("fs", "/lib/base/fs.lua")
+    sysload("fs", "/lib/base/fs.lua")
     -- sysload("tty", "/lib/base/tty.lua")
     sysload("auth", "/lib/base/auth/cauth.lua")
     -- sysload("io", "/lib/base/io.lua")
