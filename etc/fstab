@@ -1,2 +1,2 @@
-/dev/hda;/;cfs;;
+/dev/hda;/;cbxfs;;
 /dev/loop1;/dev/shm;tmpfs;;

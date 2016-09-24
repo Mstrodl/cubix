@@ -49,8 +49,8 @@ local fs_mounts = {}
 
 function mount(source, target, fstype, mountflags, data)
     -- check if filesystem driver exist
-    if not fsdrivers[fstype] then
-        return ferror("mount: "..device..": filesystem not loaded")
+    if not fs_drivers[fstype] then
+        return ferror("mount: "..source..": filesystem not loaded")
     end
 
     if not fs_drivers[fstype].user_mount(lib.proc.currentuid()) then
