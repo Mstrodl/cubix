@@ -66,3 +66,7 @@ end
 function CubixFS:open(mountsource, path, mode)
     return self.oldfs.open(path, mode)
 end
+
+function user_mount(uid)
+    return uid == 0
+end

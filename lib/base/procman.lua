@@ -165,6 +165,7 @@ threading.start = thread_start_all
     Process Manager
 ]]
 
+local pm_processes = {}
 local pid_last = 0
 
 Process = function(file)
@@ -198,13 +199,13 @@ Process = function(file)
         tty = '',
         thread = nil
     }
+    pm_processes[pid_last] = p
 
     syslog.log("[pm] new: "..p.file, syslog.INFO)
     return p
 end
 
-local processes = {} -- list of processes based on PID
-local running = 0 -- pid of running process
+local running_pid = -1 -- pid of running process
 local cc_os_run = os.run -- normal os.run from CC
 
 local function pr_run(process, args, pipe, env)
@@ -212,6 +213,8 @@ local function pr_run(process, args, pipe, env)
     if not env then
         env = {}
     end
+
+    process.uid = 0
     -- lib.pam.default()
 
     --[[local cur_user = lib.pam.current_user()
@@ -274,7 +277,7 @@ local function pr_run(process, args, pipe, env)
     end
 
 
-    running = process.pid
+    running_pid = process.pid
     if not use_thread then
         handler()
         --killproc(process)
@@ -301,8 +304,7 @@ function fork(f)
         Creates a Process based on the filepath to the program given
     ]]
     local p = Process(f)
-    local fpid = running
-    p.parent = processes[fpid]
+    p.parent = pm_processes[running_pid]
     --set_parent(p, processes[fpid])
     return p
 end
@@ -321,6 +323,11 @@ end
 
 function execvp(path, args, env)
     --TODO: $PATH variable
+end
+
+function currentuid()
+    if running_pid == -1 then return 0 end
+    return pm_processes[running_pid].uid
 end
 
 function libroutine()

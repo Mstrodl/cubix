@@ -53,7 +53,7 @@ function mount(source, target, fstype, mountflags, data)
         return ferror("mount: "..source..": filesystem not loaded")
     end
 
-    if not fs_drivers[fstype].user_mount(lib.proc.currentuid()) then
+    if not fs_drivers[fstype].user_mount(lib.pm.currentuid()) then
         return ferror("mount: current user can't mount "..filesystem)
     end
 
@@ -74,7 +74,7 @@ function mount(source, target, fstype, mountflags, data)
         source, fstype, target))
 
     -- register mount in fs_mounts
-    fs_mounts[path] = {["fs"] = fstype, ["source"] = source}
+    fs_mounts[target] = {["fs"] = fstype, ["source"] = source}
 
     -- load FS for that mounting
     local r = fsdriver_loadfs(source, target)
