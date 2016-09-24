@@ -5,7 +5,9 @@
 
 RELOADABLE = false
 
---TODO: implementation of VFS, virtual file system
+--TODO: implementation of VFS, the virtual file system
+
+local mounted_devices = {}
 
 --[[
 fs.open = function(path, mode)
@@ -13,21 +15,26 @@ fs.open = function(path, mode)
 end
 ]]
 
-function fs_readall(fpath)
-    local h = fs.open(fpath, 'r')
+function mount(source, target, fstype, mountflags, data)
+end
+
+function fs_readall(fpath, external_fs)
+    external_fs = external_fs or fs
+    local h = external_fs.open(fpath, 'r')
     if h == nil then return nil end
     local data = h:readAll()
     h:close()
     return data
 end
 
-function fs_writedata(fpath, data, flag)
+function fs_writedata(fpath, data, flag, external_fs)
     flag = flag or false
+    external_fs = external_fs or fs
     local h = nil
     if flag then
-        h = fs.open(fpath, 'a')
+        h = external_fs.open(fpath, 'a')
     else
-        h = fs.open(fpath, 'w')
+        h = external_fs.open(fpath, 'w')
     end
     if h == nil then return nil end
     local data = h:readAll()
