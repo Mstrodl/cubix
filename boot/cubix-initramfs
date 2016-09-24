@@ -72,7 +72,11 @@ function string.split (inputstr, sep)
     end
     return t
 end
-os.strsplit = string.split -- ackwards compatibility
+os.strsplit = string.split -- backwards compatibility
+
+string.splitlines = function(s)
+    return string.split(s, '\n')
+end
 
 function strcount(str, char)
     local c = 0
