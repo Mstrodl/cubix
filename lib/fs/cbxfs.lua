@@ -17,20 +17,20 @@ CubixFS = class(function(self, oldfs)
 end)
 
 --(receives device name)
-function CubixFS:mount(dev)
+function CubixFS:mount(source, target)
     self.name = fs_readall("/.cbxname", self.oldfs) or "cbxfs.generic"
-    mounts[dev] = self
+    mounts[source] = self
     return true
 end
 
-function CubixFS:umount(dev)
-    mounts[dev] = nil
+function CubixFS:umount(source)
+    mounts[source] = nil
     return true
 end
 
-function CubixFS:make(dev, options)
+function CubixFS:make(source, options)
     if options['name'] then
-        fs_writeall(dev.."/.cbxname", options['name'], nil, self.oldfs)
+        fs_writeall(source.."/.cbxname", options['name'], nil, self.oldfs)
     end
     return true
 end

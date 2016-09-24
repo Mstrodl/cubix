@@ -11,13 +11,24 @@ local oldfs = deepcopy(fs)
 local fs_drivers = {}
 
 -- Load filesystem drivers
-local function load_filesystem(fsname, driver_path)
+local function load_filesystem(fsname, fs_class, driver_path)
     syslog.serlog(syslog.S_INFO, 'fs', 'load_fs: '..fsname)
-    fs_drivers[fsname] = cubix.load_file(driver_path)
+    fs_drivers[fsname] = {
+        ["classname"] = fs_class,
+        ["driver"] = cubix.load_file(driver_path)
+    }
 end
 
 local function load_all_filesystems()
-    load_filesystem("cbxfs", '/lib/fs/cbxfs.lua')
+    load_filesystem("cbxfs", 'CubixFS', '/lib/fs/cbxfs.lua')
+end
+
+local function fsdriver_prepare_mount(fs, source, target)
+    local fs_obj = fs_drivers[fs]
+    local fs_constructor = fs_obj['driver'][fs_obj['classname']]
+
+    local mount_object = fs_constructor(oldfs)
+    return mount_object:mount(source, target)
 end
 
 -- Helpers for permissions
@@ -53,7 +64,7 @@ function mount(source, target, fstype, mountflags, data)
         return ferror("mount: "..source..": filesystem not loaded")
     end
 
-    if not fs_drivers[fstype].user_mount(lib.pm.currentuid()) then
+    if not fs_drivers[fstype]['driver'].user_mount(lib.pm.currentuid()) then
         return ferror("mount: current user can't mount "..filesystem)
     end
 
@@ -77,7 +88,7 @@ function mount(source, target, fstype, mountflags, data)
     fs_mounts[target] = {["fs"] = fstype, ["source"] = source}
 
     -- load FS for that mounting
-    local r = fsdriver_loadfs(source, target)
+    local r = fsdriver_prepare_mount(fstype, source, target)
     if not r then
         -- damn.
         fs_mounts[target] = nil
@@ -134,7 +145,7 @@ end
 
 function libroutine()
     load_all_filesystems()
-    run_fstab("/etc/fstab")
     _G['fs_readall'] = fs_readall
     _G['fs_writedata'] = fs_writedata
+    run_fstab("/etc/fstab")
 end
