@@ -15,7 +15,7 @@ local function load_filesystem(fsname, fs_class, driver_path)
     syslog.serlog(syslog.S_INFO, 'fs', 'load_fs: '..fsname)
     fs_drivers[fsname] = {
         ["classname"] = fs_class,
-        ["driver"] = cubix.load_file(driver_path)
+        ["driver"] = lib.get(driver_path)
     }
 end
 
@@ -143,12 +143,10 @@ end
 
 -- add /etc/fstab management
 local function run_fstab(fstab_path)
-    --[[/dev/hda;/;cfs;;
-    /dev/loop1;/dev/shm;tmpfs;;]]
-    syslog.serlog(syslog.S_INFO, 'fstab', 'running '..fstab_path)
-    local h = fs.open("/etc/fstab", 'r')
+    syslog.serlog(syslog.S_INFO, 'fstab', 'running at '..fstab_path)
+
     local fstab_data = fs_readall(fstab_path)
-    if not h then
+    if not fstab_data then
         syslog.panic("error opening fstab")
     end
 
