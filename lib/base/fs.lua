@@ -23,14 +23,6 @@ local function load_all_filesystems()
     load_filesystem("cbxfs", 'CubixFS', '/lib/fs/cbxfs.lua')
 end
 
-local function fsdriver_prepare_mount(fs, source, target)
-    local fs_obj = fs_drivers[fs]
-    local fs_constructor = fs_obj['driver'][fs_obj['classname']]
-
-    local mount_object = fs_constructor(oldfs)
-    return mount_object:mount(source, target)
-end
-
 -- Helpers for permissions
 function perm_to_arr(perm_num)
     local tmp = tostring(perm_num)
@@ -53,8 +45,6 @@ function perm_to_str(perm_num)
     local k = perm_to_arr(perm_num)
     return printf("%s%s%s", unpack(k, 1))
 end
-
---TODO: implementation of VFS, the virtual file system
 
 local fs_mounts = {}
 
@@ -84,18 +74,46 @@ function mount(source, target, fstype, mountflags, data)
         "mounting %s(%s) at %s",
         source, fstype, target))
 
-    -- register mount in fs_mounts
-    fs_mounts[target] = {["fs"] = fstype, ["source"] = source}
-
     -- load FS for that mounting
-    local r = fsdriver_prepare_mount(fstype, source, target)
-    if not r then
-        -- damn.
-        fs_mounts[target] = nil
-        return ferror("mount: unable to mount")
+    local fs_obj = fs_drivers[fstype]
+    local fs_constructor = fs_obj['driver'][fs_obj['classname']]
+
+    local fs_object = fs_constructor(oldfs)
+    fs_mounts[target] = {
+        ["fs"] = fstype,
+        ["source"] = source,
+        ["obj"] = fs_object
+    }
+    r = fs_object:mount(source, target)
+    if r then
+        return true
     end
 
-    return true
+    -- damn.
+    fs_mounts[target] = nil
+    return ferror("mount: unable to mount")
+end
+
+--TODO: implementation of VFS, the virtual file system
+
+local function fs_abs_open(path, mode)
+    -- analyze path
+    if string.sub(path, 1, 1) ~= '/' then
+        return false
+    end
+
+    for k,v in pairs(fs_mounts) do
+        if string.sub(path, 1, #k) == k then
+            local source, target = k, string.sub(path, #k + 1)
+            return fs_mounts[source]['obj']:open(source, target, mode)
+        end
+    end
+
+    return ferror("fs_abs_open: error opening(no fs detected)")
+end
+
+local function fs_rev_open(path, mode)
+    return fs_abs_open(fs.combine(os.getenv("CPTH"), path), mode)
 end
 
 -- Helper functions(doesn't depend on any FS sorcery)
@@ -148,4 +166,7 @@ function libroutine()
     _G['fs_readall'] = fs_readall
     _G['fs_writedata'] = fs_writedata
     run_fstab("/etc/fstab")
+
+    -- TODO: add enviroment variables so fs_rev_open works
+    fs.open = fs_abs_open
 end

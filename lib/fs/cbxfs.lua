@@ -12,6 +12,7 @@ local mounts = {}
 
 -- file system manager
 CubixFS = class(function(self, oldfs)
+    syslog.serlog(syslog.S_INFO, "cbxfs", "init")
     self.name = ''
     self.oldfs = oldfs
 end)
