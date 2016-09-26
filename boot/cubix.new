@@ -145,6 +145,7 @@ cubix.load = function(module_name, path)
     term.set_term_color(colors.green)
     if syslog then
         syslog.serlog(syslog.S_OK, 'mod', 'loaded: '..module_name)
+        syslog.serlog(syslog.S_OK, 'mod', 'loaded %s', module_name)
     else
         print('[mod] loaded: '..module_name)
     end

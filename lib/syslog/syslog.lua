@@ -105,7 +105,7 @@ syslog.S_INFO = syslog.DEBUG
 syslog.serlog = function(...)
     local args = {...}
 
-    local logtype, service_name = args[1], args[2z]
+    local logtype, service_name = args[1], args[2]
     local message = rprintf(unpack(args, 2))
 
     local serlog_type = ''
