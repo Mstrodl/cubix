@@ -263,12 +263,13 @@ end)
 --(receives device name)
 function TmpFS:mount(source, target)
     self.name = source
-    mounts[source] = self
+    self.target = target
+    mounts[target] = self
     return true
 end
 
-function TmpFS:umount(source)
-    mounts[source] = nil
+function TmpFS:umount(source, target)
+    mounts[target] = nil
     return true
 end
 
@@ -276,9 +277,9 @@ function TmpFS:make(source, options)
     return ferror("tmpfs: no formatting needed")
 end
 
-function TmpFS:list(mountsource, path)
+function TmpFS:list(source, target, path)
     local paths = {}
-    for k,v in pairs(mounts[mountsource].paths) do
+    for k,v in pairs(mounts[target].paths) do
         table.insert(paths, v)
     end
     return paths

@@ -1,2 +1,1 @@
 /dev/hda;/;cifs;;
-/dev/loop1;/dev/shm;tmpfs;;

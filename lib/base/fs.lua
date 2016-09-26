@@ -122,13 +122,14 @@ local function fs_abs_open(path, mode)
             target = k
 
             tpath = string.sub(path, #k + 1)
-            return fs_mounts[target]['obj']:open(source, tpath, mode)
+            return fs_mounts[target]['obj']:open(source, target, tpath, mode)
         end
     end
 
     if fs_mounts[target] then
-        return fs_mounts[target]['obj']:open('/', target, mode)
+        return fs_mounts[target]['obj']:open('/', target, tpath, mode)
     else
+        syslog.serlog(syslog.S_ERR, 'vfs.open', "using oldfs for opening")
         return oldfs.open(path, mode)
     end
 
@@ -153,13 +154,14 @@ local function fs_abs_list(path)
             target = k
 
             tpath = string.sub(path, #k + 1)
-            return fs_mounts[target]['obj']:list(source, tpath)
+            return fs_mounts[target]['obj']:list(source, target, tpath)
         end
     end
 
     if fs_mounts[target] then
-        return fs_mounts[target]['obj']:list('/', target)
+        return fs_mounts[target]['obj']:list('/', target, tpath)
     else
+        syslog.serlog(syslog.S_ERR, 'vfs.list', "using oldfs")
         return oldfs.list(path)
     end
 
@@ -217,6 +219,7 @@ function libroutine()
     load_all_filesystems()
     _G['fs_readall'] = fs_readall
     _G['fs_writedata'] = fs_writedata
+    mount("tmpfs", "/dev/shm", 'tmpfs')
     run_fstab("/etc/fstab")
 
     -- TODO: add enviroment variables so fs_rev_open works
