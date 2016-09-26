@@ -106,7 +106,7 @@ syslog.serlog = function(...)
     local args = {...}
 
     local logtype, service_name = args[1], args[2]
-    local message = rprintf(unpack(args, 2))
+    local message = rprintf(unpack(args, 3))
 
     local serlog_type = ''
     local color = colors.orange

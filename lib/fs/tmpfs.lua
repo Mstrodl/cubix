@@ -1,16 +1,8 @@
+--[[
+
 --Temporary File System
 
 paths = {}
-
---[[
-files(table of tables):
-each table:
-    KEY = filename - filename
-
-    type - ("dir", "file")
-    perm - permission (string)
-    file - actual file (string)
-]]
 
 --using tmpfs(making a device first):
 --mount /dev/loop2 /mnt/tmpfs tmpfs
@@ -244,4 +236,54 @@ function delete(mountpoint, path)
         ferror("tmpfs: not enough permission.")
         return false
     end
+end
+
+]]
+
+--[[
+    tmpfs.lua - Temporary File System
+
+        instead of using any file to read the permissions(etc), data about all files
+        are stored in memory, unmounting or turning off the computer destroys all files in
+        a tmpfs mounted target
+]]
+
+local mounts = {}
+
+-- file system manager
+TmpFS = class(function(self, oldfs)
+    syslog.serlog(syslog.S_INFO, "tmpfs", "init")
+    self.paths = {
+        'test',
+    }
+    self.oldfs = oldfs
+    self.inode = oldfs.inode
+end)
+
+--(receives device name)
+function TmpFS:mount(source, target)
+    self.name = source
+    mounts[source] = self
+    return true
+end
+
+function TmpFS:umount(source)
+    mounts[source] = nil
+    return true
+end
+
+function TmpFS:make(source, options)
+    return ferror("tmpfs: no formatting needed")
+end
+
+function TmpFS:list(mountsource, path)
+    local paths = {}
+    for k,v in pairs(mounts[mountsource].paths) do
+        table.insert(paths, v)
+    end
+    return paths
+end
+
+function user_mount(uid)
+    return true
 end

@@ -29,6 +29,7 @@ end
 
 local function load_all_filesystems()
     load_filesystem("cifs", 'CiFS', '/lib/fs/cifs.lua')
+    load_filesystem("tmpfs", 'TmpFS', '/lib/fs/tmpfs.lua')
 end
 
 -- Helpers for permissions
@@ -72,7 +73,7 @@ function mount(source, target, fstype, mountflags, data)
     end
 
     if not oldfs.exists(target) then
-        return ferror("mount: target "..path.." doesn't exist")
+        return ferror("mount: target "..target.." doesn't exist")
     end
 
     if not oldfs.isDir(target) then
@@ -113,11 +114,22 @@ local function fs_abs_open(path, mode)
         return false
     end
 
+    local source, target, tpath = '', '', ''
+
     for k,v in pairs(fs_mounts) do
-        if string.sub(path, 1, #k) == k then
-            local source, target = k, string.sub(path, #k + 1)
-            return fs_mounts[source]['obj']:open(source, target, mode)
+        if string.sub(path, 1, #k) == k and k ~= '/' then
+            source = v['source']
+            target = k
+
+            tpath = string.sub(path, #k + 1)
+            return fs_mounts[target]['obj']:open(source, tpath, mode)
         end
+    end
+
+    if fs_mounts[target] then
+        return fs_mounts[target]['obj']:open('/', target, mode)
+    else
+        return oldfs.open(path, mode)
     end
 
     return ferror("fs_abs_open: error opening(no fs detected)")
@@ -125,6 +137,37 @@ end
 
 local function fs_rev_open(path, mode)
     return fs_abs_open(fs.combine(os.getenv("CPTH"), path), mode)
+end
+
+local function fs_abs_list(path)
+    -- analyze path
+    if string.sub(path, 1, 1) ~= '/' then
+        return false
+    end
+
+    local source, target, tpath = '', '', ''
+
+    for k,v in pairs(fs_mounts) do
+        if string.sub(path, 1, #k) == k and k ~= '/' then
+            source = v['source']
+            target = k
+
+            tpath = string.sub(path, #k + 1)
+            return fs_mounts[target]['obj']:list(source, tpath)
+        end
+    end
+
+    if fs_mounts[target] then
+        return fs_mounts[target]['obj']:list('/', target)
+    else
+        return oldfs.list(path)
+    end
+
+    return ferror("fs_abs_list: error opening(no fs detected)")
+end
+
+local function fs_rev_list(path, mode)
+    return fs_abs_list(fs.combine(os.getenv("CPTH"), path), mode)
 end
 
 -- Helper functions(doesn't depend on any FS sorcery)
@@ -178,4 +221,5 @@ function libroutine()
 
     -- TODO: add enviroment variables so fs_rev_open works
     fs.open = fs_abs_open
+    fs.list = fs_abs_list
 end

@@ -17,6 +17,16 @@ function hash_sha256(data, rounds)
     return data
 end
 
+function hash_md5(data, rounds)
+    rounds = rounds or 1
+
+    for i=1,rounds do
+        sleep(0)
+        data = _mod_md5.md5_sumhexa(data)
+    end
+
+    return data
+end
 
 function libroutine()
     return true
