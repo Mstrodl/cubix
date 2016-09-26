@@ -8,6 +8,14 @@ RELOADABLE = false
 -- first of all, get the CC fs
 local oldfs = deepcopy(fs)
 
+-- implement inodes
+oldfs.inode = class(function(self, name, data)
+    self.name = ''
+    self.data = ''
+    self.owner = 0
+    self.perm = '777'
+end)
+
 local fs_drivers = {}
 
 -- Load filesystem drivers

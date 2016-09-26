@@ -37,27 +37,27 @@ function CiFS:make(source, options)
 end
 
 function CiFS:list(mountsource, path)
-    return self.oldfs.list(path, mode)
+    return self.oldfs.list(path)
 end
 
 function CiFS:exists(mountsource, path)
-    return self.oldfs.exists(path, mode)
+    return self.oldfs.exists(path)
 end
 
 function CiFS:isDir(mountsource, path)
-    return self.oldfs.isDir(path, mode)
+    return self.oldfs.isDir(path)
 end
 
 function CiFS:isReadOnly(mountsource, path)
-    return self.oldfs.isReadOnly(path, mode)
+    return self.oldfs.isReadOnly(path)
 end
 
 function CiFS:getSize(mountsource, path)
-    return self.oldfs.getSize(path, mode)
+    return self.oldfs.getSize(path)
 end
 
 function CiFS:makeDir(mountsource, path)
-    return self.oldfs.makeDir(path, mode)
+    return self.oldfs.makeDir(path)
 end
 
 function CiFS:delete(mountsource, path)
