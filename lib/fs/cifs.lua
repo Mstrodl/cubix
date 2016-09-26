@@ -1,25 +1,25 @@
 --[[
-    cbxfs.lua - Cubix File System driver
-        Adds funcionality to create and manage cbxfs devices
+    cifs.lua - Cubix Integration File System driver
+        Adds funcionality to create and manage cifs devices
 
-    cbxfs is a file systam using oldfs to manage files, so it doesn't have many
+    cifs is a file systam using oldfs to manage files, so it doesn't have many
     of the features I want it to have: permissions, timestamps, etc
 
-    cbxfs serves as the basic implementation of a file system driver to the VFS
+    cifs serves as the basic implementation of a file system driver Cubix's VFS
 ]]
 
 local mounts = {}
 
 -- file system manager
 CiFS = class(function(self, oldfs)
-    syslog.serlog(syslog.S_INFO, "cbxfs", "init")
+    syslog.serlog(syslog.S_INFO, "cifs", "init")
     self.name = ''
     self.oldfs = oldfs
 end)
 
 --(receives device name)
 function CiFS:mount(source, target)
-    self.name = fs_readall("/.cbxname", self.oldfs) or "cbxfs.generic"
+    self.name = fs_readall("/.cbxname", self.oldfs) or "cifs.generic"
     mounts[source] = self
     return true
 end

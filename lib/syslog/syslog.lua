@@ -102,7 +102,12 @@ syslog.S_OK = syslog.INFO
 syslog.S_ERR = syslog.ERROR
 syslog.S_INFO = syslog.DEBUG
 
-syslog.serlog = function(logtype, service_name, message)
+syslog.serlog = function(...)
+    local args = {...}
+
+    local logtype, service_name = args[1], args[2z]
+    local message = rprintf(unpack(args, 2))
+
     local serlog_type = ''
     local color = colors.orange
 
