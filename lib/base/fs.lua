@@ -20,7 +20,7 @@ local function load_filesystem(fsname, fs_class, driver_path)
 end
 
 local function load_all_filesystems()
-    load_filesystem("cbxfs", 'CubixFS', '/lib/fs/cbxfs.lua')
+    load_filesystem("cifs", 'CiFS', '/lib/fs/cifs.lua')
 end
 
 -- Helpers for permissions
@@ -51,7 +51,8 @@ local fs_mounts = {}
 function mount(source, target, fstype, mountflags, data)
     -- check if filesystem driver exist
     if not fs_drivers[fstype] then
-        return ferror("mount: "..source..": filesystem not loaded")
+        return ferror(rprintf("mount: %s: %s not loaded",
+            source, fstype))
     end
 
     if not fs_drivers[fstype]['driver'].user_mount(lib.pm.currentuid()) then
@@ -86,6 +87,8 @@ function mount(source, target, fstype, mountflags, data)
     }
     r = fs_object:mount(source, target)
     if r then
+        syslog.serlog(syslog.S_OK, "mount", rprintf("mounted %s to %s(%s)",
+            source, target, fstype))
         return true
     end
 
