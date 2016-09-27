@@ -51,7 +51,7 @@ function syslog_log(message)
     end]]
 
     print(message_to_write)
-    log_buffer = log_buffer .. ('['..c..'] '..message..'\n')
+    log_buffer = log_buffer .. (message_to_write..'\n')
 
     --os.sleep(math.random() / 16.)
     sleep(0)

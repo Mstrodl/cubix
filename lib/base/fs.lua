@@ -130,7 +130,7 @@ local function fs_abs_open(path, mode)
     if fs_mounts[target] then
         return fs_mounts[target]['obj']:open('/', target, tpath, mode)
     else
-        syslog.serlog(syslog.S_ERR, 'vfs.open', "using oldfs for opening")
+        --syslog.serlog(syslog.S_ERR, 'vfs.open', "using oldfs for opening")
         return oldfs.open(path, mode)
     end
 
@@ -162,7 +162,7 @@ local function fs_abs_list(path)
     if fs_mounts[target] then
         return fs_mounts[target]['obj']:list('/', target, tpath)
     else
-        syslog.serlog(syslog.S_ERR, 'vfs.list', "using oldfs")
+        --syslog.serlog(syslog.S_ERR, 'vfs.list', "using oldfs")
         return oldfs.list(path)
     end
 

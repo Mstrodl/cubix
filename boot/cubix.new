@@ -16,7 +16,7 @@ CUBIX_VERSION = VER_MAJOR..'.'..VER_MINOR..'.'..VER_REV..VER_FLAG
 
 STABLE = ((VER_MINOR % 2) == 0) and ((VER_REV % 2) == 0)
 
-if STABLE then
+if not STABLE then
     -- supress pullEvent
     local pullEvent = os.pullEvent
     os.pullEvent = os.pullEventRaw
@@ -45,7 +45,7 @@ for _,v in ipairs({...}) do
 end
 
 function halt()
-    while true do sleep(0) end
+    while true do sleep(1) end
 end
 
 function ferror(message)
