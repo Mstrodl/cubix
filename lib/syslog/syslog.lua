@@ -34,8 +34,14 @@ function syslog_log(message)
     end
     local c = pad(_c, p)
 
+    local message_to_write = string.format('[%s] %s', c, message)
+
     local a = fs.open("/var/log/syslog", 'a')
-    a.write('['..c..'] '..message..'\n')
+    if not a then
+        print("syslog: warning! error opening syslog file")
+        return false
+    end
+    a.write(string.format("%s\n", message_to_write))
     a.close()
 
     --[[if syslog_boot_flag then
@@ -44,7 +50,7 @@ function syslog_log(message)
         a.close()
     end]]
 
-    printf('[%s] %s', c, message)
+    print(message_to_write)
     log_buffer = log_buffer .. ('['..c..'] '..message..'\n')
 
     --os.sleep(math.random() / 16.)

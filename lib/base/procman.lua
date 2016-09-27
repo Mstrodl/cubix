@@ -197,7 +197,8 @@ Process = function(file)
         uid = -1,
         lineargs = '',
         tty = '',
-        thread = nil
+        thread = nil,
+        env = {},
     }
     pm_processes[pid_last] = p
 
@@ -213,6 +214,9 @@ local function pr_run(process, args, pipe, env)
     if not env then
         env = {}
     end
+
+    --process.env = env
+    --process.env['__CWD'] = getenv("__CWD") -- latest __CWD is new __CWD
 
     process.uid = 0
     -- lib.pam.default()
@@ -323,6 +327,13 @@ end
 
 function execvp(path, args, env)
     --TODO: $PATH variable
+end
+
+function getenv(name)
+    if pm_processes[running_pid].env[name] then
+        return pm_processes[running_pid].env[name]
+    end
+    return nil
 end
 
 function currentuid()

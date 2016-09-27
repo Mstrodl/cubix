@@ -110,6 +110,7 @@ end
 
 local function fs_abs_open(path, mode)
     -- analyze path
+    print(path, mode)
     if string.sub(path, 1, 1) ~= '/' then
         return false
     end
@@ -137,7 +138,7 @@ local function fs_abs_open(path, mode)
 end
 
 local function fs_rev_open(path, mode)
-    return fs_abs_open(fs.combine(os.getenv("CPTH"), path), mode)
+    return fs_abs_open(fs.combine(lib.pm.getenv("__CWD"), path), mode)
 end
 
 local function fs_abs_list(path)
@@ -169,7 +170,7 @@ local function fs_abs_list(path)
 end
 
 local function fs_rev_list(path, mode)
-    return fs_abs_list(fs.combine(os.getenv("CPTH"), path), mode)
+    return fs_abs_list(fs.combine(lib.pm.getenv("__CWD"), path), mode)
 end
 
 -- Helper functions(doesn't depend on any FS sorcery)
