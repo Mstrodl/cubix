@@ -341,12 +341,14 @@ function fork()
     child.thread = deepcopy(tocopy)
 
     parent.env['__FORK'] = child.pid
-    child.env['__FORK'] = 0
+    child.env['fork'] = function()
+        print('child pid', child.pid)
+        return child.pid
+    end
 
-    print('c.t', child.thread)
     table.insert(thread_starting, child.thread)
 
-    return _ENV['__FORK']
+    return 0
 end
 
 function execg(process, args, env, pipe)
