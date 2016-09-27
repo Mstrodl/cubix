@@ -4,12 +4,12 @@
 function main(args)
     local user = args[1]
     if user == nil then user = "^" end
-    local PC_HNAME = gethostname()
+    local HOSTNAME = gethostname()
     local try_user = ""
     local try_pwd = ""
 
     if user == "^" then
-        write(PC_HNAME.." login: ")
+        write(HOSTNAME.." login: ")
         try_user = read()
         write("Password: ")
         try_pwd = read("")
@@ -19,10 +19,10 @@ function main(args)
         try_pwd = read("")
     end
 
-    local ok, wd = os.lib.login.login(try_user, try_pwd)
+    local ok, wd = lib.auth.plain_login(try_user, try_pwd)
     if ok then
         sleep(0)
-        
+
         local k = fs.open("/tmp/current_user", 'w')
         if not k then os.debug.kpanic("cannot open /tmp/current_user") end
         k.write(try_user)

@@ -295,22 +295,58 @@ local function pr_run(process, args, pipe, env)
     return
 end
 
+local function _kill(process)
+    for k,child in pairs(process.childs) do
+        return _kill(process)
+    end
+    pm_processes[process.pid] = nil
+end
+
 --[[
-    Implement libproc functions(fork, execp etc..)
+    Implement libproc functions(fork, execv, etc..)
 ]]
 
-function fork(f)
+function kill(pid_to_kil)
+    local whos_killing = pm_processes[running_pid]
+    local to_be_killed = pm_processes[pid_to_kill]
+
+    if to_be_killed.uid <= whos_killing.pid then
+        return _kill(to_be_killed)
+    else
+        return ferror("kill: Access Denied")
+    end
+end
+
+function fork()
     --[[
-        fork(
-            f : str
-        ) : Process
+        fork() : int
 
         Creates a Process based on the filepath to the program given
     ]]
-    local p = Process(f)
-    p.parent = pm_processes[running_pid]
-    --set_parent(p, processes[fpid])
-    return p
+    local parent = pm_processes[running_pid]
+    local child = Process(parent.file)
+
+    child.user = parent.user
+    child.uid = parent.uid
+    child.lineargs = parent.lineargs
+    child.tty = parent.tty
+    child.parent = parent
+    --child.thread = deepcopy(parent.thread)
+    local tocopy = {}
+    if thread_starting[thread_running_tid] then
+        tocopy = thread_starting[thread_running_tid]
+    else
+        tocopy = thread_normal[thread_running_tid]
+    end
+    child.thread = deepcopy(tocopy)
+
+    parent.env['__FORK'] = child.pid
+    child.env['__FORK'] = 0
+
+    print('c.t', child.thread)
+    table.insert(thread_starting, child.thread)
+
+    return _ENV['__FORK']
 end
 
 function execg(process, args, env, pipe)
@@ -318,11 +354,11 @@ function execg(process, args, env, pipe)
 end
 
 function execv(path, args)
-    return pr_run(fork(path), args, nil, nil)
+    return pr_run(Process(path), args, nil, nil)
 end
 
 function execve(path, args, env)
-    return pr_run(fork(path), args, env, nil)
+    return pr_run(Process(path), args, env, nil)
 end
 
 function execvp(path, args, env)
@@ -343,6 +379,7 @@ end
 
 function libroutine()
     _G['fork'] = fork
+    _G['kill'] = kill
     _G['execv'] = execv
     _G['threading'] = threading
 end

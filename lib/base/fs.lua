@@ -110,7 +110,6 @@ end
 
 local function fs_abs_open(path, mode)
     -- analyze path
-    print(path, mode)
     if string.sub(path, 1, 1) ~= '/' then
         return false
     end

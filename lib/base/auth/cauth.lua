@@ -33,9 +33,12 @@ function authenticate(hp, flags)
 end
 
 function plain_login(hp, password)
-    if not lib.hash then
-        return ferror("plain_login: lib.hash not loaded")
+    if not lib.crypto then
+        return ferror("plain_login: lib.crypto not loaded")
     end
+
+    --TODO: the rest(/etc/shadow etc)
+    --local p = proof_work(password)
 
     return true
 end

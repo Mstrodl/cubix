@@ -4,7 +4,7 @@
 local RUNLEVELFUNC = {}
 
 function run_scripts(runlevel)
-    local runlevel_folder = "/etc/rc"..tostring(runlevel)..'.d/'
+    local runlevel_folder = rprintf("/etc/rc%d.d", runlevel)
     for k,v in pairs(fs.list(runlevel_folder)) do
         shell.run(fs.combine(runlevel_folder,v))
     end
@@ -26,31 +26,30 @@ end
 
 function runlevel_2()
     --multiuser(all ttys running login) withtout network service
-    os.internals.loadmodule("multiuser", "/lib/multiuser/multiuser.lua")
+    cubix.load("multiuser", "/lib/multiuser/multiuser.lua")
 end
 
 function runlevel_3()
     --multiuser and network service
-    os.internals.loadmodule("network", "/lib/net/network.lua")
-    os.internals.loadmodule("multiuser", "/lib/multiuser/multiuser.lua")
+    cubix.load("network", "/lib/net/network.lua")
+    cubix.load("multiuser", "/lib/multiuser/multiuser.lua")
 end
 
 function runlevel_5()
     --start LuaX, multiuser and network support
-
-    os.internals.loadmodule("network", "/lib/net/network.lua")
-    os.internals.loadmodule("multiuser", "/lib/multiuser/multiuser.lua")
-    os.runfile("/bin/lx", {'start'})
+    cubix.load("network", "/lib/net/network.lua")
+    cubix.load("multiuser", "/lib/multiuser/multiuser.lua")
+    execv("/bin/lx", {'start'})
 end
 
 function runlevel_6()
     --reboot
     if permission.grantAccess(fs.perms.ROOT) then
-        os.debug.debug_write("[init] rebooting with root permission")
-        os.runfile("/sbin/reboot")
+        syslog.serlog_info("init", "rebooting with root permission")
+        execv("/sbin/reboot", {})
     else
         --rebooting without permissions
-        os.debug.debug_write("[init] rebooting withOUT root permission")
+        syslog.serlog_info("init", "rebooting without root permission")
         os.reboot()
     end
     permission.default()
@@ -72,7 +71,7 @@ function main(args)
             local r = string.split(fs_readall("/etc/inittab"), ':')[2]
             runlevel = tonumber(r)
         else
-            os.debug.kpanic("[init] /etc/inittab not found")
+            panic("[init] /etc/inittab not found")
             return 1
         end
     end
