@@ -8,12 +8,23 @@ RELOADABLE = false
 -- first of all, get the CC fs
 local oldfs = deepcopy(fs)
 
+-- initialize inode table
+local inodes = {}
+
 -- implement inodes
-oldfs.inode = class(function(self, name, data)
+oldfs.inode = class(function(self, init_inode)
     self.name = ''
     self.data = ''
     self.owner = 0
-    self.perm = '777'
+    self.group = 0
+    self.perm = '755'
+
+    if init_inode then
+        self.path = init_inode.path
+        self.perm = init_inode.perm
+        self.owner = init_inode.uid
+        self.group = init_inode.gid
+    end
 end)
 
 local fs_drivers = {}
@@ -29,6 +40,7 @@ end
 
 local function load_all_filesystems()
     load_filesystem("cifs", 'CiFS', '/lib/fs/cifs.lua')
+    load_filesystem("cbxfs", 'CubixFS', '/lib/fs/cbxfs.lua')
     load_filesystem("tmpfs", 'TmpFS', '/lib/fs/tmpfs.lua')
 end
 
@@ -55,6 +67,67 @@ function perm_to_str(perm_num)
     return printf("%s%s%s", unpack(k, 1))
 end
 
+local inodes = {}
+
+inodes.get_inode = function(inode_path)
+    if inode_path == '/' then
+        return oldfs.inode({
+            path = '/',
+            perm = '755',
+            uid = 0,
+            gid = 0
+        })
+    end
+
+    inode = inodes[inode_path]
+    if inode then
+        return deepcopy(inode)
+    end
+
+    return oldfs.inode({
+        perm = '755', uid = lib.pm.currentuid(), gid = 0
+    })
+end
+
+inodes.verify_perm = function(inode, perm)
+    return true -- TODO
+end
+
+inodes.set_inode = function(old_inode, new_inode)
+    if old_inode.path == '/' then
+        inodes['/'] = {path = '/', owner = 0, perms = '755', gid = 0}
+        return true
+    end
+
+    if old_inode.path ~= new_inode.path then
+        return ferror("inodes.set_inode: Different inodes being modified")
+    end
+
+    if not inodes[old_inode.path] then
+        --create inode
+        if inodes.verify_perm(old_inode, 'w') then
+            inodes[old_inode.path] = deepcopy(inodes.get_inode(old_inode.path))
+        else
+            ferror("inodes.set_inode [verify_perm]: Access Denied")
+            return false
+        end
+    end
+
+    if inodes[old_inode.path] == owner then
+        --for k,v in pairs(new_inode) do
+        --    old_inode[k] = v
+        --end
+
+        inodes[new_inode.path] = new_inode
+        return true
+    else
+        ferror("inodes.set_inode [owner]: Access Denied")
+        return false
+    end
+end
+
+oldfs.inodes = inodes
+
 local fs_mounts = {}
 
 function mount(source, target, fstype, mountflags, data)
@@ -72,11 +145,11 @@ function mount(source, target, fstype, mountflags, data)
         return ferror("mount: already mounted")
     end
 
-    if not oldfs.exists(target) then
+    if not fs.exists(target) then
         return ferror("mount: target "..target.." doesn't exist")
     end
 
-    if not oldfs.isDir(target) then
+    if not fs.isDir(target) then
         return ferror("mount: target is not a folder")
     end
 
@@ -289,10 +362,10 @@ local function run_fstab(fstab_path)
 end
 
 function libroutine()
-    load_all_filesystems()
-
     _G['fs_readall'] = fs_readall
     _G['fs_writedata'] = fs_writedata
+
+    load_all_filesystems()
 
     -- mount /proc, /dev and /dev/shm
     mount('procfs', '/proc', 'procfs')
