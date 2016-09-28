@@ -340,7 +340,15 @@ function kill(pid_to_kil)
     local whos_killing = pm_processes[running_pid]
     local to_be_killed = pm_processes[pid_to_kill]
 
-    if to_be_killed.uid <= whos_killing.pid then
+    if not whos_killing then
+        return ferror("kill: whos_killing == nil")
+    end
+
+    if not to_be_killed then
+        return ferror("kill: to_be_killed == nil")
+    end
+
+    if to_be_killed.uid <= whos_killing.uid then
         return _kill(to_be_killed)
     else
         return ferror("kill: Access Denied")
@@ -381,6 +389,10 @@ end
 function currentuid()
     if running_pid == -1 then return 0 end
     return pm_processes[running_pid].uid
+end
+
+function currentpid()
+    return running_pid
 end
 
 function libroutine()
