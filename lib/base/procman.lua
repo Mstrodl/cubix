@@ -302,6 +302,30 @@ local function _kill(process)
     pm_processes[process.pid] = nil
 end
 
+local function set_child(parent, child)
+    -- set child as parent of parent
+    table.insert(parent.childs, child)
+
+    -- set parent as parent of child
+    print("set parent")
+    child.parent = parent
+end
+
+function new_child(filepath)
+    --[[
+        new_child(
+            filepath : string
+        ) : Process
+
+        Creates a Process based on the filepath to the program given
+    ]]
+    local child = Process(filepath)
+    if running_pid ~= -1 then
+        set_child(pm_processes[running_pid], child)
+    end
+    return child
+end
+
 --[[
     Implement libproc functions(fork, execv, etc..)
 ]]
@@ -317,50 +341,16 @@ function kill(pid_to_kil)
     end
 end
 
-function fork()
-    --[[
-        fork() : int
-
-        Creates a Process based on the filepath to the program given
-    ]]
-    local parent = pm_processes[running_pid]
-    local child = Process(parent.file)
-
-    child.user = parent.user
-    child.uid = parent.uid
-    child.lineargs = parent.lineargs
-    child.tty = parent.tty
-    child.parent = parent
-    --child.thread = deepcopy(parent.thread)
-    local tocopy = {}
-    if thread_starting[thread_running_tid] then
-        tocopy = thread_starting[thread_running_tid]
-    else
-        tocopy = thread_normal[thread_running_tid]
-    end
-    child.thread = deepcopy(tocopy)
-
-    parent.env['__FORK'] = child.pid
-    child.env['fork'] = function()
-        print('child pid', child.pid)
-        return child.pid
-    end
-
-    table.insert(thread_starting, child.thread)
-
-    return 0
-end
-
 function execg(process, args, env, pipe)
     return pr_run(process, args, pipe, env)
 end
 
 function execv(path, args)
-    return pr_run(Process(path), args, nil, nil)
+    return pr_run(new_child(path), args, nil, nil)
 end
 
 function execve(path, args, env)
-    return pr_run(Process(path), args, env, nil)
+    return pr_run(new_child(path), args, env, nil)
 end
 
 function execvp(path, args, env)
@@ -380,7 +370,7 @@ function currentuid()
 end
 
 function libroutine()
-    _G['fork'] = fork
+    -- _G['fork'] = fork
     _G['kill'] = kill
     _G['execv'] = execv
     _G['threading'] = threading
