@@ -106,6 +106,44 @@ function mount(source, target, fstype, mountflags, data)
     return ferror("mount: unable to mount")
 end
 
+local function umount_source(source)
+    syslog.serlog(syslog.S_INFO, "umount_source", "umounting %s", source)
+    for k,v in pairs(fs_mounts) do
+        if v['source'] == source then
+            local ok, err = v['obj']:umount(source, k)
+            if ok then
+                fs_mounts[target] = nil
+                return true
+            end
+
+            return false, err
+        end
+    end
+    return false
+end
+
+local function umount_target(target)
+    syslog.serlog(syslog.S_INFO, "umount_target", "umounting %s", target)
+    local mountobj = fs_mounts[target]
+    if mountobj then
+        local ok, err = mountobj['obj']:umount(mountobj['source'], target)
+        if ok then
+            fs_mounts[target] = nil
+            return true
+        end
+
+        return false, err
+    end
+    return false
+end
+
+function umount(source, target)
+    if not source then
+        return umount_target(target)
+    end
+    return umount_source(source)
+end
+
 --TODO: implementation of VFS, the virtual file system
 
 fs.combine = function(a, b)
@@ -252,12 +290,23 @@ end
 
 function libroutine()
     load_all_filesystems()
+
     _G['fs_readall'] = fs_readall
     _G['fs_writedata'] = fs_writedata
+
+    -- mount /proc, /dev and /dev/shm
     mount('procfs', '/proc', 'procfs')
     mount('udevfs', '/dev', 'devfs')
     mount("tmpfs", "/dev/shm", 'tmpfs')
+
+    -- mount devices in /etc/fstab
     run_fstab("/etc/fstab")
+
+    if umount(nil, '/dev/shm') then
+        mount("tmpfs", "/dev/shm", 'tmpfs')
+    else
+        print("[umount_test] error umounting")
+    end
 
     -- TODO: add enviroment variables so fs_rev_open works
     fs.open = fs_rev_open
