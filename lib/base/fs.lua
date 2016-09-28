@@ -262,4 +262,10 @@ function libroutine()
     -- TODO: add enviroment variables so fs_rev_open works
     fs.open = fs_rev_open
     fs.list = fs_rev_list
+    fs.delete = fs_rev_delete
+    fs.makeDir = fs_rev_makedir
+
+    fs.getSize = fs_rev_getsize
+    fs.exists = fs_rev_exists
+    fs.isDir = fs_rev_isDir
 end
