@@ -108,6 +108,53 @@ end
 
 --TODO: implementation of VFS, the virtual file system
 
+fs.combine = function(a, b)
+    if string.sub(b, 1, 1) == '/' and a == '/' then
+        return b
+    end
+    return a..b
+end
+
+local function fs_abs_wrap_1a(method)
+    local fs_abs_any = function(path)
+        if string.sub(path, 1, 1) ~= '/' then
+            return false
+        end
+
+        local source, target = '', ''
+
+        for k,v in pairs(fs_mounts) do
+            if string.sub(path, 1, #k) == k and k ~= '/' then
+                source = v['source']
+                target = k
+
+                tpath = string.sub(path, #k + 1)
+                obj = fs_mounts[target]['obj']
+                return obj[method](obj, source, target, tpath, mode)
+            end
+        end
+
+        if fs_drivers['cifs'] then
+            local obj = fs_mounts['/']['obj']
+            return obj[method](obj, '/', target, path, mode)
+        else
+            print('[vfs.'..method..'] using oldfs')
+            return oldfs[method](path, mode)
+        end
+
+        return ferror("vfs."..method..": no fs detected")
+    end
+
+    return fs_abs_any
+end
+
+local function fs_rev_wrap_1a(abs_func)
+    local fs_rev_any = function(path)
+        return abs_func(fs.combine(lib.pm.getenv("__CWD"), path))
+    end
+    return fs_rev_any
+end
+
 local function fs_abs_open(path, mode)
     -- analyze path
     if string.sub(path, 1, 1) ~= '/' then
@@ -129,7 +176,7 @@ local function fs_abs_open(path, mode)
     if fs_drivers['cifs'] then
         return fs_mounts['/']['obj']:open('/', target, path, mode)
     else
-        --syslog.serlog(syslog.S_ERR, 'vfs.open', "using oldfs for opening")
+        print('[vfs.open] using oldfs')
         return oldfs.open(path, mode)
     end
 
@@ -137,40 +184,28 @@ local function fs_abs_open(path, mode)
 end
 
 local function fs_rev_open(path, mode)
-    return fs_abs_open(fs.combine(lib.pm.getenv("__CWD"), path), mode)
+    local combined = fs.combine(lib.pm.getenv("__CWD"), path)
+    return fs_abs_open(combined, mode)
 end
 
-local function fs_abs_list(path)
-    -- analyze path
-    if string.sub(path, 1, 1) ~= '/' then
-        return false
-    end
+local fs_abs_list = fs_abs_wrap_1a('list')
+local fs_rev_list = fs_rev_wrap_1a(fs_abs_list)
 
-    local source, target = '', ''
+local fs_abs_getsize = fs_abs_wrap_1a('getSize')
+local fs_rev_getsize = fs_rev_wrap_1a(fs_abs_getsize)
 
-    for k,v in pairs(fs_mounts) do
-        if string.sub(path, 1, #k) == k and k ~= '/' then
-            source = v['source']
-            target = k
+local fs_abs_exists = fs_abs_wrap_1a('exists')
+local fs_rev_exists = fs_rev_wrap_1a(fs_abs_exists)
 
-            tpath = string.sub(path, #k + 1)
-            return fs_mounts[target]['obj']:list(source, target, tpath)
-        end
-    end
+local fs_abs_delete = fs_abs_wrap_1a('delete')
+local fs_rev_delete = fs_rev_wrap_1a(fs_abs_delete)
 
-    if fs_drivers['cifs'] then
-        return fs_mounts['/']['obj']:open('/', target, path)
-    else
-        --syslog.serlog(syslog.S_ERR, 'vfs.list', "using oldfs")
-        return oldfs.list(path)
-    end
+local fs_abs_makedir = fs_abs_wrap_1a('makeDir')
+local fs_rev_makedir = fs_rev_wrap_1a(fs_abs_makedir)
 
-    return ferror("fs_abs_list: error opening(no fs detected)")
-end
+local fs_abs_isdir = fs_abs_wrap_1a('isDir')
+local fs_rev_isdir = fs_rev_wrap_1a(fs_abs_isdir)
 
-local function fs_rev_list(path, mode)
-    return fs_abs_list(fs.combine(lib.pm.getenv("__CWD"), path), mode)
-end
 
 -- Helper functions(doesn't depend on any FS sorcery)
 function fs_readall(fpath, external_fs)
@@ -219,10 +254,12 @@ function libroutine()
     load_all_filesystems()
     _G['fs_readall'] = fs_readall
     _G['fs_writedata'] = fs_writedata
+    mount('procfs', '/proc', 'procfs')
+    mount('udevfs', '/dev', 'devfs')
     mount("tmpfs", "/dev/shm", 'tmpfs')
     run_fstab("/etc/fstab")
 
     -- TODO: add enviroment variables so fs_rev_open works
-    fs.open = fs_abs_open
-    fs.list = fs_abs_list
+    fs.open = fs_rev_open
+    fs.list = fs_rev_list
 end

@@ -364,6 +364,14 @@ function execvp(path, args, env)
 end
 
 function getenv(name)
+    if running_pid == -1 and name == '__CWD' then
+        return '/'
+    end
+
+    if running_pid == -1 then
+        return nil
+    end
+
     if pm_processes[running_pid].env[name] then
         return pm_processes[running_pid].env[name]
     end
