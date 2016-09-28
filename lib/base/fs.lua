@@ -114,7 +114,7 @@ local function fs_abs_open(path, mode)
         return false
     end
 
-    local source, target, tpath = '', '', ''
+    local source, target = '', ''
 
     for k,v in pairs(fs_mounts) do
         if string.sub(path, 1, #k) == k and k ~= '/' then
@@ -126,8 +126,8 @@ local function fs_abs_open(path, mode)
         end
     end
 
-    if fs_mounts[target] then
-        return fs_mounts[target]['obj']:open('/', target, tpath, mode)
+    if fs_drivers['cifs'] then
+        return fs_mounts['/']['obj']:open('/', target, path, mode)
     else
         --syslog.serlog(syslog.S_ERR, 'vfs.open', "using oldfs for opening")
         return oldfs.open(path, mode)
@@ -146,7 +146,7 @@ local function fs_abs_list(path)
         return false
     end
 
-    local source, target, tpath = '', '', ''
+    local source, target = '', ''
 
     for k,v in pairs(fs_mounts) do
         if string.sub(path, 1, #k) == k and k ~= '/' then
@@ -158,8 +158,8 @@ local function fs_abs_list(path)
         end
     end
 
-    if fs_mounts[target] then
-        return fs_mounts[target]['obj']:list('/', target, tpath)
+    if fs_drivers['cifs'] then
+        return fs_mounts['/']['obj']:open('/', target, path)
     else
         --syslog.serlog(syslog.S_ERR, 'vfs.list', "using oldfs")
         return oldfs.list(path)

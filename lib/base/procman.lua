@@ -307,8 +307,9 @@ local function set_child(parent, child)
     table.insert(parent.childs, child)
 
     -- set parent as parent of child
-    print("set parent")
     child.parent = parent
+
+    child.env['__CWD'] = parent.env['__CWD']
 end
 
 function new_child(filepath)
@@ -320,9 +321,14 @@ function new_child(filepath)
         Creates a Process based on the filepath to the program given
     ]]
     local child = Process(filepath)
+
     if running_pid ~= -1 then
         set_child(pm_processes[running_pid], child)
+    else
+        -- init process, set __CWD to /
+        child.env['__CWD'] = '/'
     end
+
     return child
 end
 
