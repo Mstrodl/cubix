@@ -136,6 +136,26 @@ syslog.serlog_info = function(sname, msg)
     return syslog.serlog(syslog.S_INFO, sname, msg)
 end
 
+syslog.panic = function(...)
+    if lib.pm.currentuid() ~= 0 then
+        return ferror("Access Denied")
+    end
+
+    local args = {...}
+    local service_name = args[1]
+    local message = rprintf(unpack(args, 2))
+
+    printf("=== SYSLOG PANIC ===")
+    printf("ERR: [%s] %s", service_name, message)
+
+    write("MOD: ")
+    for k,v in pairs(lib) do
+        if type(v) == 'table' then write(k..' ') end
+    end
+
+    while true do sleep(1000) end -- hlt
+end
+
 function syskpanic(msg)
     local cxt = lx.get_screen()
     local x, y = cxt:draw_rectangle(5, 5, 20, 5, colors.red)

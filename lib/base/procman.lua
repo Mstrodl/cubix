@@ -400,10 +400,8 @@ end
 
 function getenv(name)
     if running_pid == -1 and name == '__CWD' then
-        return '/'
-    end
-
-    if running_pid == -1 then
+        -- this only happens at (very) early boot
+        if name == '__CWD' then return '/' end
         return nil
     end
 

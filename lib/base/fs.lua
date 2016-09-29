@@ -32,9 +32,15 @@ local fs_drivers = {}
 -- Load filesystem drivers
 local function load_filesystem(fsname, fs_class, driver_path)
     syslog.serlog(syslog.S_INFO, 'fs', 'load_fs: '..fsname)
+    fs_driver = lib.get(driver_path)
+
+    if not fs_driver then
+        syslog.panic("fs", "no driver for "..fsname)
+    end
+
     fs_drivers[fsname] = {
         ["classname"] = fs_class,
-        ["driver"] = lib.get(driver_path)
+        ["driver"] = driver
     }
 end
 
