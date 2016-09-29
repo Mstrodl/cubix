@@ -88,6 +88,7 @@ syslog.log = function(msg, level, screen_flag, color)
     return true
 end
 
+--[[
 syslog.debug_write = function(msg, screen_flag, error_flag)
     local level = syslog.DEBUG
     if error_flag then
@@ -95,13 +96,10 @@ syslog.debug_write = function(msg, screen_flag, error_flag)
     end
     syslog.log(msg, level, screen_flag)
 end
+]]
 
-syslog.get_log = function()
+syslog.get_buffer = function()
     return log_buffer
-end
-
-syslog.testcase = function(message, correct)
-    syslog.log(message, syslog.INFO, nil, colors.orange)
 end
 
 syslog.S_OK = syslog.INFO
@@ -154,14 +152,6 @@ syslog.panic = function(...)
     end
 
     while true do sleep(1000) end -- hlt
-end
-
-function syskpanic(msg)
-    local cxt = lx.get_screen()
-    local x, y = cxt:draw_rectangle(5, 5, 20, 5, colors.red)
-    cxt:draw_text(x+1, y+1, 'kpanic')
-    cxt:draw_text(x+1, y+2, msg)
-    khalt()
 end
 
 function libroutine()
