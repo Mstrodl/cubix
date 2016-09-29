@@ -395,7 +395,8 @@ function execve(path, args, env)
 end
 
 function execvp(path, args, env)
-    --TODO: $PATH variable
+    local p = new_child(fs.combine(getenv("__CWD"), path))
+    return pr_run(p, args, env, nil)
 end
 
 function getenv(name)
