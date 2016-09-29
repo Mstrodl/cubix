@@ -6,6 +6,9 @@
 
 RELOADABLE = false
 
+local session = lib.get("/lib/base/auth/sessions.lua")
+local Session = libsession.Session
+
 local SHA256_ROUNDS = 7
 
 function proof_work(data)
@@ -34,7 +37,7 @@ function authenticate(hp, flags)
     end
 end
 
-function plain_login(hp, wanting_user, password)
+local function plain_login(hp, wanting_user, password)
     if not lib.crypto then
         return ferror("plain_login: lib.crypto not loaded")
     end
@@ -54,6 +57,13 @@ function plain_login(hp, wanting_user, password)
     end
 
     return false
+end
+
+local function login(hp, user_to_login, password, uses)
+    if plain_login(hp, user_to_login, password) then
+        local s = Session()
+        return s
+    end
 end
 
 function grant(perm)
