@@ -3,10 +3,8 @@
 ]]
 
 Session = class(function(self)
-    self.user_id = ''
+    self.uid = ''
     self.username = ''
-    self.priv = ''
-    self.name = ''
     self.hashed_password = ''
     self.login_string = ''
 end)
@@ -24,7 +22,7 @@ function Session:init(init_table)
 end
 
 function Session:check()
-    if not self.user_id then
+    if not self.uid then
         return false
     end
 

@@ -52,7 +52,10 @@ local function plain_login(hp, wanting_user, password)
         if spl[1] == wanting_user then
             -- hash and compare
             local proof = proof_work(password .. salt)
-            return proof == correct_hash
+            if proof == correct_hash then
+                return correct_hash
+            end
+            return false
         end
     end
 
@@ -60,8 +63,13 @@ local function plain_login(hp, wanting_user, password)
 end
 
 local function login(hp, user_to_login, password, uses)
-    if plain_login(hp, user_to_login, password) then
-        local s = Session()
+    local hpwd = plain_login(hp, user_to_login, password)
+    if hpwd then
+        local s = Session({
+            ['uid'] = hp.uid,
+            ['username'] = user_to_login,
+            ['hashed_password'] = hpwd,
+        })
         return s
     end
 end
