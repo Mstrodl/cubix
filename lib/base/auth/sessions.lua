@@ -13,7 +13,7 @@ end)
 
 function Session:init(init_table)
     for k,v in pairs(init_table) do
-        if k in self then
+        if self[k] then
             self[k] = v
         end
     end
