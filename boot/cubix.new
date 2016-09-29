@@ -63,6 +63,10 @@ _G['cubix'] = cubix
 local function load_file(pth)
     -- just some tweaks to os.loadAPI
     local n = fs.getName(pth)
+    if not fs.exists(pth) then
+        ferror("load_file: "..pth.." doesn't exist")
+        return false
+    end
 
     local tEnv = {}
     setmetatable( tEnv, { __index = _G } )
@@ -191,14 +195,18 @@ cubix.boot = function ()
 
     sysload("acpi", "/lib/acpi.lua")
 
+    -- having a working system
     sysload("pm", "/lib/base/procman.lua")
     sysload("libev", "/lib/modules/libev.lua")
     sysload("udev", "/lib/base/dman.lua")
     sysload("time", "/lib/base/time.lua")
+
+    -- load crypto and hash because some drivers may need them
     sysload("crypto", "/lib/crypto/crypto.lua")
-    -- sysload("rand", "/lib/crypto/rand/rand.lua")
-    -- sysload("hash", "/lib/auth/hash.lua")
+    sysload("rand", "/lib/crypto/rand/init.lua")
     sysload("fs", "/lib/base/fs.lua")
+
+    -- load most of the things for userspace
     -- sysload("tty", "/lib/base/tty.lua")
     sysload("auth", "/lib/base/auth/cauth.lua")
     -- sysload("io", "/lib/base/io.lua")

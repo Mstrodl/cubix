@@ -21,7 +21,7 @@ local function isaac()
     cc = cc + 1
     bb = bb + cc
 
-    os.debug.debug_write("isaac: loop cache", false)
+    syslog.log("isaac: loop cache", false)
     for i=0,255 do
 
         x = mm[i]
@@ -45,7 +45,7 @@ local function isaac()
         randrsl[i] = bb
     end
 
-    os.debug.debug_write("isaac: reset", false)
+    syslog.log("isaac: reset", false)
     randcnt = 0
 end
 
@@ -129,12 +129,12 @@ local function randinit(flag)
     0x9e3779b9, 0x9e3779b9, 0x9e3779b9,
     0x9e3779b9, 0x9e3779b9, 0x9e3779b9 -- golden ratio
 
-    os.debug.debug_write("randinit: scramble", false)
+    syslog.log("randinit: scramble")
     for i=0,3 do -- scramble it
         a,b,c,d,e,f,g,h = mix(a,b,c,d,e,f,g,h)
     end
 
-    os.debug.debug_write("randinit: filling", false)
+    syslog.log("randinit: filling")
     for i=0,255,8 do -- fill in mm with messy stuff
         if flag then -- use all the information in the seed
             a = a + randrsl[i  ];
@@ -199,20 +199,17 @@ local function randinit(flag)
         end
     end
 
-    os.debug.debug_write("randinit: reset", false)
+    syslog.log("randinit: reset", false)
 
     isaac()
-    randcnt=0
+    randcnt = 0
 end
 
 function isaac_seed(seed, flag)
     print("isaac_seed "..tostring(seed))
-    sleep(.5)
-    if isaac_seeded or (not isaac_seeded_entpool) then
-        if (not permission.grantAccess(fs.perms.SYS)) then
-            ferror("isaac_seed: not enough permission")
-            return false
-        end
+    sleep(.2)
+    if lib.pm.currentuid() ~= 0 then
+        return ferror("Access Denied")
     end
 
     isaac_seeded = true
@@ -231,13 +228,13 @@ function isaac_seed(seed, flag)
         end
     end
 
-    os.debug.debug_write("isaac_seed: initializing", false)
+    syslog.log("isaac_seed: initializing", false)
 
     randinit(flag)
     isaac()
     isaac()
 
-    os.debug.debug_write("isaac_seed: seeded", false)
+    syslog.log("isaac_seed: seeded", false)
 end
 
 function isaac_seed_mt()
@@ -276,29 +273,4 @@ function isaac_export_seed()
 end
 
 function libroutine()
-    isaac_seed(os.generateSalt(64))
-
-    _G['rand'] = function(flag) -- overwrite Mersenne Twister syscalls
-        if flag then
-            return isaac_rand()
-        else
-            --convert from bigint to string to number
-            return tonumber(tostring(isaac_rand()))
-        end
-    end
-
-    _G['randrange'] = function(a, b)
-        --generate from a to b inclusive
-        local v = rand()
-        return (v % (b+1)) + a
-    end
-
-    _G['getrandombyte'] = function(flag)
-        local val = randrange(0, 256 - 1)
-        if flag then
-            return tonumber(tostring(val))
-        else
-            return val
-        end
-    end
 end
