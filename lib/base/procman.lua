@@ -92,6 +92,19 @@ local function thread_tick(t, evt, ...)
     t.dead = (coroutine.status(t.coro) == "dead")
 end
 
+local function thread_kill_thread(t)
+    if thread_starting[t.tid] then
+        thread_starting[t.tid] = nil
+    end
+
+    if thread_normal[t.tid] then
+        thread_normal[t.tid] = nil
+    end
+
+    t.coro = nil
+    t.dead = true
+end
+
 local function thread_tick_all()
     --[[
     thread_tick_all()
@@ -219,6 +232,7 @@ local function pr_run(process, args, pipe, env)
     --process.env['__CWD'] = getenv("__CWD") -- latest __CWD is new __CWD
 
     process.uid = 0
+    process.runflag = true
     -- lib.pam.default()
 
     --[[local cur_user = lib.pam.current_user()
@@ -277,13 +291,17 @@ local function pr_run(process, args, pipe, env)
             end
         end
 
-        os.run(env, process.file, unpack(args, 1))
+        while process.runflag do
+            return os.run(env, process.file, unpack(args, 1))
+        end
     end
 
 
     running_pid = process.pid
     if not use_thread then
-        handler()
+        while process.runflag do
+            return handler()
+        end
         --killproc(process)
     else
         --TODO: simpler method to use threads
@@ -297,9 +315,18 @@ end
 
 local function _kill(process)
     for k,child in pairs(process.childs) do
-        return _kill(process)
+        return _kill(child)
     end
+
+    if process.thread then
+        thread_kill_thread(process.thread)
+    else
+        process.runflag = false
+    end
+
     pm_processes[process.pid] = nil
+    os.send_ev({"terminate"})
+    return true
 end
 
 local function set_child(parent, child)
@@ -336,7 +363,7 @@ end
     Implement libproc functions(fork, execv, etc..)
 ]]
 
-function kill(pid_to_kil)
+function kill(pid_to_kill)
     local whos_killing = pm_processes[running_pid]
     local to_be_killed = pm_processes[pid_to_kill]
 
