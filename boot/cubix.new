@@ -196,12 +196,19 @@ cubix.boot = function ()
     sysload("udev", "/lib/base/dman.lua")
     sysload("time", "/lib/base/time.lua")
     sysload("crypto", "/lib/crypto/crypto.lua")
+    -- sysload("rand", "/lib/crypto/rand/rand.lua")
     -- sysload("hash", "/lib/auth/hash.lua")
     sysload("fs", "/lib/base/fs.lua")
     -- sysload("tty", "/lib/base/tty.lua")
     sysload("auth", "/lib/base/auth/cauth.lua")
     -- sysload("io", "/lib/base/io.lua")
+        -- io: BufferIO, StringIO, Pipes, etc...
     -- sysload("cache", "/lib/base/cache.lua")
+        -- similar to os.lib.control in old kernel
+    -- sysload("socket", "/lib/net/socket.lua")
+    -- sysload("ansi", "/lib/ext/libansi.lua")
+    -- sysload("bignum", "/lib/ext/bignum.lua")
+        -- needed for crypto libs
 
     -- idle thread
     threading.new_thread(function()
@@ -210,10 +217,15 @@ cubix.boot = function ()
 
     threading.new_thread(function()
         --return execv(kernel_flags.init, {kernel_flags.runlevel})
+        syslog.serlog(syslog.S_INFO, "init", "running init process")
         return execv("/bin/lua", {})
     end, 'init')
 
+    syslog.serlog(syslog.S_INFO, "cubix", "initializing threads")
     threading.start()
+    term.set_term_color(colors.red)
+    print("[ ERR ] [cubix] execution terminated")
+    term.set_term_color(colors.white)
 end
 
 cubix.boot()

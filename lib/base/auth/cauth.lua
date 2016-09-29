@@ -6,7 +6,7 @@
 
 RELOADABLE = false
 
-local session = lib.get("/lib/base/auth/sessions.lua")
+local libsession = lib.get("/lib/base/auth/sessions.lua")
 local Session = libsession.Session
 
 local SHA256_ROUNDS = 7
