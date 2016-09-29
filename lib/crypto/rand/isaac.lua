@@ -21,7 +21,7 @@ local function isaac()
     cc = cc + 1
     bb = bb + cc
 
-    syslog.log("isaac: loop cache", false)
+    syslog.serlog(syslog.S_INFO, "isaac", "isaac: loop cache")
     for i=0,255 do
 
         x = mm[i]
@@ -45,7 +45,7 @@ local function isaac()
         randrsl[i] = bb
     end
 
-    syslog.log("isaac: reset", false)
+    syslog.serlog(syslog.S_INFO, "isaac", "isaac: reset")
     randcnt = 0
 end
 
@@ -129,12 +129,12 @@ local function randinit(flag)
     0x9e3779b9, 0x9e3779b9, 0x9e3779b9,
     0x9e3779b9, 0x9e3779b9, 0x9e3779b9 -- golden ratio
 
-    syslog.log("randinit: scramble")
+    syslog.serlog(syslog.S_INFO, "isaac", "randinit: scramble")
     for i=0,3 do -- scramble it
         a,b,c,d,e,f,g,h = mix(a,b,c,d,e,f,g,h)
     end
 
-    syslog.log("randinit: filling")
+    syslog.serlog(syslog.S_INFO, "isaac", "randinit: filling")
     for i=0,255,8 do -- fill in mm with messy stuff
         if flag then -- use all the information in the seed
             a = a + randrsl[i  ];
@@ -199,7 +199,7 @@ local function randinit(flag)
         end
     end
 
-    syslog.log("randinit: reset", false)
+    syslog.serlog(syslog.S_INFO, "isaac", "randinit: reset")
 
     isaac()
     randcnt = 0
@@ -228,28 +228,28 @@ function isaac_seed(seed, flag)
         end
     end
 
-    syslog.log("isaac_seed: initializing", false)
+    syslog.serlog(syslog.S_INFO, "isaac", "isaac_seed: initializing")
 
     randinit(flag)
     isaac()
     isaac()
 
-    syslog.log("isaac_seed: seeded", false)
+    syslog.serlog(syslog.S_INFO, "isaac", "isaac_seed: seeded")
+    return true
 end
 
 function isaac_seed_mt()
-    os.debug.debug_write("isaac_seed: seeding from MT19937(os.random)")
+    syslog.serlog(syslog.S_INFO, "isaac", "isaac_seed: seeding from MT19937(os.random)")
     for i=0,255 do
         randrsl[i] = os.random.extract_num(os.random)
     end
 end
 
 function isaac_seed_entpool()
-    os.debug.debug_write("isaac_seed: seeding from evgather", false)
+    syslog.serlog(syslog.S_INFO, "isaac", "isaac_seed: seeding from evgather")
     for i=0,255 do
-        randrsl[i] = evgather.pool_seed()
+        randrsl[i] = lib.evpool.mkseed()
     end
-    sleep(.3)
     isaac_seed_entpool = true
 end
 
