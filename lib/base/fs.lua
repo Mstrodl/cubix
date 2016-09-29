@@ -36,7 +36,7 @@ local function load_filesystem(fsname, fs_class, driver_path)
     fs_driver = lib.get(driver_path)
 
     if not fs_driver then
-        syslog.panic("fs", "error loading driver for %s", fsname)
+        --syslog.panic("fs", "error loading driver for %s", fsname)
     end
 
     fs_drivers[fsname] = {

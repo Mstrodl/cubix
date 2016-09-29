@@ -17,10 +17,12 @@ local function prompt(serv_name, user)
     return read(' ')
 end
 
-function start(name)
+function start(service_name)
     return {
-        ['logged'] = logged_user,
-        ['serv_name'] = name
+        --TODO
+        ['logged'] = 'root',
+        ['perm'] = 0,
+        ['serv_name'] = service_name
     }
 end
 
@@ -32,15 +34,26 @@ function authenticate(hp, flags)
     end
 end
 
-function plain_login(hp, password)
+function plain_login(hp, wanting_user, password)
     if not lib.crypto then
         return ferror("plain_login: lib.crypto not loaded")
     end
 
-    --TODO: the rest(/etc/shadow etc)
-    --local p = proof_work(password)
+    local shadow_data = fs_readall("/etc/shadow")
+    for k,line in ipairs(string.split(shadow_data)) do
+        local spl = string.split(line, '^')
+        -- user:password:salt:group
+        local correct_hash = spl[2]
+        local salt = spl[3]
+        local group = spl[4]
+        if spl[1] == wanting_user then
+            -- hash and compare
+            local proof = proof_work(password .. salt)
+            return proof == correct_hash
+        end
+    end
 
-    return true
+    return false
 end
 
 function grant(perm)
