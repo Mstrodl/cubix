@@ -22,4 +22,5 @@ else
     while true do sleep(0) end --hlt
 end
 
-os.run({}, '/boot/cubix.new', table.unpack(args, 2))
+print(table.unpack(args, 1))
+os.run({}, '/boot/cubix.new', table.unpack(args, 1))
