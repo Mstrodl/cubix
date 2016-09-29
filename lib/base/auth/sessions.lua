@@ -24,6 +24,10 @@ function Session:init(init_table)
 end
 
 function Session:check()
+    if not self.user_id then
+        return false
+    end
+
     local new_lstr = lib.crypto.hash_sha256(
         self.hashed_password .. self.hp.serv_name
     )
