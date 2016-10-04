@@ -6,12 +6,18 @@ RELOADABLE = false
 _mod_sha256 = cubix.load_file("/lib/hash/sha256.lua")
 _mod_md5 = cubix.load_file("/lib/hash/md5.lua")
 
-function hash_sha256(data, rounds)
+function hash_sha256(data, rounds, flag)
     rounds = rounds or 1
 
-    for i=1,rounds do
-        sleep(0)
-        data = _mod_sha256._sha256(data)
+    if flag then
+        for i=1,rounds do
+            data = _mod_sha256.buf_sha256(data)
+        end
+    else
+        for i=1,rounds do
+            sleep(0)
+            data = _mod_sha256._sha256(data)
+        end
     end
 
     return data
@@ -28,7 +34,13 @@ function hash_md5(data, rounds)
     return data
 end
 
-function xorstr(a, b)
+function hex2buf(data)
+    local res = {}
+    for i=1,#data,2 do
+        res[i] = string.char(tonumber('0x'..string.sub(data, i, i)..
+            string.sub(data, i+1, i+1)))
+    end
+    return res
 end
 
 function hmac_sha256(data, key)
@@ -36,27 +48,26 @@ function hmac_sha256(data, key)
     local blength_block = 64
     local blength_output = 32
 
-    if key > blenth_block then
+    if #key > blength_block then
         key = H(key)
     end
 
-    --[[
-    ipad = the byte 0x36 repeated B times
-                 opad = the byte 0x5C repeated B times.
+    local bkey = hex2buf(key)
+    local k_ipad, k_opad = {}, {}
 
-    ]]
+    lib.io.buffer_copy(bkey, k_ipad, #bkey)
+    lib.io.buffer_copy(bkey, k_opad, #bkey)
 
-    local opad = ''
-    for i=1,blenth_block do
-        opad = opad .. string.char(54)
+    for i=1,#k_ipad do
+        k_ipad[i] = string.char(bit.bxor(string.byte(k_ipad[i]), 0x36))
+        k_opad[i] = string.char(bit.bxor(string.byte(k_opad[i]), 0x5C))
     end
 
-    local ipad = ''
-    for i=1,blenth_block do
-        ipad = ipad .. string.char(92)
-    end
+    local s_kipad, s_kopad = '', ''
+    for i=1,#k_ipad do s_kipad = s_kipad .. k_ipad[i] end
+    for i=1,#k_opad do s_kopad = s_kopad .. k_opad[i] end
 
-    return H(xorstr(key, opad), H(xorstr(key, ipad), text))
+    return H(s_kopad .. H(s_kipad) .. data)
 end
 
 function libroutine()

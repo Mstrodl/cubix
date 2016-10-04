@@ -209,7 +209,7 @@ cubix.boot = function ()
     -- load most of the things for userspace
     -- sysload("tty", "/lib/base/tty.lua")
     sysload("auth", "/lib/base/auth/cauth.lua")
-    -- sysload("io", "/lib/base/io.lua")
+    sysload("io", "/lib/base/io.lua")
         -- io: BufferIO, StringIO, Pipes, etc...
     -- sysload("cache", "/lib/base/cache.lua")
         -- similar to os.lib.control in old kernel

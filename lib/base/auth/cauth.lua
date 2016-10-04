@@ -23,9 +23,13 @@ local function prompt(serv_name, user)
     return read(' ')
 end
 
-local function mk_token(username)
-    local K = getrandombytes(128)
+function mk_token(username)
+    local K = ''
+    for i=1,32 do
+        K = K .. getrandombyte()
+    end
     local t = Token(username, K)
+    return t
 end
 
 function start(service_name)
