@@ -2,6 +2,11 @@
     sessions.lua - manage Sessions
 ]]
 
+function Token(username, key)
+    local utt = username .. tostring(os.clock())
+    return lib.crypto.hmac_sha256(utt, key)
+end
+
 Session = class(function(self)
     self.uid = ''
     self.username = ''

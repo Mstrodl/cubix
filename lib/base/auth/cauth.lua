@@ -6,8 +6,11 @@
 
 RELOADABLE = false
 
+local tbl_auth_tok = {}
+
 local libsession = lib.get("/lib/base/auth/sessions.lua")
 local Session = libsession.Session
+local Token = libsession.Token
 
 local SHA256_ROUNDS = 7
 
@@ -18,6 +21,11 @@ end
 local function prompt(serv_name, user)
     write(rprintf("[%s] password for %s", serv_name, user))
     return read(' ')
+end
+
+local function mk_token(username)
+    local K = getrandombytes(128)
+    local t = Token(username, K)
 end
 
 function start(service_name)
