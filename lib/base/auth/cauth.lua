@@ -7,6 +7,7 @@
 RELOADABLE = false
 
 local tbl_auth_tok = {}
+local tbl_sess_data = {}
 
 local libsession = lib.get("/lib/base/auth/sessions.lua")
 local Session = libsession.Session
@@ -19,7 +20,7 @@ function proof_work(data)
 end
 
 local function prompt(serv_name, user)
-    write(rprintf("[%s] password for %s", serv_name, user))
+    write(rprintf("[%s] password for %s: ", serv_name, user))
     return read(' ')
 end
 
@@ -39,39 +40,6 @@ function start(service_name)
         ['perm'] = 0,
         ['serv_name'] = service_name
     }
-end
-
-function authenticate(hp, flags)
-    local try_pwd = ''
-    local try_user = ''
-
-    if hp.token then
-        return hp.token:use()
-    end
-
-    if flags.user then
-        try_user = flags.user
-        try_pwd = prompt(hp.serv_name, flags.user)
-    else
-        try_user = hp.logged
-        try_pwd = prompt(hp.serv_name, hp.logged)
-    end
-
-    local hpwd = plain_login(hp, try_user, try_pwd)
-    if not hpwd then return false end
-
-    --create token
-    local token = mk_token(try_user)
-    hp.token = create_token(token)
-
-    local s = Session({
-        ['uid'] = hp.uid,
-        ['username'] = try_user,
-        ['hashed_password'] = hpwd,
-        ['token'] = token,
-    })
-
-    return true
 end
 
 local function plain_login(hp, wanting_user, password)
@@ -97,6 +65,48 @@ local function plain_login(hp, wanting_user, password)
     end
 
     return false
+end
+
+function authenticate(hp, flags)
+    local try_pwd = ''
+    local try_user = ''
+
+    if hp.token then
+        return hp.token:use()
+    end
+
+    if flags.user then
+        try_user = flags.user
+        try_pwd = prompt(hp.serv_name, flags.user)
+    else
+        try_user = hp.logged
+        try_pwd = prompt(hp.serv_name, hp.logged)
+    end
+
+    local hpwd = plain_login(hp, try_user, try_pwd)
+    if not hpwd then return false end
+
+    --create token
+    local token = mk_token(try_user)
+
+    local s = Session({
+        ['uid'] = hp.uid,
+        ['username'] = try_user,
+        ['hashed_password'] = hpwd,
+        ['token_value'] = token,
+        ['token_name'] = hp.serv_name..try_user,
+        ['token_uses'] = 10,
+        ['token_hash'] = lib.crypto.hash_sha256(
+            hp.serv_name..try_user .. '10'),
+    })
+
+    tbl_sess_data[token] = s
+
+    if not s:check() then
+        return ferror("Session: check failed")
+    end
+
+    return true
 end
 
 function grant(perm)
