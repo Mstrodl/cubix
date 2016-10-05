@@ -19,12 +19,14 @@ function main(args)
         try_pwd = read("")
     end
 
-    local ok, wd = lib.auth.plain_login(try_user, try_pwd)
+    local hp = lib.auth.start("login")
+
+    local ok = lib.auth.plain_session(hp, try_user, try_pwd)
     if ok then
         sleep(0)
 
         local k = fs.open("/tmp/current_user", 'w')
-        if not k then os.debug.kpanic("cannot open /tmp/current_user") end
+        if not k then syslog.panic("cannot open /tmp/current_user") end
         k.write(try_user)
         k.close()
 
@@ -36,7 +38,7 @@ function main(args)
         end
 
         local k2 = fs.open("/tmp/current_path", 'w')
-        if not k2 then os.debug.kpanic("cannot open /tmp/current_path") end
+        if not k2 then syslog.kpanic("cannot open /tmp/current_path") end
         k2.write(new_wd)
         k2.close()
 
@@ -57,7 +59,7 @@ function main(args)
         local cshellproc = fork(shell_path)
         prexec(cshellproc, nil, nil, nil, nil, true)
     else
-        os.ferror("\nLogin incorrect")
+        return ferror("\nLogin incorrect")
     end
 end
 

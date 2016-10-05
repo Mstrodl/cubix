@@ -67,20 +67,9 @@ local function plain_login(hp, wanting_user, password)
     return false
 end
 
-function authenticate(hp, flags)
-    local try_pwd = ''
-    local try_user = ''
-
-    if hp.token then
-        return hp.token:use()
-    end
-
-    if flags.user then
-        try_user = flags.user
-        try_pwd = prompt(hp.serv_name, flags.user)
-    else
-        try_user = hp.logged
-        try_pwd = prompt(hp.serv_name, hp.logged)
+function plain_session(hp, try_user, try_pwd)
+    if hp.session then
+        return hp.session:use_token()
     end
 
     local hpwd = plain_login(hp, try_user, try_pwd)
@@ -122,6 +111,25 @@ function authenticate(hp, flags)
     tbl_sess_data[hp.key] = s
 
     return true
+end
+
+function authenticate(hp, flags)
+    local try_pwd = ''
+    local try_user = ''
+
+    if hp.token then
+        return hp.token:use()
+    end
+
+    if flags.user then
+        try_user = flags.user
+        try_pwd = prompt(hp.serv_name, flags.user)
+    else
+        try_user = hp.logged
+        try_pwd = prompt(hp.serv_name, hp.logged)
+    end
+
+    return plain_session(hp, try_user, try_pwd)
 end
 
 function grant(perm)

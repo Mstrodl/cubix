@@ -226,7 +226,7 @@ cubix.boot = function ()
     threading.new_thread(function()
         --return execv(kernel_flags.init, {kernel_flags.runlevel})
         syslog.serlog(syslog.S_INFO, "init", "running init process")
-        execv("/bin/lua", {})
+        execv("/sbin/init", {})
         os.reboot()
     end, 'init')
 
