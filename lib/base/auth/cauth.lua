@@ -87,9 +87,17 @@ function authenticate(hp, flags)
     if not hpwd then return false end
 
     --create token
+    if tbl_sess_data[hp.key] then
+        local ongoing_sess = tbl_sess_data[hp.key]
+        if not ongoing_sess:check() then return false end
+        return ongoing_sess:use_token()
+    end
+
     local token = mk_token(try_user)
 
-    local s = Session({
+    local s = Session(hp)
+
+    s:init({
         ['uid'] = hp.uid,
         ['username'] = try_user,
         ['hashed_password'] = hpwd,
@@ -100,6 +108,10 @@ function authenticate(hp, flags)
             hp.serv_name..try_user .. '10'),
     })
 
+    if not s:check() then
+        return ferror("Session: check failed")
+    end
+
     hp.key = ''
     for i=1,16 do
         hp.key = hp.key .. getrandombyte()
@@ -108,10 +120,6 @@ function authenticate(hp, flags)
     hp.key = lib.crypto.hash_sha256(hp.key)
 
     tbl_sess_data[hp.key] = s
-
-    if not s:check() then
-        return ferror("Session: check failed")
-    end
 
     return true
 end

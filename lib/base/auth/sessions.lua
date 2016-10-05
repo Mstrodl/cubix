@@ -7,11 +7,12 @@ function Token(username, key)
     return lib.crypto.hmac_sha256(utt, key)
 end
 
-Session = class(function(self)
+Session = class(function(self, hp)
     self.uid = ''
     self.username = ''
     self.hashed_password = ''
     self.login_string = ''
+    self.hp = hp
 end)
 
 function Session:init(init_table)
@@ -21,8 +22,10 @@ function Session:init(init_table)
         end
     end
 
+    self.ctime = os.clock()
+
     self.login_string = lib.crypto.hash_sha256(
-        self.hashed_password .. self.hp.serv_name
+        self.hashed_password .. self.hp.serv_name .. tostring(self.ctime)
     )
 end
 
@@ -32,7 +35,7 @@ function Session:check()
     end
 
     local new_lstr = lib.crypto.hash_sha256(
-        self.hashed_password .. self.hp.serv_name
+        self.hashed_password .. self.hp.serv_name .. tostring(self.ctime)
     )
 
     return new_lstr == self.login_string
