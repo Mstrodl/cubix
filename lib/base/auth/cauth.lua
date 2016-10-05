@@ -100,7 +100,14 @@ function authenticate(hp, flags)
             hp.serv_name..try_user .. '10'),
     })
 
-    tbl_sess_data[token] = s
+    hp.key = ''
+    for i=1,16 do
+        hp.key = hp.key .. getrandombyte()
+    end
+
+    hp.key = lib.crypto.hash_sha256(hp.key)
+
+    tbl_sess_data[hp.key] = s
 
     if not s:check() then
         return ferror("Session: check failed")
