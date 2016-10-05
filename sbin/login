@@ -42,13 +42,7 @@ function main(args)
         k2.write(new_wd)
         k2.close()
 
-        --showing the initial path to csh
-        os.lib.control.register('/sbin/login', 'cwd', new_wd)
-
-        --getting itself as a process
-        os.lib.control.register('/sbin/login', 'login_lock', '1')
-        local itself = os.lib.proc.get_by_pid(pget_running())
-        os.lib.control.register('/sbin/login', 'login_lock', nil)
+        __CWD = new_wd
 
         --running csh
         sleep(0)
@@ -56,8 +50,7 @@ function main(args)
         local shell_path = a.readAll()
         a.close()
 
-        local cshellproc = fork(shell_path)
-        prexec(cshellproc, nil, nil, nil, nil, true)
+        return execv(shell_path, {})
     else
         return ferror("\nLogin incorrect")
     end
