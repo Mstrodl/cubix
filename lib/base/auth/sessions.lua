@@ -35,6 +35,22 @@ function Session:check()
         self.hashed_password .. self.hp.serv_name
     )
 
-    -- TODO: check if lua has time constant string comparison
     return new_lstr == self.login_string
+end
+
+function Session:use_token()
+    if self.token_uses < 0 then
+        return false
+    end
+
+    if lib.crypto.hash_sha256(self.token_name .. tostring(self.token_uses))
+      ~= self.token_hash then
+        return false
+    end
+
+    self.token_uses = self.token_uses - 1
+    local new_thash = lib.crypto.hash_sha256(self.token_name .. tostring(self.token_uses))
+    self.token_hash = new_thash
+
+    return true
 end

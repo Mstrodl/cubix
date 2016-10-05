@@ -42,11 +42,36 @@ function start(service_name)
 end
 
 function authenticate(hp, flags)
-    if flags.user then
-        return prompt(hp.serv_name, flags.user)
-    else
-        return prompt(hp.serv_name, hp.logged)
+    local try_pwd = ''
+    local try_user = ''
+
+    if hp.token then
+        return hp.token:use()
     end
+
+    if flags.user then
+        try_user = flags.user
+        try_pwd = prompt(hp.serv_name, flags.user)
+    else
+        try_user = hp.logged
+        try_pwd = prompt(hp.serv_name, hp.logged)
+    end
+
+    local hpwd = plain_login(hp, try_user, try_pwd)
+    if not hpwd then return false end
+
+    --create token
+    local token = mk_token(try_user)
+    hp.token = create_token(token)
+
+    local s = Session({
+        ['uid'] = hp.uid,
+        ['username'] = try_user,
+        ['hashed_password'] = hpwd,
+        ['token'] = token,
+    })
+
+    return true
 end
 
 local function plain_login(hp, wanting_user, password)
@@ -72,18 +97,6 @@ local function plain_login(hp, wanting_user, password)
     end
 
     return false
-end
-
-local function login(hp, user_to_login, password, uses)
-    local hpwd = plain_login(hp, user_to_login, password)
-    if hpwd then
-        local s = Session({
-            ['uid'] = hp.uid,
-            ['username'] = user_to_login,
-            ['hashed_password'] = hpwd,
-        })
-        return s
-    end
 end
 
 function grant(perm)
