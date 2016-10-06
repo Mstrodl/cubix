@@ -143,7 +143,11 @@ cubix.load = function(module_name, path)
     end
 
     lib[module_name] = mod_tbl
-    isReloadable[module_name] = mod_tbl.RELOADABLE
+    if mod_tbl.lib_reloadable then
+        isReloadable[module_name] = mod_tbl.lib_reloadable()
+    else
+        isReloadable[module_name] = mod_tbl.RELOADABLE
+    end
     mod_order[#mod_order + 1] = module_name
 
     term.set_term_color(colors.green)
@@ -193,17 +197,22 @@ cubix.boot = function ()
     syslog.log("Loaded syslog")
     lib.syslog.syslog_boot()
 
+    -- we don't *actually* need ACPI, but... yeah.
     sysload("acpi", "/lib/acpi.lua")
 
-    -- having a working system
+    -- working system without any other shit
     sysload("pm", "/lib/base/procman.lua")
     sysload("libev", "/lib/modules/libev.lua")
     sysload("udev", "/lib/base/dman.lua")
+
+    -- we don't *actually* need time.lua to load too soon, but... yeah. (2)
     sysload("time", "/lib/base/time.lua")
 
-    -- load crypto and hash because some drivers may need them
+    -- load crypto and rand because some fs drivers may need them
     sysload("crypto", "/lib/crypto/crypto.lua")
     sysload("rand", "/lib/crypto/rand/init.lua")
+
+    -- load fs(manages VFS and stuff)
     sysload("fs", "/lib/base/fs.lua")
 
     -- load most of the things for userspace
@@ -214,7 +223,7 @@ cubix.boot = function ()
     -- sysload("cache", "/lib/base/cache.lua")
         -- similar to os.lib.control in old kernel
     -- sysload("socket", "/lib/net/socket.lua")
-    -- sysload("ansi", "/lib/ext/libansi.lua")
+    sysload("ansi", "/lib/ext/libansi.lua")
     -- sysload("bignum", "/lib/ext/bignum.lua")
         -- needed for crypto libs
 
@@ -232,6 +241,8 @@ cubix.boot = function ()
 
     syslog.serlog(syslog.S_INFO, "cubix", "initializing threads")
     threading.start()
+
+    -- signal user all threads ended
     term.set_term_color(colors.red)
     print("[ ERR ] [cubix] execution terminated")
     term.set_term_color(colors.white)
