@@ -31,7 +31,12 @@ function exec_command(cxt, cmd)
         return cxt
     end
 
-    for k,v in pairs(cxt['var']['PATH']) do
+    local path_sp = string.split(cxt['var']['PATH'], ':')
+    for _,path_element in ipairs(path_sp) do
+        local pth = fs.combine(path_element, '/'..executable_to_find)
+        if fs.exists(pth) then
+            execv(pth, args)
+        end
     end
 
     return cxt
