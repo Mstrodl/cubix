@@ -21,13 +21,42 @@ function main(args)
         end
     end
 
+    print("PID  PROC")
+    for _,v in ipairs(fs.list('/proc')) do
+        if tonumber(v) then
+            if fs.isDir(fs.combine('/proc', '/'..v)) then
+                -- get data
+                local base_path = fs.combine('/proc', '/'..v)
+                local process_pid = fs_readall(base_path..'/pid')
+                local process_name = fs_readall(base_path..'/name')
+                local process_args = fs_readall(base_path..'/args')
+
+                printf("%s  %s %s",
+                    process_pid, process_name, process_args)
+            end
+        end
+    end
+
+    --[[
+
     --default action: show all processes from the current terminal
     if not flag_all_terminals and not flag_all_proc then
         local pcurrent_tty = os.lib.proc.filter_proc(os.lib.proc.FLAG_CTTY)
 
         print("PID  PROC")
-        for _,v in pairs(pcurrent_tty) do
-            print(v.pid.."  "..(v.file.." "..v.lineargs))
+        for _,v in ipairs(fs.list('/proc')) do
+            if tonumber(v) then
+                if fs.isDir(fs.combine('/proc', '/'..v)) then
+                    -- get data
+                    local base_path = fs.combine('/proc', '/'..v)
+                    local process_pid = fs_readall(base_path..'/pid')
+                    local process_name = fs_readall(base_path..'/name')
+                    local process_args = fs_readall(base_path..'/args')
+
+                    printf("%s  %s %s",
+                        process_pid, process_name, process_args)
+                end
+            end
         end
     elseif flag_all_proc and not flag_all_terminals then
         local pallproc = os.lib.proc.filter_proc(os.lib.proc.FLAG_APRC)
@@ -52,6 +81,8 @@ function main(args)
             end
         end
     end
+
+    ]]
 end
 
 main({...})

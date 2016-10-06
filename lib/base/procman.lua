@@ -219,6 +219,22 @@ Process = function(file)
     return p
 end
 
+local function proc_make_dir(pr)
+    local folder = rprintf('/proc/%d', pr.pid)
+    fs.makeDir(folder)
+
+    local sp = string.split(pr.file, '/')
+    local pr_name = sp[#sp]
+
+    fs_writedata(folder..'/pid', tostring(pr.pid))
+    fs_writedata(folder..'/name', pr_name)
+    fs_writedata(folder..'/path', pr.file)
+    fs_writedata(folder..'/args', pr.lineargs)
+end
+
+local function proc_del_dir()
+end
+
 local running_pid = -1 -- pid of running process
 local cc_os_run = os.run -- normal os.run from CC
 
@@ -228,12 +244,19 @@ local function pr_run(process, args, pipe, env)
         env = {}
     end
 
+    if not args then
+        args = {}
+    end
+
     --process.env = env
     --process.env['__CWD'] = getenv("__CWD") -- latest __CWD is new __CWD
     tmerge(env, process.env)
 
     process.uid = 0
     process.runflag = true
+    process.lineargs = string.join(' ', args)
+
+    proc_make_dir(process)
     -- lib.pam.default()
 
     --[[local cur_user = lib.pam.current_user()
@@ -297,6 +320,7 @@ local function pr_run(process, args, pipe, env)
         end
 
         while process.runflag do
+            print('running')
             return os.run(env, process.file, unpack(args, 1))
         end
     end
@@ -310,6 +334,7 @@ local function pr_run(process, args, pipe, env)
         --killproc(process)
     else
         --TODO: simpler method to use threads
+        print("KKK")
         process.thread = threading.new_thread(handler,
             tostring(process.pid)..':'..tostring(process.file),
             process.pid)

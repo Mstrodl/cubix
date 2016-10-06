@@ -314,6 +314,19 @@ function printf(...)
 end
 _G['printf'] = printf
 
+string.join = function(s, tbl)
+    local res = ''
+    for i=1,#tbl do
+        local el = tbl[i]
+        if i == #tbl then
+            res = res .. v
+        else
+            res = res .. v .. s
+        end
+    end
+    return res
+end
+
 function generate_lcubix(type, path)
     if type == 'all' then
         local h = fs.open("/boot/libcubix", 'r')

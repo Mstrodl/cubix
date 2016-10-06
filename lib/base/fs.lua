@@ -335,7 +335,7 @@ function fs_readall(fpath, external_fs)
     return data
 end
 
-function fs_writedata(fpath, data, flag, external_fs)
+function fs_writedata(fpath, str_data, flag, external_fs)
     flag = flag or false
     external_fs = external_fs or fs
     local h = nil
@@ -345,8 +345,8 @@ function fs_writedata(fpath, data, flag, external_fs)
         h = external_fs.open(fpath, 'w')
     end
     if h == nil then return nil end
-    local data = h:readAll()
-    h:close()
+    h.write(tostring(str_data))
+    h.close()
     return data
 end
 
