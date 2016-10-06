@@ -319,9 +319,9 @@ string.join = function(s, tbl)
     for i=1,#tbl do
         local el = tbl[i]
         if i == #tbl then
-            res = res .. v
+            res = res .. el
         else
-            res = res .. v .. s
+            res = res .. el .. s
         end
     end
     return res
