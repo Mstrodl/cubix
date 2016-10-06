@@ -136,5 +136,12 @@ function grant(perm)
     return true
 end
 
+function getuser(uid)
+    return { -- TODO
+        ['name'] = 'root',
+        ['uid'] = uid
+    }
+end
+
 function libroutine()
 end

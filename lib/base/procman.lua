@@ -230,6 +230,7 @@ local function pr_run(process, args, pipe, env)
 
     --process.env = env
     --process.env['__CWD'] = getenv("__CWD") -- latest __CWD is new __CWD
+    tmerge(env, process.env)
 
     process.uid = 0
     process.runflag = true

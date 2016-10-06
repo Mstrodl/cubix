@@ -1,0 +1,95 @@
+--[[
+    cshell.new - new cubix shell
+]]
+
+-- deafault $PS1 value
+local shell_PS1 = '%u@%h:%w $'
+
+function exec_command(cxt, cmd)
+    print(cmd)
+    return cxt
+end
+
+local function write_ps1(cxt, shell_char, hostname)
+    local ps1 = cxt['var']['PS1']
+
+    local i = 1
+    for j=1,#ps1 do
+        local char = string.sub(ps1,i,i)
+        if char == '%' then
+            if string.sub(ps1,i+1,i+1) == 'u' then
+                write(lib.auth.getuser(lib.pm.currentuid()).name)
+                i = i + 2
+            elseif string.sub(ps1,i+1,i+1) == 'h' then
+                local k = hostname:find("%.")
+                if k == 1 then k = #hostname end
+                write(string.sub(hostname, 1, k - 1))
+                i = i + 2
+            elseif string.sub(ps1,i+1,i+1) == 'H' then
+                write(hostname)
+                i = i + 2
+            elseif string.sub(ps1,i+1,i+1) == 'j' then
+                local jobs = lib.pm.num_threads()
+                write(tostring(jobs))
+                i = i + 2
+            elseif string.sub(ps1,i+1,i+1) == 'w' then
+                write(_ENV['__CWD'])
+                i = i + 2
+            else
+                write('%')
+                i = i + 1
+            end
+        elseif char == '\\' then
+            if string.sub(ps1,i+1,i+4) == '033[' then
+                if string.sub(ps1,i+5,i+5) == '0' and
+                   string.sub(ps1,i+6,i+6) == ';' then
+                    local code = string.sub(ps1, i+7, i+8)
+                    term.set_term_color(lib.ansi.get(code, 0))
+                    i = i + 10
+                elseif string.sub(ps1,i+5,i+5) == '1' and
+                       string.sub(ps1,i+6,i+6) == ';' then
+                    local code = string.sub(ps1, i+7, i+8)
+                    term.set_term_color(lib.ansi.get(code, 1))
+                    i = i + 10
+                else
+                    i = i + 4
+                end
+            else
+                write("\\")
+                i = i + 1
+            end
+        elseif char == '$' then
+            write(shell_char..' ')
+            i = i + 1
+        else
+            write(char)
+            i = i + 1
+        end
+    end
+end
+
+function main(args)
+    -- initialize vars and context
+    local csh_context = {}
+    csh_context['var'] = {}
+    csh_context['alias'] = {}
+    csh_context['history'] = {}
+
+    -- default PS1
+    csh_context['var']['PS1'] = shell_PS1
+
+    --csh_context = exec_script('.cshrc', csh_context)
+
+    -- go to loop
+    while true do
+        write_ps1(csh_context, '#', gethostname())
+        local cmd = read(nil, csh_context['history'])
+        if cmd == 'exit' then break end
+        if (#cmd > 0) then
+            table.insert(csh_context['history'], cmd)
+        end
+        csh_context = exec_command(csh_context, cmd)
+    end
+end
+
+main({...})

@@ -64,6 +64,8 @@ RUNLEVELFUNC[6] = runlevel_6
 
 function main(args)
     print("/sbin/init: start")
+    print("my cwd is", __CWD)
+    print("in env it is", _ENV['__CWD'])
     if args[1] ~= nil then
         runlevel = tonumber(args[1])
     else
