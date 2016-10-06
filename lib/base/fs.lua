@@ -396,5 +396,5 @@ function libroutine()
 
     fs.getSize = fs_rev_getsize
     fs.exists = fs_rev_exists
-    fs.isDir = fs_rev_isDir
+    fs.isDir = fs_rev_isdir
 end

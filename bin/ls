@@ -78,7 +78,7 @@ function ls(pth, showperm)
 end
 
 function main(args)
-    local cpath = os.cshell.getpwd()
+    local cpath = __CWD
 	local show_perm = false
 
 	local p = args[1]
@@ -89,10 +89,10 @@ function main(args)
 
     if p == nil then
         ls(cpath, show_perm)
-    elseif fs.exists(os.cshell.resolve(p)) then
-        ls(os.cshell.resolve(p), show_perm)
+    elseif fs.exists(fs.combine(__CWD, '/'..p)) then
+        ls(fs.combine(__CWD, '/'..p), show_perm)
     else
-        os.ferror("ls: node not found")
+        ferror("ls: node not found")
     end
 	return 0
 end
