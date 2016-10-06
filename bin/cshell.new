@@ -29,6 +29,8 @@ function exec_command(cxt, cmd)
             os.sleep(1)
         end
         return cxt
+    elseif executable_to_find == 'cd' then
+        return cxt
     end
 
     local path_sp = string.split(cxt['var']['PATH'], ':')

@@ -262,6 +262,10 @@ local function pr_run(process, args, pipe, env)
     local function handler()
         local iowrapper = lib.get("/lib/modules/io_wrapper.lua")
 
+        env['fs_resolve'] = function(pth)
+            return fs.combine(env['__CWD'], '/'..pth)
+        end
+
         -- manage pipes
         if type(pipe) == 'table' then
             env['program_pipe'] = pipe
