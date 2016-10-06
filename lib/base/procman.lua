@@ -232,7 +232,8 @@ local function proc_make_dir(pr)
     fs_writedata(folder..'/args', pr.lineargs)
 end
 
-local function proc_del_dir()
+local function proc_del_dir(pr)
+    fs.delete(rprintf('/proc/%d', pr.pid))
 end
 
 local running_pid = -1 -- pid of running process
@@ -320,8 +321,8 @@ local function pr_run(process, args, pipe, env)
         end
 
         while process.runflag do
-            print('running')
-            return os.run(env, process.file, unpack(args, 1))
+            os.run(env, process.file, unpack(args, 1))
+            process.runflag = false
         end
     end
 
@@ -329,16 +330,17 @@ local function pr_run(process, args, pipe, env)
     running_pid = process.pid
     if not use_thread then
         while process.runflag do
-            return handler()
+            handler()
         end
         --killproc(process)
     else
         --TODO: simpler method to use threads
-        print("KKK")
         process.thread = threading.new_thread(handler,
             tostring(process.pid)..':'..tostring(process.file),
             process.pid)
     end
+
+    proc_del_dir(process)
 
     return
 end
