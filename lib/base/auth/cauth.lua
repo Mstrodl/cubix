@@ -8,6 +8,7 @@ RELOADABLE = false
 
 local tbl_auth_tok = {}
 local tbl_sess_data = {}
+local tbl_pid_hp = {}
 
 local libsession = lib.get("/lib/base/auth/sessions.lua")
 local Session = libsession.Session
@@ -34,12 +35,14 @@ function mk_token(username)
 end
 
 function start(service_name)
-    return {
+    local hp = {
         --TODO
         ['logged'] = 'root',
         ['perm'] = 0,
         ['serv_name'] = service_name
     }
+    tbl_pid_hp[lib.pm.currentpid()] = hp
+    return hp
 end
 
 local function plain_login(hp, wanting_user, password)

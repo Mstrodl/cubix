@@ -407,7 +407,7 @@ function kill(pid_to_kill)
         return ferror("kill: to_be_killed == nil")
     end
 
-    if to_be_killed.uid <= whos_killing.uid then
+    if to_be_killed.uid <= whos_killing.uid or whos_killing.uid == 0 then
         return _kill(to_be_killed)
     else
         return ferror("kill: Access Denied")
