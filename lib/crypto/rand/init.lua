@@ -35,7 +35,22 @@ function libroutine()
         return randrange(0, 256 - 1)
     end
 
+    _G['getrandombytes'] = function(len)
+        local res = {}
+        for i=1,len do
+            table.insert(res, getrandombyte())
+        end
+        return res
+    end
+
+    _G['getrandomstr'] = function(len)
+        local tbl_rand = getrandombytes(len)
+        local res = ''
+        for i=1,len do
+            res = res .. string.char(tbl_rand[i])
+        end
+        return res
+    end
+
     _G['rand'] = rand
-    _G['randrange'] = randrange
-    _G['getrandombyte'] = getrandombyte
 end
