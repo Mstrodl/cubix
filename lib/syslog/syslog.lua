@@ -154,6 +154,10 @@ syslog.panic = function(...)
     while true do sleep(1000) end -- hlt
 end
 
+syslog.getbuffer = function()
+    return log_buffer
+end
+
 function libroutine()
     -- syslog.kpanic = os.debug.kpanic
 

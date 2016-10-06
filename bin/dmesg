@@ -1,14 +1,6 @@
 #!/usr/bin/env lua
 --/bin/dmesg: debug messages
 
-_handler = {}
-_handler.signal_handler = function (sig)
-    if sig == 'kill' then
-        --print("dmesg: recieved SIGKILL")
-        return 0
-    end
-end
-
 function main(args)
     local debug_file = fs.open("/var/log/dmesg", 'r')
     print(debug_file.readAll())
