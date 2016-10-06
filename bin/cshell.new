@@ -3,10 +3,37 @@
 ]]
 
 -- deafault $PS1 value
-local shell_PS1 = '%u@%h:%w $'
+local default_PS1 = '%u@%h:%w $'
+local default_PATH = '/bin:/sbin:/usr/bin:/usr/sbin'
 
 function exec_command(cxt, cmd)
-    print(cmd)
+    local tokens = string.split(cmd, ' ')
+    local args = table.tail(tokens)
+    if not args then args = {} end
+
+    local executable_to_find = tokens[1]
+    if not executable_to_find then
+        ferror("csh: pr.err: exec_to_find == nil")
+        return cxt
+    end
+
+    -- builtins
+
+    if executable_to_find == 'echo' then
+        print(unpack(args, 1))
+        return cxt
+    elseif executable_to_find == 'sleep' then
+        if tokens[2] then
+            os.sleep(tonumber(tokens[2]))
+        else
+            os.sleep(1)
+        end
+        return cxt
+    end
+
+    for k,v in pairs(cxt['var']['PATH']) do
+    end
+
     return cxt
 end
 
@@ -75,8 +102,9 @@ function main(args)
     csh_context['alias'] = {}
     csh_context['history'] = {}
 
-    -- default PS1
-    csh_context['var']['PS1'] = shell_PS1
+    -- default variables for shell
+    csh_context['var']['PS1'] = default_PS1
+    csh_context['var']['PATH'] = default_PATH
 
     --csh_context = exec_script('.cshrc', csh_context)
 
