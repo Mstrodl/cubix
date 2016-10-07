@@ -2,9 +2,7 @@
 --/bin/dmesg: debug messages
 
 function main(args)
-    local debug_file = fs.open("/var/log/dmesg", 'r')
-    print(debug_file.readAll())
-    debug_file.close()
+    print(syslog.getbuffer())
 end
 
 main({...})

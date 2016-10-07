@@ -11,7 +11,7 @@ AUTHOR = 'Luna Mendes'
 VER_MAJOR = 0
 VER_MINOR = 6
 VER_REV = 0
-VER_FLAG = '-rc1'
+VER_FLAG = '-rc2'
 CUBIX_VERSION = VER_MAJOR..'.'..VER_MINOR..'.'..VER_REV..VER_FLAG
 
 STABLE = ((VER_MINOR % 2) == 0) and ((VER_REV % 2) == 0)

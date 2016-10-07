@@ -64,8 +64,10 @@ RUNLEVELFUNC[6] = runlevel_6
 
 function main(args)
     print("/sbin/init: start")
-    print("my cwd is", __CWD)
-    print("in env it is", _ENV['__CWD'])
+    if lib.pm.currentuid() ~= 0 then
+        syslog.panic('init', 'init needs to be run by root')
+    end
+
     if args[1] ~= nil then
         runlevel = tonumber(args[1])
     else
@@ -73,7 +75,7 @@ function main(args)
             local r = string.split(fs_readall("/etc/inittab"), ':')[2]
             runlevel = tonumber(r)
         else
-            panic("[init] /etc/inittab not found")
+            syslog.panic("init", "/etc/inittab not found")
             return 1
         end
     end
