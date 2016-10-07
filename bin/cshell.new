@@ -30,6 +30,9 @@ function exec_command(cxt, cmd)
             os.sleep(1)
         end
         return cxt
+    elseif executable_to_find == 'ppath' then
+        print(cxt['var']['PATH'])
+        return cxt
     elseif executable_to_find == 'alias' then
         return cxt
     elseif executable_to_find == 'set' then
@@ -41,9 +44,17 @@ function exec_command(cxt, cmd)
         return cxt
     end
 
+    -- if it is an absolute path, treat it as one
+    if string.sub(executable_to_find, 1, 1) == '/' then
+        if fs.exists(executable_to_find) then
+            return cxt, execv(executable_to_find, args)
+        end
+    end
+
     local path_sp = string.split(cxt['var']['PATH'], ':')
     for _,path_element in ipairs(path_sp) do
         local pth = path_element..'/'..executable_to_find
+        print(pth)
         if fs.exists(pth) then
             return cxt, execv(pth, args)
         end
