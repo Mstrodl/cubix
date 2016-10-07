@@ -60,6 +60,10 @@ local boot_flag = false
 cubix.boot_flag = boot_flag
 _G['cubix'] = cubix
 
+cubix.version = function()
+    return CUBIX_VERSION
+end
+
 local function load_file(pth)
     -- just some tweaks to os.loadAPI
     local n = fs.getName(pth)
@@ -164,8 +168,10 @@ function sysload(m_name, m_path)
     if not cubix.load(m_name, m_path) then
         if syslog then
             syslog.panic("sysload", "error loading %s at %s", m_name, m_path)
+        else
+            -- no syslog, just halt
+            halt()
         end
-        halt()
     end
 end
 
