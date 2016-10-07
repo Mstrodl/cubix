@@ -35,13 +35,13 @@ function exec_command(cxt, cmd)
 
     local path_sp = string.split(cxt['var']['PATH'], ':')
     for _,path_element in ipairs(path_sp) do
-        local pth = fs.combine(path_element, '/'..executable_to_find)
+        local pth = path_element, '/'..executable_to_find
         if fs.exists(pth) then
-            execv(pth, args)
+            return cxt, execv(pth, args)
         end
     end
 
-    return cxt
+    return cxt, ferror('file not found')
 end
 
 local function write_ps1(cxt, shell_char, hostname)
