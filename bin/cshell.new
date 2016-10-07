@@ -7,6 +7,7 @@ local default_PS1 = '%u@%h:%w $'
 local default_PATH = '/bin:/sbin:/usr/bin:/usr/sbin'
 
 function exec_command(cxt, cmd)
+    if string.sub(cmd, 1, 1) == '#' then return cxt end -- comments
     local tokens = string.split(cmd, ' ')
     local args = table.tail(tokens)
     if not args then args = {} end
@@ -48,7 +49,8 @@ function exec_command(cxt, cmd)
         end
     end
 
-    return cxt, ferror('file not found')
+    return cxt, ferror(rprintf('csh: %s: file not found',
+        executable_to_find))
 end
 
 local function exec_script(pth, cxt)

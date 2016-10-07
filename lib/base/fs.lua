@@ -71,7 +71,7 @@ end
 
 function perm_to_str(perm_num)
     local k = perm_to_arr(perm_num)
-    return printf("%s%s%s", unpack(k, 1))
+    return rprintf("%s%s%s", unpack(k, 1))
 end
 
 local inodes = {}
@@ -134,6 +134,7 @@ inodes.set_inode = function(old_inode, new_inode)
 end
 
 oldfs.inodes = inodes
+_inodes = inodes
 
 local fs_mounts = {}
 
