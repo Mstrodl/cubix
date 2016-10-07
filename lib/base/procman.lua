@@ -288,18 +288,17 @@ local function pr_run(process, args, pipe, env)
         process.tty = ctty.id
     end]]
 
-    env['fs_resolve'] = function(pth)
-        return fs.combine(env['__CWD'], '/'..pth)
-    end
-
-    --TODO: fix __CWD usage
-    env['_setcwd'] = function(new_wd)
-        env['__CWD'] = new_wd
-    end
-
     -- same logic as old proc_manager
     local function handler()
         local iowrapper = lib.get("/lib/modules/io_wrapper.lua")
+
+        env['fs_resolve'] = function(pth)
+            return fs.combine(process.env['__CWD'], '/'..pth)
+        end
+
+        env['_setcwd'] = function(new_wd)
+            process.env['__CWD'] = new_wd
+        end
 
         -- manage pipes
         if type(pipe) == 'table' then
@@ -380,7 +379,7 @@ local function set_child(parent, child)
     -- set parent as parent of child
     child.parent = parent
 
-    child.env['__CWD'] = parent.env['__CWD']
+    child.env = deepcopy(parent.env)
 end
 
 function new_child(filepath)

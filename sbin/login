@@ -25,16 +25,9 @@ function main(args)
     if ok then
         sleep(0)
 
-        local k = fs.open("/tmp/current_user", 'w')
-        if not k then syslog.panic("cannot open /tmp/current_user") end
-        k.write(try_user)
-        k.close()
-
         local new_wd = "/home/"..try_user
         if try_user == 'root' then
             new_wd = '/root'
-        else
-            new_wd = "/home/"..try_user
         end
 
         --running csh

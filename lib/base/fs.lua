@@ -268,6 +268,10 @@ end
 
 local function fs_rev_wrap_1a(abs_func)
     local fs_rev_any = function(path)
+        if string.sub(path, 1, 1) == '/' then
+            return abs_func(path)
+        end
+
         return abs_func(fs.combine(lib.pm.getenv("__CWD"), path))
     end
     return fs_rev_any
@@ -302,6 +306,10 @@ local function fs_abs_open(path, mode)
 end
 
 local function fs_rev_open(path, mode)
+    if string.sub(path, 1, 1) == '/' then
+        return fs_abs_open(path, mode)
+    end
+
     local combined = fs.combine(lib.pm.getenv("__CWD"), path)
     return fs_abs_open(combined, mode)
 end
