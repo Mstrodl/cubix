@@ -164,6 +164,13 @@ cubix.load = function(module_name, path)
     return true
 end
 
+cubix.print_modules = function()
+    for k,v in pairs(mod_order) do
+        write(v..' ')
+    end
+    write('\n')
+end
+
 function sysload(m_name, m_path)
     if not cubix.load(m_name, m_path) then
         if syslog then

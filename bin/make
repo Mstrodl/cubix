@@ -22,12 +22,12 @@ function run_command(c, warning_table)
             print(": "..c)
         end
         term.setTextColor(colors.white)
-        os.cshell.run(c)
+        shell.run(c)
     else
         term.setTextColor(colors.lightBlue)
         print(': '..c)
         term.setTextColor(colors.white)
-        os.cshell.run(c)
+        shell.run(c)
     end
 end
 
@@ -146,10 +146,9 @@ function do_make(mkdata, target)
 end
 
 function main(args)
-    local mpath = os.cshell.resolve("makefile")
+    local mpath = __CWD..'/makefile'
     if not fs.exists(mpath) then
-        ferror("make: makefile not found")
-        return 0
+        return ferror("make: makefile not found")
     end
 
     local mfile = fs.open(mpath, 'r')

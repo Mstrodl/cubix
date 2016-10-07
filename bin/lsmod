@@ -3,7 +3,7 @@
 
 function main(args)
     term.set_term_color(colors.green)
-    os.viewLoadedMods()
+    cubix.print_modules()
     term.set_term_color(colors.white)
 end
 

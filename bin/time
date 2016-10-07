@@ -26,7 +26,8 @@ function main(args)
             cmd = cmd .. arg .. ' '
         end
     end
-    os.cshell.run(cmd)
+    shell.run(cmd)
+    execv("/bin/cshell", table.merge({"-c"}, arguments))
 
     local ending_ticks = (os.time() * 1000 + 18000)%24000
 

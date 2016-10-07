@@ -3,8 +3,8 @@
 
 function main(args)
     --calls edit, but, one time, i might be able to program a full editor like nano.
-    local editproc = fork("/rom/programs/edit")
-    prexec(editproc, {os.cshell.resolve(args[1])}, nil, nil, nil, true)
+    local editpath = "/rom/programs/edit"
+    execv(editpath, {fs_resolve(args[1])})
 end
 
 main({...})

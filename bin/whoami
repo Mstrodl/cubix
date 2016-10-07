@@ -1,15 +1,8 @@
 #!/usr/bin/env lua
 --/bin/whoami: says who you are
 
-_handler = {}
-_handler.signal_handler = function (sig)
-    if sig == 'kill' then
-        return 0
-    end
-end
-
 function main(args)
-    print(os.lib.login.currentUser())
+    print(os.lib.login.currentuser().name)
 end
 
 main({...})

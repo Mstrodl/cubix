@@ -1,14 +1,6 @@
 #!/usr/bin/env lua
 --/bin/hwclock: """"hardware"""" clock
 
-_handler = {}
-_handler.signal_handler = function(sig)
-    if sig == 'kill' then
-        --print("hwclock: SIGKILL")
-        return 0
-    end
-end
-
 function main(args)
     print(textutils.formatTime(tonumber(os.time()), false))
 end
