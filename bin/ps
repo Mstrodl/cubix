@@ -21,8 +21,10 @@ function main(args)
         end
     end
 
+    local proc_files = fs.list('/proc')
+    table.sort(proc_files)
     print("PID  PROC")
-    for _,v in ipairs(fs.list('/proc')) do
+    for _,v in ipairs(proc_files) do
         if tonumber(v) then
             if fs.isDir(fs.combine('/proc', '/'..v)) then
                 -- get data
