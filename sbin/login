@@ -37,18 +37,15 @@ function main(args)
             new_wd = "/home/"..try_user
         end
 
-        local k2 = fs.open("/tmp/current_path", 'w')
-        if not k2 then syslog.kpanic("cannot open /tmp/current_path") end
-        k2.write(new_wd)
-        k2.close()
-
-        __CWD = new_wd
-
         --running csh
         sleep(0)
-        local a = fs.open("/etc/default_sh", 'r')
-        local shell_path = a.readAll()
-        a.close()
+        local shell_path = fs_readall("/etc/default_sh")
+        if not shell_path then
+            print("error reading /etc/default_sh, using /bin/lua")
+            shell_path = '/bin/lua'
+        end
+
+        _setcwd(new_wd)
 
         return execv(shell_path, {})
     else

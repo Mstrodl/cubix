@@ -288,13 +288,18 @@ local function pr_run(process, args, pipe, env)
         process.tty = ctty.id
     end]]
 
+    env['fs_resolve'] = function(pth)
+        return fs.combine(env['__CWD'], '/'..pth)
+    end
+
+    --TODO: fix __CWD usage
+    env['_setcwd'] = function(new_wd)
+        env['__CWD'] = new_wd
+    end
+
     -- same logic as old proc_manager
     local function handler()
         local iowrapper = lib.get("/lib/modules/io_wrapper.lua")
-
-        env['fs_resolve'] = function(pth)
-            return fs.combine(env['__CWD'], '/'..pth)
-        end
 
         -- manage pipes
         if type(pipe) == 'table' then
@@ -326,6 +331,7 @@ local function pr_run(process, args, pipe, env)
             end
         end
 
+        --process.env = env
         while process.runflag do
             os.run(env, process.file, unpack(args, 1))
             process.runflag = false
