@@ -241,8 +241,9 @@ cubix.boot = function ()
         -- needed for crypto libs
 
     -- idle thread
+    local p2_26 = math.pow(2, 26)
     threading.new_thread(function()
-        while true do sleep(100) end
+        while true do sleep(p2_26) end
     end, 'idle')
 
     threading.new_thread(function()

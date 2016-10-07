@@ -15,10 +15,11 @@ local threading = {}
 
 local function create_thread(thread_function, thread_name, pid, bt)
     tid_last = tid_last + 1
+    pid = pid or 1
     local thread = {
         tid = tid_last,
         pid = pid,
-        name = name,
+        name = thread_name,
         coro = coroutine.create(thread_function),
         dead = false,
         filter = nil,
@@ -55,6 +56,11 @@ local function nthreads()
     return #thread_normal
 end
 threading.nthreads = nthreads
+
+local function copy_threads()
+    return deepcopy(thread_normal)
+end
+threading.copy_threads = copy_threads
 
 -- now to the thread scheduler
 local thread_running_tid = 0
