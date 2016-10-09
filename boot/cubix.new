@@ -14,9 +14,9 @@ VER_REV = 0
 VER_FLAG = '-rc2'
 CUBIX_VERSION = VER_MAJOR..'.'..VER_MINOR..'.'..VER_REV..VER_FLAG
 
-STABLE = ((VER_MINOR % 2) == 0) and ((VER_REV % 2) == 0)
+STABLE = ((VER_MAJOR ~= 0) and ((VER_MINOR % 2)) == 0 and ((VER_REV % 2) == 0))
 
-if not STABLE then
+if STABLE then
     -- supress pullEvent
     local pullEvent = os.pullEvent
     os.pullEvent = os.pullEventRaw
