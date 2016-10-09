@@ -106,12 +106,14 @@ function read_osfile()
     local detected_oses_path = {}
     print("[read_config] systems.cfg")
     for k,v in pairs(systems) do
-        local sysdat = strsplit(systems[k], ';')
-        detected_oses_name[i] = sysdat[1]
-        detected_oses_path[i] = sysdat[2]
-        print(sysdat[1]..' -> '..sysdat[2])
-        i = i + 1
-        os.sleep(.1)
+        if string.sub(v, 1, 1) ~= '#' then
+            local sysdat = strsplit(systems[k], ';')
+            detected_oses_name[i] = sysdat[1]
+            detected_oses_path[i] = sysdat[2]
+            print(sysdat[1]..' -> '..sysdat[2])
+            i = i + 1
+            os.sleep(.08)
+        end
     end
     systems_file.close()
     return {detected_oses_name, detected_oses_path}
