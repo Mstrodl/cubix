@@ -2,8 +2,7 @@
 --/bin/sh: wrapper for /bin/cshell
 
 function main(args)
-    local editproc = fork("/bin/cshell")
-    prexec(editproc, {os.cshell.resolve(args[1])}, nil, nil, nil, true)
+    return execv("/bin/cshell", {fs_resolve(args[1])})
 end
 
 main({...})

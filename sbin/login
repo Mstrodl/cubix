@@ -4,12 +4,12 @@
 function main(args)
     local user = args[1]
     if user == nil then user = "^" end
-    local PC_HNAME = gethostname()
+    local HOSTNAME = gethostname()
     local try_user = ""
     local try_pwd = ""
 
     if user == "^" then
-        write(PC_HNAME.." login: ")
+        write(HOSTNAME.." login: ")
         try_user = read()
         write("Password: ")
         try_pwd = read("")
@@ -19,45 +19,30 @@ function main(args)
         try_pwd = read("")
     end
 
-    local ok, wd = os.lib.login.login(try_user, try_pwd)
+    local hp = lib.auth.start("login")
+
+    local ok = lib.auth.plain_session(hp, try_user, try_pwd)
     if ok then
         sleep(0)
-        
-        local k = fs.open("/tmp/current_user", 'w')
-        if not k then os.debug.kpanic("cannot open /tmp/current_user") end
-        k.write(try_user)
-        k.close()
 
         local new_wd = "/home/"..try_user
         if try_user == 'root' then
             new_wd = '/root'
-        else
-            new_wd = "/home/"..try_user
         end
-
-        local k2 = fs.open("/tmp/current_path", 'w')
-        if not k2 then os.debug.kpanic("cannot open /tmp/current_path") end
-        k2.write(new_wd)
-        k2.close()
-
-        --showing the initial path to csh
-        os.lib.control.register('/sbin/login', 'cwd', new_wd)
-
-        --getting itself as a process
-        os.lib.control.register('/sbin/login', 'login_lock', '1')
-        local itself = os.lib.proc.get_by_pid(pget_running())
-        os.lib.control.register('/sbin/login', 'login_lock', nil)
 
         --running csh
         sleep(0)
-        local a = fs.open("/etc/default_sh", 'r')
-        local shell_path = a.readAll()
-        a.close()
+        local shell_path = fs_readall("/etc/default_sh")
+        if not shell_path then
+            print("error reading /etc/default_sh, using /bin/lua")
+            shell_path = '/bin/lua'
+        end
 
-        local cshellproc = fork(shell_path)
-        prexec(cshellproc, nil, nil, nil, nil, true)
+        _setcwd(new_wd)
+
+        return execv(shell_path, {})
     else
-        os.ferror("\nLogin incorrect")
+        return ferror("\nLogin incorrect")
     end
 end
 

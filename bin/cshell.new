@@ -1,0 +1,161 @@
+--[[
+    cshell.new - new cubix shell
+]]
+
+-- deafault $PS1 value
+local default_PS1 = '%u@%h:%w $'
+local default_PATH = '/bin:/sbin:/usr/bin:/usr/sbin'
+
+function exec_command(cxt, cmd)
+    if string.sub(cmd, 1, 1) == '#' then return cxt end -- comments
+    local tokens = string.split(cmd, ' ')
+    local args = table.tail(tokens)
+    if not args then args = {} end
+
+    local executable_to_find = tokens[1]
+    if not executable_to_find then
+        ferror("csh: pr.err: exec_to_find == nil")
+        return cxt
+    end
+
+    -- builtins
+
+    if executable_to_find == 'echo' then
+        print(unpack(args, 1))
+        return cxt
+    elseif executable_to_find == 'sleep' then
+        if tokens[2] then
+            os.sleep(tonumber(tokens[2]))
+        else
+            os.sleep(1)
+        end
+        return cxt
+    elseif executable_to_find == 'ppath' then
+        print(cxt['var']['PATH'])
+        return cxt
+    elseif executable_to_find == 'alias' then
+        return cxt
+    elseif executable_to_find == 'set' then
+        local var_to_change = args[1]
+        local var_new_value = string.join(' ', table.tail(args))
+        cxt['var'][var_to_change] = var_new_value
+        return cxt
+    elseif executable_to_find == 'cd' then
+        return cxt
+    end
+
+    -- if it is an absolute path, treat it as one
+    if string.sub(executable_to_find, 1, 1) == '/' then
+        if fs.exists(executable_to_find) then
+            return cxt, execv(executable_to_find, args)
+        end
+    end
+
+    local path_sp = string.split(cxt['var']['PATH'], ':')
+    for _,path_element in ipairs(path_sp) do
+        local pth = path_element..'/'..executable_to_find
+        print(pth)
+        if fs.exists(pth) then
+            return cxt, execv(pth, args)
+        end
+    end
+
+    return cxt, ferror(rprintf('csh: %s: file not found',
+        executable_to_find))
+end
+
+local function exec_script(pth, cxt)
+    local script_data = fs_readall(pth)
+    if not script_data then return cxt end
+
+    for _,line in ipairs(string.split(script_data, '\n')) do
+        cxt = exec_command(cxt, line)
+    end
+
+    return cxt
+end
+
+local function write_ps1(cxt, shell_char, hostname)
+    local ps1 = cxt['var']['PS1']
+
+    local i = 1
+    for j=1,#ps1 do
+        local char = string.sub(ps1,i,i)
+        if char == '%' then
+            if string.sub(ps1,i+1,i+1) == 'u' then
+                write(lib.auth.getuser(lib.pm.currentuid()).name)
+                i = i + 2
+            elseif string.sub(ps1,i+1,i+1) == 'h' then
+                local k = hostname:find("%.")
+                if k == 1 then k = #hostname end
+                write(string.sub(hostname, 1, k - 1))
+                i = i + 2
+            elseif string.sub(ps1,i+1,i+1) == 'H' then
+                write(hostname)
+                i = i + 2
+            elseif string.sub(ps1,i+1,i+1) == 'j' then
+                local jobs = lib.pm.num_threads()
+                write(tostring(jobs))
+                i = i + 2
+            elseif string.sub(ps1,i+1,i+1) == 'w' then
+                write(_ENV['__CWD'])
+                i = i + 2
+            else
+                write('%')
+                i = i + 1
+            end
+        elseif char == '\\' then
+            if string.sub(ps1,i+1,i+4) == '033[' then
+                if string.sub(ps1,i+5,i+5) == '0' and
+                   string.sub(ps1,i+6,i+6) == ';' then
+                    local code = string.sub(ps1, i+7, i+8)
+                    term.set_term_color(lib.ansi.get(code, 0))
+                    i = i + 10
+                elseif string.sub(ps1,i+5,i+5) == '1' and
+                       string.sub(ps1,i+6,i+6) == ';' then
+                    local code = string.sub(ps1, i+7, i+8)
+                    term.set_term_color(lib.ansi.get(code, 1))
+                    i = i + 10
+                else
+                    i = i + 4
+                end
+            else
+                write("\\")
+                i = i + 1
+            end
+        elseif char == '$' then
+            write(shell_char..' ')
+            i = i + 1
+        else
+            write(char)
+            i = i + 1
+        end
+    end
+end
+
+function main(args)
+    -- initialize vars and context
+    local csh_context = {}
+    csh_context['var'] = {}
+    csh_context['alias'] = {}
+    csh_context['history'] = {}
+
+    -- default variables for shell
+    csh_context['var']['PS1'] = default_PS1
+    csh_context['var']['PATH'] = default_PATH
+
+    csh_context = exec_script(fs_resolve('.cshrc'), csh_context)
+
+    -- go to loop
+    while true do
+        write_ps1(csh_context, '#', gethostname())
+        local cmd = read(nil, csh_context['history'])
+        if cmd == 'exit' then break end
+        if (#cmd > 0) then
+            table.insert(csh_context['history'], cmd)
+        end
+        csh_context = exec_command(csh_context, cmd)
+    end
+end
+
+main({...})

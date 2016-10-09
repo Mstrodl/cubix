@@ -2,7 +2,7 @@
 --/bin/pwd: print working directory
 
 function main()
-    print(os.cshell.getwd())
+    print(__CWD)
 end
 
 main({...})

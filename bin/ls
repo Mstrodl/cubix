@@ -50,8 +50,8 @@ function ls(pth, showperm)
     term.set_term_color(colors.green)
     for k,v in ipairs(folders) do
 	    if showperm then
-            local info = fsmanager.getInformation(v)
-		    local prm = fsmanager.strPerm(info.perms)
+            local info = lib.fs._inodes.get_inode(v)
+		    local prm = lib.fs.perm_to_str(info.perm)
 		    term.set_term_color(colors.yellow)
 		    write(prm..' ')
 			term.set_term_color(colors.green)
@@ -64,8 +64,8 @@ function ls(pth, showperm)
     --printing files
     for k,v in ipairs(files) do
         if showperm then
-            local info = fsmanager.getInformation(pth..'/'..v)
-		    local prm = fsmanager.strPerm(info.perms)
+            local info = lib.fs._inodes.get_inode(pth..'/'..v)
+		    local prm = lib.fs.perm_to_str(info.perm)
 			term.set_term_color(colors.yellow)
 		    write(prm..' ')
 			term.set_term_color(colors.white)
@@ -78,7 +78,7 @@ function ls(pth, showperm)
 end
 
 function main(args)
-    local cpath = os.cshell.getpwd()
+    local cpath = __CWD
 	local show_perm = false
 
 	local p = args[1]
@@ -89,10 +89,12 @@ function main(args)
 
     if p == nil then
         ls(cpath, show_perm)
-    elseif fs.exists(os.cshell.resolve(p)) then
-        ls(os.cshell.resolve(p), show_perm)
+    elseif string.sub(p, 1, 1) == '/' then
+        ls(p, show_perm)
+    elseif fs.exists(__CWD..'/'..p) then
+        ls(__CWD..'/'..p, show_perm)
     else
-        os.ferror("ls: node not found")
+        ferror("ls: node not found")
     end
 	return 0
 end

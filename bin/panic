@@ -2,7 +2,7 @@
 --/bin/panic: panics the kernel
 
 function main()
-    os.debug.kpanic('panic')
+    syslog.panic('panic', 'kernel panic')
 end
 
 main({...})

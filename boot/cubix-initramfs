@@ -1,8 +1,8 @@
 #!/usr/bin/env lua
 --libcubix: compatibility for cubix
 
-AUTHOR = 'Lukas Mendes'
-VERSION = '0.3'
+AUTHOR = 'Luna Mendes'
+VERSION = '0.4'
 
 --[[
 
@@ -22,16 +22,23 @@ the functions in Cubix, without making the programs to be run at Cubix enviromen
 
 ]]
 
-os.viewTable = function (t)
+-- install compatibility between color and non-color computers
+term.set_term_color = function (c)
+    if term.isColor() then
+        term.setTextColor(c)
+    end
+end
+
+table.view = function (t)
     if t == nil then return 0 end
     print(t)
     for k,v in pairs(t) do
         print(k..","..tostring(v).." ("..type(v)..")")
     end
 end
-_G['tview'] = os.viewTable
+_G['tview'] = table.view
 
-os.tail = function(t)
+table.tail = function(t)
     if # t <= 1 then
         return nil
     end
@@ -43,15 +50,14 @@ os.tail = function(t)
     end
     return newtable
 end
-_G['tail'] = os.tail
 
-os.strsplit = function (inputstr, sep)
+function string.split (inputstr, sep)
     if sep == nil then
         sep = "%s"
     end
     if type(inputstr) ~= 'string' then
         term.set_term_color(colors.red)
-        print("os.strsplit: type(inputstr) == "..type(inputstr))
+        print("strsplit: type(inputstr) == "..type(inputstr))
         term.set_term_color(colors.white)
         return 1
     end
@@ -65,7 +71,11 @@ os.strsplit = function (inputstr, sep)
     end
     return t
 end
-_G['strsplit'] = os.strsplit
+os.strsplit = string.split -- backwards compatibility
+
+string.splitlines = function(s)
+    return string.split(s, '\n')
+end
 
 function strcount(str, char)
     local c = 0
@@ -79,14 +89,14 @@ function strcount(str, char)
 end
 _G['strcount'] = strcount
 
-os.safestr = function (s)
+string.makesafe = function (s)
     if string.byte(s) > 191 then
         return '@'..string.byte(s)
     end
     return s
 end
 
-os.generateSalt = function(l)
+string.genrand = function(l)
     if l < 1 then
         return nil
     end
@@ -182,58 +192,58 @@ function class(base, init)
 end
 _G['class'] = class
 
-function tmerge(t1, t2)
+table.merge = function(t1, t2)
     for k,v in pairs(t2) do
         t1[k] = v
     end
     return t1
 end
-_G['tmerge'] = tmerge
+_G['tmerge'] = table.merge
 
-function texists(el, tbl)
+table.exists = function(el, tbl)
     for k,v in pairs(tbl) do
         if v == el then
             return true
         end
     end
 end
-_G['texists'] = texists
+_G['texists'] = table.exists
 
-function table_gen(el, len)
+table.genwe = function(el, len)
     r = {}
     for i=1,len do
         r[i] = el
     end
     return r
 end
-_G['table_gen'] = table_gen
+_G['table_gen'] = table.genwe
 
-function table_fgen(func, len)
+table.map = function(func, len)
     r = {}
     for i=1,len do
         r[i] = func()
     end
     return r
 end
-_G['table_fgen'] = table_fgen
+_G['table_fgen'] = table.map
 
-function tlength(tbl)
-    local k = 0
-    for i=1,#tbl do
-        k = k + 1
+table.length = function(tbl)
+    local i = 0
+    for k,v in pairs(tbl) do
+        i = i + 1
     end
-    return k
+    return i
 end
-_G['tlength'] = tlength
+_G['tlength'] = table.length
 
-function tsum(tbl)
+table.sum = function(tbl)
     local r = 0
     for k,v in pairs(tbl) do
         r = r + v
     end
     return r
 end
-_G['tsum'] = tsum
+_G['tsum'] = table.sum
 
 function tviewnum(tbl)
     write('{')
@@ -244,7 +254,7 @@ function tviewnum(tbl)
 end
 _G['tviewnum'] = tviewnum
 
-function tmax(tbl)
+table.max = function(tbl)
     local tmp = tbl[1]
     for k,v in ipairs(tbl) do
         if tmp < v then
@@ -253,9 +263,9 @@ function tmax(tbl)
     end
     return tmp
 end
-_G['tmax'] = tmax
+_G['tmax'] = table.max
 
-function tmin(tbl)
+table.min = function(tbl)
     local tmp = tbl[1]
     for k,v in ipairs(tbl) do
         if v < tmp then
@@ -264,7 +274,7 @@ function tmin(tbl)
     end
     return tmp
 end
-_G['tmin'] = tmin
+_G['tmin'] = table.min
 
 function tstr(str)
     local t = {}
@@ -291,6 +301,31 @@ function reduce(f, seq, init_val)
     return acc
 end
 _G['reduce'] = reduce
+
+function rprintf(...)
+    local args = {...}
+    return string.format(args[1], unpack(args, 2))
+end
+_G['rprintf'] = rprintf
+
+function printf(...)
+    local args = {...}
+    print(string.format(args[1], unpack(args, 2)))
+end
+_G['printf'] = printf
+
+string.join = function(s, tbl)
+    local res = ''
+    for i=1,#tbl do
+        local el = tbl[i]
+        if i == #tbl then
+            res = res .. el
+        else
+            res = res .. el .. s
+        end
+    end
+    return res
+end
 
 function generate_lcubix(type, path)
     if type == 'all' then

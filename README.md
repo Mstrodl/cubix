@@ -29,6 +29,8 @@ You **need** to know how to manage a system with many code and anything could ha
 
 ### Installing using cubixLI
 
+**FOR THE `rewrite` BRANCH, CUBIXLI DOES NOT WORK**
+
 cubixli(cubix live installer) will download the latest package file of the system on the servers
 and will download it, this version is suitable for users that don't want to code on it.
 

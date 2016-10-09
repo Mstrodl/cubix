@@ -1,0 +1,268 @@
+#!/usr/bin/env lua
+
+--[[
+
+Cubix - A simple microkernel for ComputerCraft
+
+]]
+
+AUTHOR = 'Luna Mendes'
+
+VER_MAJOR = 0
+VER_MINOR = 6
+VER_REV = 0
+VER_FLAG = '-rc3'
+CUBIX_VERSION = VER_MAJOR..'.'..VER_MINOR..'.'..VER_REV..VER_FLAG
+
+STABLE = ((VER_MAJOR ~= 0) and ((VER_MINOR % 2)) == 0 and ((VER_REV % 2) == 0))
+
+if STABLE then
+    -- supress pullEvent
+    local pullEvent = os.pullEvent
+    os.pullEvent = os.pullEventRaw
+else
+    print("[cubix] loading unstable")
+end
+
+local kernel_flags = {
+    ['init'] = '/sbin/init',
+    ['runlevel'] = '1',
+}
+for _,v in ipairs({...}) do
+    if v == 'quiet' then
+        kernel_flags.quiet = true
+    elseif v == 'splash' then
+        kernel_flags.splash = true
+
+    elseif string.sub(v, 0, 4) == 'init' then
+        k = string.split(v, '=')
+        kernel_flags.init = k[2]
+    elseif string.sub(v, 0, 8) == 'runlevel' then
+        k = string.split(v, '=')
+        kernel_flags.sRunlevel = k[2]
+    end
+
+end
+
+function halt()
+    while true do sleep(1) end
+end
+
+function ferror(message)
+    term.set_term_color(colors.red)
+    print(message)
+    term.set_term_color(colors.white)
+end
+_G['ferror'] = ferror
+
+cubix = {}
+local boot_flag = false
+cubix.boot_flag = boot_flag
+_G['cubix'] = cubix
+
+cubix.version = function()
+    return CUBIX_VERSION
+end
+
+local function load_file(pth)
+    -- just some tweaks to os.loadAPI
+    local n = fs.getName(pth)
+    if not fs.exists(pth) then
+        ferror("load_file: "..pth.." doesn't exist")
+        return false
+    end
+
+    local tEnv = {}
+    setmetatable( tEnv, { __index = _G } )
+    local fnAPI, err = loadfile( pth, tEnv )
+    if fnAPI then
+        local ok, err = pcall( fnAPI )
+        if not ok then
+            printError( err )
+            return false
+        end
+    else
+        printError( err )
+        return false
+    end
+
+    local lib_exported = {}
+    for k,v in pairs( tEnv ) do
+        if k ~= "_ENV" then
+            lib_exported[k] =  v
+        end
+    end
+
+    return lib_exported
+end
+cubix.load_file = load_file
+
+local isReloadable = {}
+local mod_order = {}
+
+lib = {}
+lib.get = function(path)
+    return load_file(path)
+end
+
+_G['lib'] = lib
+
+cubix.load = function(module_name, path)
+    if isReloadable[module_name] ~= nil and isReloadable[module_name] == false then
+        --print("[mod] cannot reload "..module_name..": module locked")
+        printf("[mod] cannot reload %s: module locked", module_name)
+        return false
+    end
+
+    if syslog then
+        syslog.serlog(syslog.S_INFO, 'mod:load', module_name)
+    else
+        print('[mod:load] '..module_name)
+    end
+
+    local mod_tbl = load_file(path)
+    if not mod_tbl and (cubix.boot_flag) then
+        os.debug.kpanic("[mod] not loaded: "..module_name)
+        return false
+
+    elseif not mod_tbl then
+        if syslog then
+            syslog.serlog(syslog.S_ERR, 'mod', 'error loading '..module_name)
+            return false
+        else
+            return print("[mod] libroutine() not found")
+        end
+    end
+
+    -- _G[module_name] = mod_tbl
+    if mod_tbl.libroutine ~= nil then
+        mod_tbl.libroutine()
+    else
+        if syslog then
+            syslog.serlog(syslog.S_ERR, 'mod', 'libroutine not found')
+        else
+            print("[mod] libroutine() not found")
+        end
+        sleep(.3)
+    end
+
+    lib[module_name] = mod_tbl
+    if mod_tbl.lib_reloadable then
+        isReloadable[module_name] = mod_tbl.lib_reloadable()
+    else
+        isReloadable[module_name] = mod_tbl.RELOADABLE
+    end
+    mod_order[#mod_order + 1] = module_name
+
+    term.set_term_color(colors.green)
+    if syslog then
+        syslog.serlog(syslog.S_OK, 'mod', 'loaded: '..module_name)
+    else
+        print('[mod] loaded: '..module_name)
+    end
+    term.set_term_color(colors.white)
+    return true
+end
+
+cubix.print_modules = function()
+    for k,v in pairs(mod_order) do
+        write(v..' ')
+    end
+    write('\n')
+end
+
+function sysload(m_name, m_path)
+    if not cubix.load(m_name, m_path) then
+        if syslog then
+            syslog.panic("sysload", "error loading %s at %s", m_name, m_path)
+        else
+            -- no syslog, just halt
+            halt()
+        end
+    end
+end
+
+cubix.boot = function ()
+    if boot_flag then
+        return ferror("cubix.boot: cubix already booted!")
+    end
+    boot_flag = true
+
+    -- system clock starts at 0
+    local old_clock = os.clock
+    local started_time = os.clock()
+    os.clock = function()
+        return old_clock() - started_time
+    end
+
+    -- show welcome message
+    term.set_term_color(colors.green)
+    print("Welcome to Cubix "..CUBIX_VERSION..'!')
+    term.set_term_color(colors.white)
+    os.sleep(.5)
+
+    --[[
+        Lib loading process:
+        syslog, acpi
+    ]]
+
+    sysload("syslog", "/lib/syslog/syslog.lua")
+    syslog.log("Loaded syslog")
+    lib.syslog.syslog_boot()
+
+    -- we don't *actually* need ACPI, but... yeah.
+    sysload("acpi", "/lib/acpi.lua")
+
+    -- working system without any other shit
+    sysload("pm", "/lib/base/procman.lua")
+    sysload("libev", "/lib/modules/libev.lua")
+    sysload("udev", "/lib/base/dman.lua")
+
+    -- we don't *actually* need time.lua to load too soon, but... yeah. (2)
+    sysload("time", "/lib/base/time.lua")
+
+    -- load crypto and rand because some fs drivers may need them
+    sysload("crypto", "/lib/crypto/crypto.lua")
+    sysload("rand", "/lib/crypto/rand/init.lua")
+
+    -- load fs(manages VFS and stuff)
+    sysload("fs", "/lib/base/fs.lua")
+
+    -- load most of the things for userspace
+    -- sysload("tty", "/lib/base/tty.lua")
+    sysload("auth", "/lib/base/auth/cauth.lua")
+    sysload("io", "/lib/base/io.lua")
+        -- io: BufferIO, StringIO, Pipes, etc...
+    -- sysload("cache", "/lib/base/cache.lua")
+        -- similar to os.lib.control in old kernel
+    -- sysload("socket", "/lib/net/socket.lua")
+    sysload("ansi", "/lib/ext/libansi.lua")
+    -- sysload("bignum", "/lib/ext/bignum.lua")
+        -- needed for crypto libs
+
+    -- idle thread
+    local p2_26 = math.pow(2, 26)
+    threading.new_thread(function()
+        while true do sleep(p2_26) end
+    end, 'idle')
+
+    threading.new_thread(function()
+        --return execv(kernel_flags.init, {kernel_flags.runlevel})
+        syslog.serlog(syslog.S_INFO, "init", "running init process")
+        execv("/sbin/init", {})
+        os.reboot()
+    end, 'init')
+
+    syslog.serlog(syslog.S_INFO, "cubix", "initializing threads")
+    threading.start()
+
+    -- signal user all threads ended
+    term.set_term_color(colors.red)
+    print("[ ERR ] [cubix] execution terminated")
+    term.set_term_color(colors.white)
+end
+
+cubix.boot()
+
+print("[cubix] hlt.")
+halt()

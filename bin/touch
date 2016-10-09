@@ -1,16 +1,8 @@
 #!/usr/bin/env lua
 --/bin/touch: creates empty files
 
-_handler = {}
-_handler.signal_handler = function (sig)
-    if sig == 'kill' then
-        --print("touch: recieved SIGKILL")
-        return 0
-    end
-end
-
 function main(args)
-    local d = os.cshell.resolve(args[1])
+    local d = fs_resolve(args[1])
     if not fs.exists(d) then
         fs.open(d, 'w').close()
     end

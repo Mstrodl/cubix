@@ -84,13 +84,13 @@ function CUI(m)
         cprint("Select a OS to load")
         cprint("[up/down & enter]")
 
-        a, b= os.pullEventRaw()
+        a, b = os.pullEventRaw()
         if a == "key" then
-            if b==200 and n>1 then n=n-1 end
-            if b==208 and n<l then n=n+1 end
-            if b==28 then break end --break loop
-            if b==46 then kpress = 'c' break end --command line
-            if b==18 then kpress = 'e' break end --edit bootscript
+            if b == 200 and n>1 then n=n-1 end
+            if b == 208 and n<l then n=n+1 end
+            if b == 28 then break end --break loop
+            if b == 46 then kpress = 'c' break end --command line
+            if b == 18 then kpress = 'e' break end --edit bootscript
         end
     end
     term.clear()
@@ -106,12 +106,14 @@ function read_osfile()
     local detected_oses_path = {}
     print("[read_config] systems.cfg")
     for k,v in pairs(systems) do
-        local sysdat = strsplit(systems[k], ';')
-        detected_oses_name[i] = sysdat[1]
-        detected_oses_path[i] = sysdat[2]
-        print(sysdat[1]..' -> '..sysdat[2])
-        i = i + 1
-        os.sleep(.1)
+        if string.sub(v, 1, 1) ~= '#' then
+            local sysdat = strsplit(systems[k], ';')
+            detected_oses_name[i] = sysdat[1]
+            detected_oses_path[i] = sysdat[2]
+            print(sysdat[1]..' -> '..sysdat[2])
+            i = i + 1
+            os.sleep(.08)
+        end
     end
     systems_file.close()
     return {detected_oses_name, detected_oses_path}

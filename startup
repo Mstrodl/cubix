@@ -8,7 +8,7 @@ term.clear()
 term.setCursorPos(1,2)
 
 local hlt = function()
-    while true do sleep(0) end
+    while true do sleep(1) end
 end
 
 if fs.getSize("mbr_code") > 64 then

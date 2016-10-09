@@ -1,16 +1,8 @@
 #!/usr/bin/env lua
 --/bin/wget
 
-_handler = {}
-_handler.signal_handler = function (sig)
-    if sig == 'kill' then
-        return 0
-    end
-end
-
 if not http then
-    os.ferror("wget: can't use HTTP API")
-    return 0
+    return ferror("wget: can't use HTTP API")
 end
 
 function usage()
@@ -63,7 +55,7 @@ function main(args)
         ferror("wget: ???")
         return 1
     end
-    local p = os.cshell.resolve(destination)
+    local p = fs_resolve(destination)
     local h = fs.open(p, 'w')
     h.write(response)
     h.close()

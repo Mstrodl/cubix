@@ -1,0 +1,26 @@
+#!/usr/bin/env lua
+
+--[[
+
+cubix.loader - bootstrap the initramfs and load kernel
+
+]]
+
+args = {...}
+
+term.set_term_color = function (c)
+    if term.isColor() then
+        term.setTextColor(c)
+    end
+end
+
+if os.loadAPI("/boot/cubix-initramfs") then
+    print("[bootstrap] loaded initramfs.")
+else
+    term.set_term_color(colors.red)
+    print("[bootstrap] initramfs error, can't start kernel.")
+    while true do sleep(0) end --hlt
+end
+
+print(table.unpack(args, 1))
+os.run({}, '/boot/cubix.new', table.unpack(args, 1))

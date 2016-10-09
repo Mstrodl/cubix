@@ -5,15 +5,14 @@ function main(args)
     local argmt = args[1]
 
     local PC_ID = gethostname()
-    local VERSION = CUBIX_VERSION
-    local BUILD_DATE = CUBIX_BUILDD
+    local VERSION = cubix.version()
 
     function uname(arg)
         args = {0, arg}
         if args == nil then
             return 'Cubix'
         elseif args[2] == '-a' then
-            return 'Cubix '..PC_ID..' v'..VERSION..'-ccraft  Cubix '..VERSION..' ('..BUILD_DATE..') x86 Cubix'
+            return 'Cubix '..PC_ID..' v'..VERSION..'-ccraft  Cubix '..VERSION..' x86 Cubix'
         elseif args[2] == '-s' then
             return 'Cubix'
         elseif args[2] == '-n' then

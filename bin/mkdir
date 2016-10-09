@@ -5,7 +5,7 @@ function main(args)
     if #args == 0 then return 0 end
     --local folderperm = args[2] or '755'
     for _,folder in ipairs(args) do
-        fs.makeDir(shell.resolve(folder))
+        fs.makeDir(fs_resolve(folder))
     end
     return 0
 end

@@ -1,18 +1,10 @@
 #!/usr/bin/env lua
 --/bin/rm: removes files and folders
 
-_handler = {}
-_handler.signal_handler = function(sig)
-    if sig == 'kill' then
-        --print("rm: SIGKILL")
-        return 0
-    end
-end
-
 function main(args)
     --actually doing multiple args
     for i=1, #args do
-        local file = os.cshell.resolve(args[i])
+        local file = fs_resolve(args[i])
         if fs.exists(file) then
             fs.delete(file)
         else
