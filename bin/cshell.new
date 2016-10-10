@@ -33,6 +33,10 @@ function exec_command(cxt, cmd)
     elseif executable_to_find == 'ppath' then
         print(cxt['var']['PATH'])
         return cxt
+    elseif executable_to_find == 'source' or
+        executable_to_find == '.' then
+        cxt = exec_script(tokens[2], cxt)
+        return cxt
     elseif executable_to_find == 'alias' then
         return cxt
     elseif executable_to_find == 'set' then
@@ -89,6 +93,7 @@ local function shell_command(sh_context, cmd)
     for _,command in pairs(string.split(cmd, "&&")) do
         if command:find("|") then -- piping
             local commands = string.split(command, "|")
+            --TODO: pipes
             local main_pipe = lib.pm.create_pipe('main')
             for _,cmd_exec in pairs(commands) do
                 -- execute command with pipe

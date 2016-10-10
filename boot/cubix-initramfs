@@ -326,14 +326,3 @@ string.join = function(s, tbl)
     end
     return res
 end
-
-function generate_lcubix(type, path)
-    if type == 'all' then
-        local h = fs.open("/boot/libcubix", 'r')
-        local all_lcubix = h.readAll()
-        h.close()
-        local h2 = fs.open(path, 'w')
-        h2.write(all_lcubix)
-        h2.close()
-    end
-end
