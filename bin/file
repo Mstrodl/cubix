@@ -1,0 +1,10 @@
+#!/usr/bin/env lua
+--[[
+    file - show what file is
+]]
+
+function main(args)
+
+end
+
+main({...})

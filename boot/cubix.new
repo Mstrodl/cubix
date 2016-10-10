@@ -110,7 +110,9 @@ _G['lib'] = lib
 cubix.load = function(module_name, path)
     if isReloadable[module_name] ~= nil and isReloadable[module_name] == false then
         --print("[mod] cannot reload "..module_name..": module locked")
+        term.set_term_color(colors.red)
         printf("[mod] cannot reload %s: module locked", module_name)
+        term.set_term_color(colors.white)
         return false
     end
 
