@@ -326,3 +326,11 @@ string.join = function(s, tbl)
     end
     return res
 end
+
+string.multiply = function(s, n)
+    local res = ''
+    for i=1,n do
+        res = res .. s
+    end
+    return res
+end
