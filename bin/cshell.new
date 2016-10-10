@@ -54,7 +54,6 @@ function exec_command(cxt, cmd)
     local path_sp = string.split(cxt['var']['PATH'], ':')
     for _,path_element in ipairs(path_sp) do
         local pth = path_element..'/'..executable_to_find
-        print(pth)
         if fs.exists(pth) then
             return cxt, execv(pth, args)
         end
@@ -68,11 +67,40 @@ local function exec_script(pth, cxt)
     local script_data = fs_readall(pth)
     if not script_data then return cxt end
 
-    for _,line in ipairs(string.split(script_data, '\n')) do
+    for _,line in ipairs(string.splitlines(script_data)) do
         cxt = exec_command(cxt, line)
     end
 
     return cxt
+end
+
+local function shell_command(sh_context, cmd)
+    if cmd == nil or cmd == '' then return sh_context end
+
+    --comments
+    if string.sub(cmd, 1, 1) == '#' then return sh_context end
+
+    --parse multiple commands
+    local c = cmd
+    if string.sub(c,#c,#c) == '&' and string.sub(c,#c - 1,#c) ~= '&&' then
+        sh_context['shell']['thread'] = false
+    end
+
+    for _,command in pairs(string.split(cmd, "&&")) do
+        if command:find("|") then -- piping
+            local commands = string.split(command, "|")
+            local main_pipe = lib.pm.create_pipe('main')
+            for _,cmd_exec in pairs(commands) do
+                -- execute command with pipe
+
+                sh_context = exec_command(sh_context, cmd_exec, main_pipe)
+            end
+        else
+            -- run as normal
+            sh_context = exec_command(sh_context, command)
+        end
+    end
+    return sh_context
 end
 
 local function write_ps1(cxt, shell_char, hostname)
@@ -154,7 +182,7 @@ function main(args)
         if (#cmd > 0) then
             table.insert(csh_context['history'], cmd)
         end
-        csh_context = exec_command(csh_context, cmd)
+        csh_context = shell_command(csh_context, cmd)
     end
 end
 
