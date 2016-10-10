@@ -221,7 +221,7 @@ Process = function(file)
     }
     pm_processes[pid_last] = p
 
-    syslog.log("[pm] new: "..p.file, syslog.INFO)
+    -- syslog.log("[pm] new: "..p.file, syslog.INFO)
     return p
 end
 

@@ -6,7 +6,8 @@ local RUNLEVELFUNC = {}
 function run_scripts(runlevel)
     local runlevel_folder = rprintf("/etc/rc%d.d", runlevel)
     for k,v in pairs(fs.list(runlevel_folder)) do
-        shell.run(fs.combine(runlevel_folder,v))
+        execv(lib.auth.getshell(lib.pm.currentuid()),
+            {fs.combine(runlevel_folder,v)})
     end
 end
 
@@ -63,10 +64,11 @@ RUNLEVELFUNC[5] = runlevel_5
 RUNLEVELFUNC[6] = runlevel_6
 
 function main(args)
-    print("/sbin/init: start")
     if lib.pm.currentuid() ~= 0 then
-        syslog.panic('init', 'init needs to be run by root')
+        syslog.panic('init', 'only superuser can run init')
     end
+
+    syslog.serlog(syslog.S_INFO, "init", "/sbin/init: start")
 
     if args[1] ~= nil then
         runlevel = tonumber(args[1])
@@ -79,9 +81,11 @@ function main(args)
             return 1
         end
     end
+
     if lib.tty then
         lib.tty.current_tty("/dev/tty1")
     end
+
     run_scripts(runlevel)
     RUNLEVELFUNC[runlevel]()
     return 0

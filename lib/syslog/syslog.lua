@@ -50,7 +50,9 @@ function syslog_log(message)
         a.close()
     end]]
 
-    print(message_to_write)
+    if not noscreen then
+        print(message_to_write)
+    end
     log_buffer = log_buffer .. (message_to_write..'\n')
 
     --os.sleep(math.random() / 16.)
@@ -78,10 +80,12 @@ syslog.log = function(msg, level, screen_flag, color)
         term.set_term_color(color)
     end
 
+    if not level then level = syslog.ERROR end
+
     if screen_flag == nil or (screen_flag == false and
     cubix.boot_flag or _G['CUBIX_REBOOTING'] or
     _G['CUBIX_TURNINGOFF']) then
-        syslog_log(msg)
+        syslog_log(msg, level < syslog.INFO)
     end
 
     term.set_term_color(colors.white)
