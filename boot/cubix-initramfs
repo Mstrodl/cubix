@@ -326,3 +326,7 @@ string.join = function(s, tbl)
     end
     return res
 end
+
+function cubix_boot_routine()
+    cubix.boot()
+end

@@ -265,8 +265,3 @@ cubix.boot = function ()
     print("[ ERR ] [cubix] execution terminated")
     term.set_term_color(colors.white)
 end
-
-cubix.boot()
-
-print("[cubix] hlt.")
-halt()
