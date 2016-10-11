@@ -4,11 +4,11 @@
 --check if a string exists in a list
 local function isin_str(lst, s)
     for _,v in ipairs(lst) do
-	    if v == s then
-		    return true
-		end
-	end
-	return false
+        if v == s then
+            return true
+        end
+    end
+    return false
 end
 
 local chars = {}
@@ -37,7 +37,7 @@ function ls(pth, showperm)
     local nodes = fs.list(pth)
     local files = {}
     local folders = {}
-    for k,v in ipairs(nodes) do
+    for _,v in ipairs(nodes) do
         if fs.isDir(pth..'/'..v) then
             table.insert(folders, v)
         else
@@ -49,43 +49,43 @@ function ls(pth, showperm)
     --printing folders
     term.set_term_color(colors.green)
     for k,v in ipairs(folders) do
-	    if showperm then
+        if showperm then
             local info = lib.fs._inodes.get_inode(v)
-		    local prm = lib.fs.perm_to_str(info.perm)
-		    term.set_term_color(colors.yellow)
-		    write(prm..' ')
-			term.set_term_color(colors.green)
-			write(v..'\n')
-		else
-		    write(v..' ')
-		end
+            local prm = lib.fs.perm_to_str(info.perm)
+            term.set_term_color(colors.yellow)
+            write(prm..' ')
+            term.set_term_color(colors.green)
+            write(v..'\n')
+        else
+            write(v..' ')
+        end
     end
     term.set_term_color(colors.white)
     --printing files
     for k,v in ipairs(files) do
         if showperm then
             local info = lib.fs._inodes.get_inode(pth..'/'..v)
-		    local prm = lib.fs.perm_to_str(info.perm)
-			term.set_term_color(colors.yellow)
-		    write(prm..' ')
-			term.set_term_color(colors.white)
-			write(v..'\n')
-		else
-		    write(v..' ')
-		end
+            local prm = lib.fs.perm_to_str(info.perm)
+            term.set_term_color(colors.yellow)
+            write(prm..' ')
+            term.set_term_color(colors.white)
+            write(v..'\n')
+        else
+            write(v..' ')
+        end
     end
     write('\n')
 end
 
 function main(args)
     local cpath = __CWD
-	local show_perm = false
+    local show_perm = false
 
-	local p = args[1]
-	if isin_str(args, "-la") then
-	    show_perm = true
-		p = args[2]
-	end
+    local p = args[1]
+    if isin_str(args, "-la") then
+        show_perm = true
+        p = args[2]
+    end
 
     if p == nil then
         ls(cpath, show_perm)
@@ -96,7 +96,7 @@ function main(args)
     else
         ferror(rprintf("ls: %s: node not found", p))
     end
-	return 0
+    return 0
 end
 
 main({...})
