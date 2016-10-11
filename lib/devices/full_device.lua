@@ -1,24 +1,15 @@
 #!/usr/bin/env lua
 --full_device.lua
 
-dev_full = {}
-dev_full.name = '/dev/full'
-dev_full.device = {}
-dev_full.device.device_read = function (bytes)
-    if bytes == nil then
-        return 0
-    else
-        result = ''
-        for i = 0, bytes do
-            result = result .. safestr(0)
-        end
-        return result
-    end
-    return 0
+full_device = class(lib.udev.Device, function(self)
+    self.description = 'Full Device'
+    self.dev_path = '/dev/full'
+end)
+
+function full_device:_write_bytes(bytes)
+    return ferror("zerodev: full")
 end
 
-dev_full.device.device_write = function(s)
-    ferror("devwrite: disk full")
-    os.sys_signal(os.signals.SIGILL)
-    return 1
+function make_device()
+    return full_device()
 end

@@ -31,11 +31,36 @@ Device = class(function(self)
 end)
 
 function Device:read(bytes)
-    return ferror("read: Not Implemented")
+    --[[
+        lib.udev.Device:read(bytes : number)
+
+        returns a string with `bytes` length, containing the data
+        from the object being opened
+    ]]
+    if not tonumber(bytes) then
+        return ferror("read: bytes is not a number")
+    end
+
+    if not self._read_bytes then
+        return ferror("_read_bytes: Not Implemented")
+    end
+    return self:_read_bytes(bytes)
 end
 
-function Device:write(bytes)
-    return ferror("write: Not Implemented")
+function Device:write(bytestr)
+    --[[
+        lib.udev.Device:write(bytestr : string)
+
+        returns the number of bytes written to the device
+    ]]
+    if type(bytestr) ~= 'string' then
+        return ferror("write: bytestr is not a string")
+    end
+
+    if not self._write_bytes then
+        return ferror("_write_bytes: Not Implemented")
+    end
+    return self:_write_bytes(bytestr)
 end
 
 function libroutine()

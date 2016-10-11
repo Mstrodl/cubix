@@ -1,11 +1,21 @@
-dev_null = {}
-dev_null.name = '/dev/null'
-dev_null.device = {}
+#!/usr/bin/env lua
+--[[
+    null_device.lua
+]]
 
-dev_null.device.device_read = function (bytes)
-    print("cannot read from /dev/null")
+null_device = class(lib.udev.Device, function(self)
+    self.description = 'Null Device'
+    self.dev_path = '/dev/null'
+end)
+
+function null_device:_read_bytes(bytes)
+    return ferror("nulldev: error reading")
 end
 
-dev_null.device.device_write = function(s)
-    return 0
+function null_device:_write_bytes(bytestr)
+    return #bytestr
+end
+
+function make_device()
+    return null_device()
 end
