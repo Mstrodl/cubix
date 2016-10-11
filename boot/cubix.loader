@@ -56,10 +56,11 @@ else
     while true do sleep(0) end --hlt
 end
 
-print(table.unpack(args, 1))
+print('[bootstrap:args] ', table.unpack(args, 1))
 os.run({}, '/boot/cubix.new', table.unpack(args, 1))
 
 initramfs.cubix_boot_routine()
 
 print("[bootstrap] hlt.")
-while true do sleep(1000) end
+
+while true do sleep(1000) end -- hlt

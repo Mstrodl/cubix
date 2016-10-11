@@ -6,6 +6,20 @@
 local default_PS1 = '%u@%h:%w $'
 local default_PATH = '/bin:/sbin:/usr/bin:/usr/sbin'
 
+local function exec_script(pth, cxt)
+    local script_data = fs_readall(fs_resolve(pth))
+    if not script_data then
+        ferror("error reading file: "..pth)
+        return cxt
+    end
+
+    for _,line in ipairs(string.splitlines(script_data)) do
+        cxt = exec_command(cxt, line)
+    end
+
+    return cxt
+end
+
 function exec_command(cxt, cmd)
     if string.sub(cmd, 1, 1) == '#' then return cxt end -- comments
     local tokens = string.split(cmd, ' ')
@@ -65,17 +79,6 @@ function exec_command(cxt, cmd)
 
     return cxt, ferror(rprintf('csh: %s: file not found',
         executable_to_find))
-end
-
-local function exec_script(pth, cxt)
-    local script_data = fs_readall(pth)
-    if not script_data then return cxt end
-
-    for _,line in ipairs(string.splitlines(script_data)) do
-        cxt = exec_command(cxt, line)
-    end
-
-    return cxt
 end
 
 local function shell_command(sh_context, cmd)
