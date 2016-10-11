@@ -73,8 +73,6 @@ udevfs = class(function(self, oldfs)
 end)
 
 function udevfs:mount(source, target)
-    print(source, target)
-    sleep(.3)
     self.name = source
     self.target = target
     udevfs_mounts[target] = self

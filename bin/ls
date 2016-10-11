@@ -94,7 +94,7 @@ function main(args)
     elseif fs.exists(__CWD..'/'..p) then
         ls(__CWD..'/'..p, show_perm)
     else
-        ferror("ls: node not found")
+        ferror(rprintf("ls: %s: node not found", p))
     end
 	return 0
 end
