@@ -30,13 +30,17 @@ end)
 local fs_drivers = {}
 
 -- Load filesystem drivers
-local function load_filesystem(fsname, fs_class, driver_path)
+local function load_filesystem(fsname, fs_class, driver_path, driver_object)
     syslog.serlog(syslog.S_INFO, 'fs', 'load_fs: '..fsname)
 
-    fs_driver = lib.get(driver_path)
+    if driver_path then
+        fs_driver = lib.get(driver_path)
+    else
+        fs_driver = driver_object
+    end
 
     if not fs_driver then
-        --syslog.panic("fs", "error loading driver for %s", fsname)
+        syslog.panic("fs", "error loading driver for %s", fsname)
     end
 
     fs_drivers[fsname] = {
@@ -49,6 +53,7 @@ local function load_all_filesystems()
     load_filesystem("cifs", 'CiFS', '/lib/fs/cifs.lua')
     load_filesystem("cbxfs", 'CubixFS', '/lib/fs/cbxfs.lua')
     load_filesystem("tmpfs", 'TmpFS', '/lib/fs/tmpfs.lua')
+    load_filesystem("devfs", 'udevfs', nil, lib.udev)
 end
 
 -- Helpers for permissions
@@ -86,7 +91,7 @@ inodes.get_inode = function(inode_path)
         })
     end
 
-    inode = inodes[inode_path]
+    local inode = inodes[inode_path]
     if inode then
         return deepcopy(inode)
     end
@@ -249,6 +254,9 @@ local function fs_abs_wrap_1a(method)
 
                 tpath = string.sub(path, #k + 1)
                 obj = fs_mounts[target]['obj']
+                if not obj[method] then
+                    syslog.serlog(syslog.S_ERR, 'vfs', 'error trying to use %s', method)
+                end
                 return obj[method](obj, source, target, tpath, mode)
             end
         end
@@ -385,7 +393,7 @@ function libroutine()
 
     -- mount /proc, /dev and /dev/shm
     mount('procfs', '/proc', 'procfs')
-    mount('udevfs', '/dev', 'devfs')
+    mount('devfs', '/dev', 'devfs')
     mount("tmpfs", "/dev/shm", 'tmpfs')
 
     -- mount devices in /etc/fstab

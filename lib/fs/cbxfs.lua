@@ -31,7 +31,7 @@ end
 function CubixFS:sync(source, target)
     local to_write
     for k,v in pairs(mounts[source]) do
-        to_write = to_write ..
+        to_write = to_write .. v
     end
     return fs_writeall(fs.combine(source, 'CFSDATA'), to_write)
 end

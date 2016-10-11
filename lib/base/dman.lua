@@ -63,6 +63,41 @@ function Device:write(bytestr)
     return self:_write_bytes(bytestr)
 end
 
+-------------DEVFS--------------
+
+local udevfs_mounts = {}
+
+udevfs = class(function(self, oldfs)
+    syslog.serlog_info('devfs', 'init')
+    self.inode = oldfs.inode
+end)
+
+function udevfs:mount(source, target)
+    print(source, target)
+    sleep(.3)
+    self.name = source
+    self.target = target
+    udevfs_mounts[target] = self
+    return true
+end
+
+function udevfs:umount(source, target)
+    mounts[target] = nil
+    return true
+end
+
+function udevfs:make(source, options)
+    return ferror("tmpfs: no formatting needed")
+end
+
+--TODO: the rest of devfs
+
+function user_mount(uid)
+    return uid == 0
+end
+
+-------------END DEVFS----------
+
 function libroutine()
     print("udev")
 end
