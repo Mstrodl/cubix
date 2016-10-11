@@ -2,8 +2,8 @@
 --/bin/dd
 
 function main(args)
-    local infile = os.cshell.resolve(args[1])
-    local outfile = os.cshell.resolve(args[2])
+    local infile = fs_resolve(args[1])
+    local outfile = fs_resolve(args[2])
     local bytes = tonumber(args[3])
     local bs = 0
     if args[4] then
@@ -15,29 +15,24 @@ function main(args)
         print("usage: dd infile outfile bytes [bs]")
         return 0
     end
+
     local data = {}
-    local DEVICES = os.list_devices
-    if DEVICES[infile] ~= nil then
-        local cache = DEVICES[infile].device_read(bs*bytes)
-        for i=0, #cache do
-            table.insert(data, string.byte(string.sub(cache, i, i)))
-        end
-    else
-        local h = fs.open(infile, 'rb')
-        for i=0, bs*bytes do
-            table.insert(data, h.read())
-        end
-        h.close()
+    local h = fs.open(infile, 'rb')
+    for i=1, bs*bytes do
+        table.insert(data, h.read(bytes))
     end
+    h.close()
+
     local o = fs.open(outfile, 'wb')
     if o == nil then
         ferror("dd: error opening file")
         return false
     end
-    for i=0, bs*bytes do
+    for i=1,bs*bytes do
         o.write(data[i])
     end
     o.close()
+
     return true
 end
 

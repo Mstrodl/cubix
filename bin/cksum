@@ -102,19 +102,10 @@ function work_pipe(pipe)
     print(cksum)
 end
 
-function main(args, pipe)
-    if pipe ~= nil then
-        work_pipe(pipe)
-        return 0
-    else
-        if #args == 0 then
-            print("usage: cksum <file>")
-            print("usage(pipe): cksum")
-            return 0
-        end
-        local file = args[1]
-        print("damn son")
-    end
+function main(args)
+    local file = args[1]
+    cksum = hash(fs_readall(fs_resolve(file)))
+    print(cksum, file)
 end
 
 main({...})

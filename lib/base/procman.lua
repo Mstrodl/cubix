@@ -293,6 +293,7 @@ local function pr_run(process, args, pipe, env)
         local iowrapper = lib.get("/lib/modules/io_wrapper.lua")
 
         env['fs_resolve'] = function(pth)
+            if pth == nil then return nil end
             if string.sub(pth, 1, 1) == '/' then return pth end
             return fs.combine(process.env['__CWD'], '/'..pth)
         end
