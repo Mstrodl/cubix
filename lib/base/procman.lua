@@ -264,11 +264,11 @@ local function pr_run(process, args, pipe, env)
     process.lineargs = string.join(' ', args)
 
     proc_make_dir(process)
-    if lib.fs then
+    --[[if lib.fs then
         if not fs.cverify_perm(process.file, 'x') then
             return ferror("pr_run: Access Denied")
         end
-    end
+    end]]
 
     --[[local cur_user = lib.pam.current_user()
 

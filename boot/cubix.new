@@ -254,6 +254,7 @@ cubix.boot = function ()
         syslog.serlog(syslog.S_INFO, "init", "running init process")
         lib.syslog.close_bflag()
         execv("/sbin/init", {})
+        print('[reboot] rebooting by default')
         os.reboot()
     end, 'init')
 
