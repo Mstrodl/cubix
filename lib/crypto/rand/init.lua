@@ -61,14 +61,13 @@ function libroutine()
     end
 
     _G['getrandomnum'] = function(length)
-        --TODO: bigint.bigint
-
         cap = 999999999
         if not cap then
             cap = 999999999
         end
 
         local randomString = tostring(randrange(100000000, cap))
+        local bigint = lib.bigint.bigint
 
         while true do
             randomString = randomString ..

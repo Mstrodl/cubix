@@ -225,6 +225,8 @@ cubix.boot = function ()
     sysload("time", "/lib/base/time.lua")
 
     -- load crypto and rand because some fs drivers may need them
+    sysload("bigint", "/lib/ext/bigint.lua")
+        -- needed for crypto libs
     sysload("crypto", "/lib/crypto/crypto.lua")
     sysload("rand", "/lib/crypto/rand/init.lua")
 
@@ -240,8 +242,6 @@ cubix.boot = function ()
         -- similar to os.lib.control in old kernel
     -- sysload("socket", "/lib/net/socket.lua")
     sysload("ansi", "/lib/ext/libansi.lua")
-    -- sysload("bignum", "/lib/ext/bignum.lua")
-        -- needed for crypto libs
 
     -- idle thread
     local p2_26 = math.pow(2, 26)
