@@ -40,7 +40,7 @@ function libroutine()
         for i=1,length do
             buffer[i] = rand()
         end
-        return buffer
+        return length
     end
 
     _G['getrandombytes'] = function(len)
