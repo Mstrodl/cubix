@@ -1,0 +1,308 @@
+#!/usr/bin/env lua
+--[[
+    yapi2 - 2nd yapi
+]]
+
+VERSION = '0.3.0'
+
+local libpkg = cubix.load_file("/lib/ext/libpkg.lua")
+
+function main(args)
+    if lib.pm.currentuid() != 0 then
+        ferror("yapi must be run as uid 0, not uid "..tostring(lib.pm.currentuid()))
+        return 1
+    end
+
+    yapi_mk_struct()
+    if #args == 0 then
+        print("usage: yapi <args...>")
+        return 0
+    end
+
+    local yapi_db = yapi_initdb()
+
+    local mode = args[1]
+    local arguments = tail(args)
+    if string.sub(mode, 1, 1) == '-' then
+        if not yapi_db:usual_check() then
+            return ferror("error found in usual check, cannot continue")
+        end
+
+        if string.sub(mode, 2, 2) == 'S' then
+            if arguments ~= nil then
+                --check if all packages exist
+                for _,pkg in ipairs(arguments) do
+                    if yapi_db:find(pkg) == false then
+                        return ferror("error: target not found: "..pkg)
+                    end
+                end
+
+                --sanity check, installing already installed packages
+                for _,pkg in ipairs(arguments) do
+                    if ydb:is_installed(pkg) then
+                        warning(yapi_mkstr(pkg)..' already installed - reinstalling')
+                    end
+                end
+
+                --get deps
+                print("resolving dependencies...")
+                local packages = yapi_db:get_deps(arguments)
+                print("")
+                if packages == nil then
+                    return ferror("yapi: error getting dependencies")
+                end
+
+                --Cubix Standard rule 1 check
+                if inlist('base', packages) then
+                    ferror("WARNING: As Cubix Standards, devs should not install the base package as it will damage existing changes that they made.")
+                    ferror("\nWARNING2: Only users with consent that all personal data will be lost after installation should continue.")
+                    ferror("To upgrade the system, use cubixli.")
+                    if prompt("Do you really want to go with this?", "Y", "n") then
+                        if prompt("Do you REALLY want to go with this?", "Y", "n") then
+                            print("Ok then... don't issue this at github, pls.")
+                        end
+                        return abort("base_warning")
+                    else
+                        return abort("base_warning")
+                    end
+                end
+
+                --user consent
+                write("Packages ("..#packages..") ")
+                for _,pkg in ipairs(packages) do
+                    write(yapi_mkstr(pkg)..' ')
+                end
+                print("\n")
+                if not prompt(":: Proceed with installation?", "Y", "n") then
+                    return abort("install_prompt")
+                end
+
+                --installing.
+                yapi_db:job_set(packages)
+                extnr("Installing "..#packages.." package(s)")
+                for _, package in ipairs(packages) do
+                    if yapi_db:install(package) then
+                        yapi_db:job_status("SUCCESS")
+                        yapi_db:job_next()
+                    else
+                        return abort("install_error")
+                    end
+                end
+            end
+
+            --clear cache(not a good option)
+            if isin(mode, 'c') then
+                if not prompt(":: Proceed with cache clean(not recommended)?", "Y", "n") then
+                    return abort("cache_clean_prompt")
+                end
+                yapi_db:clear_cache()
+            end
+
+            if isin(mode, 'y') then
+                if not http then
+                    return abort("http not enabled")
+                end
+                nr("Updating package database")
+                yapi_update_repos()
+            end
+
+            if isin(mode, 'u') then
+                --full system upgrade
+                print(":: Starting full system upgrade")
+                yapi_db:upgrade_all()
+            end
+
+    -- needs work from here
+        elseif string.sub(mode, 2, 2) == 'R' then
+            --call cache file and remove files based on it
+            local packages = arguments
+            if packages ~= nil then
+                local ydb = Yapidb()
+                for k,pkg in ipairs(packages) do
+                    if not ydb:find(pkg) then
+                        os.ferror("error: target not found: "..pkg)
+                        return 1
+                    end
+                end
+
+                --checking if all packages exist
+                for k,pkg in ipairs(packages) do
+                    if not ydb:is_installed(pkg) then
+                        return ferror("error: "..pkg.." not installed")
+                    end
+                end
+
+                write("Packages ("..#packages..") ")
+                for _,pkg in ipairs(packages) do
+                    write(pkg..' ')
+                end
+                print("\n")
+
+                if not prompt("Proceed with remotion?", "Y", "n") then
+                    return abort("remotion_prompt")
+                end
+
+                --setting jobs and removing each one
+                ydb:set_jobs(packages)
+                print_color(":: Removing ", colors.yellow)
+                for _,package in ipairs(packages) do
+                    if ydb:remove(package) then
+                        ydb:job_status("SUCCESS")
+                        ydb:job_next()
+                    else
+                        return ferror("[remove] "..package.." : FAILURE")
+                    end
+                end
+            end
+
+        elseif string.sub(mode, 2, 2) == 'Q' then
+            --query database and see details of packages
+
+            --get list of all packages installed
+            if isin(mode, 'e') then
+                local ydb = Yapidb()
+                local ipkg = ydb:get_all_installed() --get all installed(bscinfo by default)
+                for _,v in ipairs(ipkg) do
+                    print(v)
+                end
+                return 0
+            end
+
+            local ydb = Yapidb()
+            local pkg = args[2]
+
+            if not ydb:find(pkg) then
+                return ferror("error: target not found: "..pkg)
+            end
+
+            local pkg_repo = ydb:find(pkg)
+            local pkgd = ydb:getd(pkg_repo, pkg)
+
+            --get file from cache, if its not, download and cache again
+            local _c = get_fcache(pkg..'-'..pkgd['build']..'.yap')
+            if not _c then
+                extnr("Downloading "..pkg..'...')
+                _c = download_file(ydb['db_'..pkg_repo][pkg]['url'])
+                if type(_c) ~= 'string' then
+                    return ferror("http_error: error downloading yap.")
+                end
+                extnr("Caching "..pkg.."...")
+                cache_file(pkg..'-'..pkgd['build']..'.yap', _c)
+            end
+
+            --parse cached yap
+            local ydata = yap_parse(_c)
+            if not ydata then
+                return ferror("yap_parse: error parsing cached yap")
+            end
+
+            --checking yap before show its data
+            if not yap_check(ydata) then
+                return ferror("check: error checking yapdata.")
+            end
+
+            --show basic data
+            print()
+            write_color(pkg_repo, colors.yellow)
+            write(' - '..ydata.name)
+            write_color(' b'..ydata.build, colors.blue)
+            write(' v'..ydata.version)
+            print_color(' ('..ydata.license..')', colors.red)
+
+            --maintainer and email
+            print()
+            write("Maintainer: ")
+            write_color(ydata.author..' <'..ydata['email-author']..'>', colors.green)
+
+            --description of package
+            print()
+            print_color("Description: "..ydata.desc, colors.orange)
+            print("URL: "..ydata.url) --package url
+
+        elseif string.sub(mode, 2, 2) == 'U' then
+            --install a package from its yap file
+
+            --open the file
+            local p = shell.resolve(arguments[1])
+            if not fs.exists(p) then
+                return ferror("yapi: file does not exist")
+            end
+            local h = fs.open(p, 'r')
+            if h == nil then
+                return ferror("yapi: error opening file")
+            end
+            local fdt = h.readAll()
+            h.close()
+
+            --parse the given file
+            local ydata = yap_parse(fdt)
+            if not yap_check(ydata) then
+                return ferror("check: error checking yap data")
+            end
+
+            --checking if everything is alright before install
+            local ydb = Yapidb()
+            if not ydb:usual_check() then
+                return ferror("error found in usual check, cannot continue")
+            end
+
+            local packages = {ydata['name']}
+
+            write("Packages ("..#packages..") ")
+            for _,pkg in ipairs(packages) do
+                write(pkg..' ')
+            end
+            print("\n")
+            if not prompt(":: Proceed with installation?", "Y", "n") then
+                print("==> Aborted")
+                return true
+            end
+
+            --setting jobs and installing
+            ydb:set_jobs(packages)
+            if ydb:install_yap(ydata, 'manual') then
+                nr("Done.")
+            else
+                return ferror("[install_yap:error] "..ydata['name'])
+            end
+        elseif string.sub(mode, 2, 2) == 'F' then
+            --get package yap from cache(if not download it)
+            --and show the files that it owns
+
+            --same code from -Q
+            if isin(mode, 'l') then
+                local ydb = Yapidb()
+                local pkg = args[2]
+
+                if not ydb:find(pkg) then
+                    return ferror("error: target not found: "..pkg)
+                end
+
+                local pkg_repo = ydb:find(pkg)
+                local pkgd = ydb:getd(pkg_repo, pkg)
+
+                --get file from cache, if its not, download and cache again
+                local _c = get_fcache(pkg..'-'..pkgd['build']..'.yap')
+                if not _c then
+                    extnr("Downloading "..pkg..'...')
+                    _c = download_file(ydb['db_'..pkg_repo][pkg]['url'])
+                    if type(_c) ~= 'string' then
+                        return ferror("http_error: error downloading yap.")
+                    end
+                    extnr("Caching "..pkg.."...")
+                    cache_file(pkg..'-'..pkgd['build']..'.yap', _c)
+                end
+
+                local yapdata = yap_parse(_c)
+
+                for k,v in pairs(yapdata['files']) do
+                    print(pkg.." "..k)
+                end
+            end
+        end
+    else
+        return ferror("yapi: sorry, see \"man yapi\" for details")
+    end
+end
+
+main({...})
