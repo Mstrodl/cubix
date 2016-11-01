@@ -5,21 +5,24 @@
 
 VERSION = '0.3.0'
 
-local libpkg = cubix.load_file("/lib/ext/libpkg.lua")
+local libyap = cubix.load_file("/lib/ext/libyap.lua")
+local common = cubix.load_file("/lib/ext/yapi_common.lua")
+
+libyap.test()
 
 function main(args)
-    if lib.pm.currentuid() != 0 then
+    if lib.pm.currentuid() ~= 0 then
         ferror("yapi must be run as uid 0, not uid "..tostring(lib.pm.currentuid()))
         return 1
     end
 
-    yapi_mk_struct()
+    common.yapi_mk_struct()
     if #args == 0 then
         print("usage: yapi <args...>")
         return 0
     end
 
-    local yapi_db = yapi_initdb()
+    local yapi_db = common.yapi_initdb()
 
     local mode = args[1]
     local arguments = tail(args)
@@ -40,7 +43,7 @@ function main(args)
                 --sanity check, installing already installed packages
                 for _,pkg in ipairs(arguments) do
                     if ydb:is_installed(pkg) then
-                        warning(yapi_mkstr(pkg)..' already installed - reinstalling')
+                        warning(common.yapi_mkstr(pkg)..' already installed - reinstalling')
                     end
                 end
 
@@ -70,7 +73,7 @@ function main(args)
                 --user consent
                 write("Packages ("..#packages..") ")
                 for _,pkg in ipairs(packages) do
-                    write(yapi_mkstr(pkg)..' ')
+                    write(common.yapi_mkstr(pkg)..' ')
                 end
                 print("\n")
                 if not prompt(":: Proceed with installation?", "Y", "n") then
@@ -103,7 +106,7 @@ function main(args)
                     return abort("http not enabled")
                 end
                 nr("Updating package database")
-                yapi_update_repos()
+                common.yapi_update_repos()
             end
 
             if isin(mode, 'u') then
@@ -210,8 +213,8 @@ function main(args)
             end
 
             --parse the given file
-            local ydata = libpkg.parse_yap(fdt)
-            if not libpkg.check_yap(ydata) then
+            local ydata = libyap.parse_yap(fdt)
+            if not libyap.check_yap(ydata) then
                 return ferror("check: error checking yap data")
             end
 
@@ -255,13 +258,12 @@ function main(args)
                     return ferror("error: package not installed")
                 end
 
-                --get file from cache, if its not, download and cache again
-                local _c = get_fcache(pkg..'-'..pkgd['build']..'.yap')
+                local _c = common.yapi_get_cache(pkg, pkgd['build'])
                 if not _c then
                     return ferror("cached file not found")
                 end
 
-                local yapdata = libpkg.parse_yap(_c)
+                local yapdata = libyap.parse_yap(_c)
                 for k,v in pairs(yapdata['files']) do
                     print(pkg.." "..k)
                 end

@@ -1,0 +1,10 @@
+name=test
+#version=0.0.1
+build=1
+author=Luna Mendes
+description=Test package to test libyap
+email-author=luna@localhost
+url=google.com
+packager=Luna Mendes
+arch=cubix
+license=public

@@ -206,6 +206,7 @@ table.exists = function(el, tbl)
             return true
         end
     end
+    return false
 end
 _G['texists'] = table.exists
 
