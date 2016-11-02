@@ -65,6 +65,35 @@ function main(args)
         end
 
         if string.sub(mode, 2, 2) == 'S' then
+            --[[
+                first check for options, then install packages
+            ]]
+
+            if string.isin(mode, 'y') then
+                if not http then
+                    return abort("http not enabled")
+                end
+                msg_normal("Updating package database")
+                if not common.yapi_update_repos() then
+                    return msg_error("Error updating package database")
+                end
+            end
+
+            if string.isin(mode, 'u') then
+                --full system upgrade
+                printf(":: Starting full system upgrade")
+                yapi_db:upgrade_all()
+            end
+
+            --clear cache(not a good option)
+            if string.isin(mode, 'c') then
+                if not prompt(":: Proceed with cache clean(not recommended)?", "Y", "n") then
+                    return msg_error("cache_clean_prompt")
+                end
+                yapi_db:clear_cache()
+            end
+
+            -- if any package is passed on, install it
             if arguments ~= nil then
                 --check if all packages exist
                 for _,pkg in ipairs(arguments) do
@@ -124,30 +153,6 @@ function main(args)
                         return abort("install_error")
                     end
                 end
-            end
-
-            --clear cache(not a good option)
-            if string.isin(mode, 'c') then
-                if not prompt(":: Proceed with cache clean(not recommended)?", "Y", "n") then
-                    return msg_error("cache_clean_prompt")
-                end
-                yapi_db:clear_cache()
-            end
-
-            if string.isin(mode, 'y') then
-                if not http then
-                    return abort("http not enabled")
-                end
-                msg_normal("Updating package database")
-                if not common.yapi_update_repos() then
-                    return msg_error("Error updating package database")
-                end
-            end
-
-            if string.isin(mode, 'u') then
-                --full system upgrade
-                printf(":: Starting full system upgrade")
-                yapi_db:upgrade_all()
             end
 
         elseif string.sub(mode, 2, 2) == 'R' then
