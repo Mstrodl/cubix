@@ -24,8 +24,66 @@ function yapi_check_struct()
     return true
 end
 
+local total_jobs = 0
+local done_jobs = 0
+
+function yapi_progress_set(jobs)
+    total_jobs = jobs
+end
+
+function yapi_progress_next()
+    done_jobs = done_jobs + 1
+end
+
+function yapi_progress_draw()
+    write('[')
+    write(string.rep('#', (done_jobs)))
+    write(string.rep(' ', (total_jobs - done_jobs)))
+    write(']\n')
+end
+
+function yapi_download_file(url)
+    url = 'http://' .. url
+    local splitted = string.split(url, '/')
+    local requesting = true
+
+    http.request(url)
+
+    while requesting do
+        local ev, url, httphandler = os.pullEvent()
+        if ev == 'http_success' then
+            local str_result = httphandler.readAll()
+            httphandler.close()
+            return str_result
+
+        elseif ev == 'http_failure' then
+            requesting = false
+            return {false, httphandler}
+        end
+    end
+end
+
 function yapi_mkstr(yapd)
     return rprintf("%s-%s", yapd['name'], yapd['version'])
+end
+
+function yapi_upd_one_repo(repo)
+    write("updating "..repo['name']..' ')
+    local server_path = rprintf("%s%s", repo['server'], repo['name'])
+
+    local k = yapi_download_file(server_path)
+    if type(k) == 'table' then
+        printf("error updating %s: %s", repo['name'], k[2])
+        return false
+    end
+
+    -- write to repofile
+    local repofile_handler = fs.open(rprintf("%s/%s", yapi_database_dir, repo['name']), 'w')
+    if not repofile_handler then return false end
+    repofile_handler.write(k)
+    repofile_handler.close()
+
+    return true
 end
 
 function yapi_get_sources()
@@ -37,10 +95,10 @@ function yapi_get_sources()
 
     local current = {}
     local repos = {
-        [0] = {},
         [1] = {},
         [2] = {},
-        [3] = {}
+        [3] = {},
+        [4] = {}
     }
 
     for _,line in ipairs(string.splitlines(sources_data)) do
@@ -50,15 +108,16 @@ function yapi_get_sources()
         elseif tokens[1] == 'end' then
             -- insert into repos
             table.insert(repos[current['type']], current)
+            current = {}
         elseif tokens[1] == 'server' then
             current['server'] = tokens[2]
         elseif tokens[1] == 'type' then
             --[[
             Types:
-            type 0 repository: Core repository, the first to download
-            type 1 repository: Local repositories, maintained on disk
-            type 2 repository: Extra repositories, downloaded after core
-            type 3 repository: Community repos, if any error happens, they won't not be downloaded
+            type 1 repository: Core repository, the first to download
+            type 2 repository: Local repositories, maintained on disk
+            type 3 repository: Extra repositories, downloaded after core
+            type 4 repository: Community repos, if any error happens, they won't not be downloaded
             ]]
             current['type'] = tonumber(tokens[2])
         end
@@ -69,20 +128,28 @@ end
 
 function yapi_update_repos()
     local repos = yapi_get_sources()
+    local total_repos = 0
+    local jobs = 0
 
-    for _,repo in ipairs(repos[0]) do
-        yapi_upd_one_repo(repo)
+    for _,repo_type in pairs(repos) do
+        for _,repo in ipairs(repo_type) do
+            total_repos = total_repos + 1
+        end
+    end
+
+    yapi_progress_set(total_repos)
+
+    for _,repo_type in pairs(repos) do
+        for _,repo in ipairs(repo_type) do
+            if not yapi_upd_one_repo(repo) then return false end
+            yapi_progress_next()
+            yapi_progress_draw()
+        end
     end
 
     --TODO: management for local repositories
 
-    for _,repo in ipairs(repos[2]) do
-        yapi_upd_one_repo(repo)
-    end
-
-    for _,repo in ipairs(repos[3]) do
-        yapi_upd_one_repo(repo)
-    end
+    return true
 end
 
 -- database model and calls
@@ -91,6 +158,13 @@ Yapidb = class(function(self)
     self.db = {}
     self.installed = {}
 end)
+
+function Yapidb:usual_check()
+    --TODO: add conflict checking
+    printf("checking conflicts...")
+    return true
+    --return self:check_conflicts()
+end
 
 function Yapidb:update_one_repo(repo)
     -- get repo from database file, and get the file accordingly

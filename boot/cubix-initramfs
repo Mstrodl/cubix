@@ -29,11 +29,23 @@ term.set_term_color = function (c)
     end
 end
 
+function rprintf(...)
+    local args = {...}
+    return string.format(args[1], unpack(args, 2))
+end
+_G['rprintf'] = rprintf
+
+function printf(...)
+    local args = {...}
+    print(string.format(args[1], unpack(args, 2)))
+end
+_G['printf'] = printf
+
 table.view = function (t)
     if t == nil then return 0 end
     print(t)
     for k,v in pairs(t) do
-        print(k..","..tostring(v).." ("..type(v)..")")
+        printf("%s,%s (%s)", k, tostring(v), type(v))
     end
 end
 _G['tview'] = table.view
@@ -303,18 +315,6 @@ function reduce(f, seq, init_val)
 end
 _G['reduce'] = reduce
 
-function rprintf(...)
-    local args = {...}
-    return string.format(args[1], unpack(args, 2))
-end
-_G['rprintf'] = rprintf
-
-function printf(...)
-    local args = {...}
-    print(string.format(args[1], unpack(args, 2)))
-end
-_G['printf'] = printf
-
 string.join = function(s, tbl)
     local res = ''
     for i=1,#tbl do
@@ -326,6 +326,14 @@ string.join = function(s, tbl)
         end
     end
     return res
+end
+
+string.isin = function(str, other)
+    for i = 1, #str do
+        local v = string.sub(str, i, i + (#other - 1))
+        if v == other then return true end
+    end
+    return false
 end
 
 function cubix_boot_routine()

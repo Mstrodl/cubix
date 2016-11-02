@@ -1,31 +1,31 @@
 ## Types:
-# 0: Core repository, the first to download
-# 1: Local repositories
-# 2: Extra repositories, still has the same priority as the Core
-# 3: Community repositories, if something happens, it will not be downloaded
+# 1: Core repository, the first to download
+# 2: Local repositories
+# 3: Extra repositories, still has the same priority as the Core
+# 4: Community repositories, if something happens, it will not be downloaded
 
 ## For other people repositories, use type 2
 ## For helpers for other building platforms and they need a local copy, use type 1
 ## For other extra repositories that doesn't need a lot of power, type 3
 
 repo core
-type 0
+type 1
 server lkmnds.github.io/yapi/database/
 end
 
 repo extra
-type 2
+type 3
 server lkmnds.github.io/yapi/database/
 end
 
 repo community
-type 3
+type 4
 server lkmnds.github.io/yapi/database/
 end
 
 ## Testing repos
 #repo community-testing
-#type 3
+#type 4
 #server lkmnds.github.io/yapi-testing/database/
 #end
 
@@ -37,12 +37,5 @@ end
 ## Custom repository
 #repo custom
 #file /home/packages/
-#type 1
+#type 2
 #end
-
-## Special repository, only for tests, and only that.
-#repo unstable
-#file /home/packages/unstable-db
-#type 4 ; this makes the magic happen(all files will be marked to be run in containers)
-#end
-

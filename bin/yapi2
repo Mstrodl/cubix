@@ -26,6 +26,10 @@ function msg_success(str)
     print_cl(colors.green, rprintf("=> %s", str))
 end
 
+function msg_error(str)
+    print_cl(colors.red, rprintf("[X] %s", str))
+end
+
 function main(args)
     if lib.pm.currentuid() ~= 0 then
         ferror("yapi must be run as uid 0, not uid "..tostring(lib.pm.currentuid()))
@@ -51,10 +55,10 @@ function main(args)
         end
     end
 
-    local yapi_db = common.yapi_initdb()
+    local yapi_db = common.Yapidb()
 
     local mode = args[1]
-    local arguments = tail(args)
+    local arguments = table.tail(args)
     if string.sub(mode, 1, 1) == '-' then
         if not yapi_db:usual_check() then
             return ferror("error found in usual check, cannot continue")
@@ -123,24 +127,26 @@ function main(args)
             end
 
             --clear cache(not a good option)
-            if isin(mode, 'c') then
+            if string.isin(mode, 'c') then
                 if not prompt(":: Proceed with cache clean(not recommended)?", "Y", "n") then
-                    return abort("cache_clean_prompt")
+                    return msg_error("cache_clean_prompt")
                 end
                 yapi_db:clear_cache()
             end
 
-            if isin(mode, 'y') then
+            if string.isin(mode, 'y') then
                 if not http then
                     return abort("http not enabled")
                 end
-                nr("Updating package database")
-                common.yapi_update_repos()
+                msg_normal("Updating package database")
+                if not common.yapi_update_repos() then
+                    return msg_error("Error updating package database")
+                end
             end
 
-            if isin(mode, 'u') then
+            if string.isin(mode, 'u') then
                 --full system upgrade
-                print(":: Starting full system upgrade")
+                printf(":: Starting full system upgrade")
                 yapi_db:upgrade_all()
             end
 
