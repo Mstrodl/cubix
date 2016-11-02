@@ -27,19 +27,17 @@ end
 local total_jobs = 0
 local done_jobs = 0
 
-function yapi_progress_set(jobs)
+function yapi_job_set(jobs)
     total_jobs = jobs
 end
 
-function yapi_progress_next()
+function yapi_job_next()
     done_jobs = done_jobs + 1
 end
 
-function yapi_progress_draw()
-    write('[')
-    write(string.rep('#', (done_jobs)))
-    write(string.rep(' ', (total_jobs - done_jobs)))
-    write(']\n')
+function yapi_job_message(...)
+    write(rprintf("(%d/%d) ", done_jobs, total_jobs))
+    printf(...)
 end
 
 function yapi_download_file(url)
@@ -68,7 +66,7 @@ function yapi_mkstr(yapd)
 end
 
 function yapi_upd_one_repo(repo)
-    write("updating "..repo['name']..' ')
+    --write("updating "..repo['name']..' ')
     local server_path = rprintf("%s%s", repo['server'], repo['name'])
 
     local k = yapi_download_file(server_path)
@@ -137,13 +135,13 @@ function yapi_update_repos()
         end
     end
 
-    yapi_progress_set(total_repos)
+    yapi_job_set(total_repos)
 
     for _,repo_type in pairs(repos) do
         for _,repo in ipairs(repo_type) do
+            yapi_job_next()
+            yapi_job_message('updating %s', repo['name'])
             if not yapi_upd_one_repo(repo) then return false end
-            yapi_progress_next()
-            yapi_progress_draw()
         end
     end
 
