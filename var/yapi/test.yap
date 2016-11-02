@@ -1,5 +1,5 @@
 name=test
-#version=0.0.1
+version=0.0.1
 build=1
 author=Luna Mendes
 description=Test package to test libyap

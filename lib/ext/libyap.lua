@@ -42,10 +42,13 @@ function parse_yap(data)
     return result
 end
 
-function check_yap(ydata)
+function yap_check(ydata)
+    if type(ydata) ~= "table" then return true end
+
     local nxt = check_nil_entries(ydata, not_nil_entries)
     while nxt do
         ferror(rprintf("check_yap: %s == nil", nxt))
+        if nxt then return true end
         nxt = check_nil_entries(ydata, not_nil_entries)
     end
 
@@ -54,5 +57,5 @@ end
 
 function test()
     local y = parse_yap(fs_readall("/var/yapi/test.yap"))
-    print(check_yap(y))
+    yap_check(y)
 end

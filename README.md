@@ -57,6 +57,9 @@ Since most of Cubix codebase is on ComputerCraft LUA, you need or a ComputerCraf
 ##### ccemuredux instructions
 You can clone the repository(the folder needs to have a valid computercraft id) and link that to a computer id in ccemuredux directory
 ```bash
+# computer_id = 0, 1, 2, etc. make sure you use the computer_id you used here
 git clone https://github.com/lkmnds/cubix.git computer_id
 ln -s computer_id $HOME/.ccemuredux/sessions/your_session/computer/ # something like that
 ```
+
+After linking the folder to your computer folder, boot it up and you should be presented with the *Simple Boot Loader*(SBL). Load CraftOS(we need to load empty folders) and type `/dev/MAKEDEV` and hit enter. Then `reboot` and you can load Cubix without any other adjustments.

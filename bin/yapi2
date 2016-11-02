@@ -8,7 +8,23 @@ VERSION = '0.3.0'
 local libyap = cubix.load_file("/lib/ext/libyap.lua")
 local common = cubix.load_file("/lib/ext/yapi_common.lua")
 
-libyap.test()
+function print_cl(cl, str)
+    term.set_term_color(cl)
+    print(str)
+    term.set_term_color(colors.white)
+end
+
+function msg_normal(str)
+    print_cl(colors.yellow, rprintf(":: %s", str))
+end
+
+function msg_ct(str)
+    print_cl(colors.yellow, rprintf(" -> %s", str))
+end
+
+function msg_success(str)
+    print_cl(colors.green, rprintf("=> %s", str))
+end
 
 function main(args)
     if lib.pm.currentuid() ~= 0 then
@@ -16,10 +32,23 @@ function main(args)
         return 1
     end
 
-    common.yapi_mk_struct()
+    libyap.test()
+
+    if not common.yapi_check_struct() then
+        msg_error("error checking yapi structure")
+        return ferror("run yapi --init")
+    end
+
     if #args == 0 then
         print("usage: yapi <args...>")
         return 0
+    end
+
+    if args[1] == '--init' then
+        msg_normal("Initializing yapi structure")
+        if common.yapi_mk_struct() then
+            msg_success("Done.")
+        end
     end
 
     local yapi_db = common.yapi_initdb()
