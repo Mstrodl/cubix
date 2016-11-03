@@ -167,6 +167,10 @@ function yapi_update_repos()
     return true
 end
 
+function yapi_exists_cache(pkg)
+    return false
+end
+
 -- database model and calls
 
 Yapidb = class(function(self)
@@ -331,6 +335,20 @@ function Yapidb:package_find(pkgwanted)
     return false
 end
 
+function Yapidb:pkg_get_repo(pkgwanted)
+    if pkgwanted == nil or pkgwanted == '' then
+        return false
+    end
+    for reponame,repodb in pairs(self.db) do
+        for pkgname,pkg_entry in pairs(repodb) do
+            if pkgname == pkgwanted then
+                return reponame
+            end
+        end
+    end
+    return false
+end
+
 function Yapidb:package_installed(pkg)
     for _,pkg_entry in ipairs(self.localdb) do
         local name, build, install_type = table.unpack(pkg_entry)
@@ -434,7 +452,7 @@ function Yapidb:install(pkg_name)
 
     --install
     yapi_job_message("installing "..pkg)
-    if self:install_yap(ydata) then
+    if libyap.install_yap(ydata) then
         return true
     else
         return false

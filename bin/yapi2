@@ -8,26 +8,32 @@ VERSION = '0.3.0'
 local libyap = cubix.load_file("/lib/ext/libyap.lua")
 local common = cubix.load_file("/lib/ext/yapi_common.lua")
 
-function print_cl(cl, str)
+function write_cl(str, cl)
+    term.set_term_color(cl)
+    write(str)
+    term.set_term_color(colors.white)
+end
+
+function print_cl(str, cl)
     term.set_term_color(cl)
     print(str)
     term.set_term_color(colors.white)
 end
 
 function msg_normal(str)
-    print_cl(colors.yellow, rprintf(":: %s", str))
+    print_cl(rprintf(":: %s", str), colors.yellow)
 end
 
 function msg_ct(str)
-    print_cl(colors.yellow, rprintf(" -> %s", str))
+    print_cl(rprintf(" -> %s", str), colors.yellow)
 end
 
 function msg_success(str)
-    print_cl(colors.green, rprintf("[V] %s", str))
+    print_cl(rprintf("[V] %s", str), colors.green)
 end
 
 function msg_error(str)
-    print_cl(colors.red, rprintf("[X] %s", str))
+    print_cl(rprintf("[X] %s", str), colors.red)
 end
 
 function main(args)
@@ -221,7 +227,7 @@ function main(args)
             --query database and see details of packages
 
             --get list of all packages installed
-            if isin(mode, 'e') then
+            if string.isin(mode, 'e') then
                 -- binfo = bscinfo
                 local ipkg = yapi_db:binfo_installed()
                 for _,v in ipairs(ipkg) do
@@ -232,20 +238,29 @@ function main(args)
 
             local pkg = arguments[1]
 
-            if not yapi_db:find(pkg) then
+            local pkgd = yapi_db:package_find(pkg)
+            if not pkgd then
                 return ferror("error: target not found: "..pkg)
             end
 
-            local pkg_repo = yapi_db:r_find(pkg)
-            local pkgd = yapi_db:get_data(pkg_repo, pkg)
+            local cached_pkg = common.yapi_exists_cache(pkg)
+            if not cached_pkg then
+                msg_normal("Cache not available")
+            end
+
+            local pkg_repo = yapi_db:pkg_get_repo(pkg)
 
             --show basic data
             print()
-            write_color(pkg_repo, colors.yellow)
-            write('/'..pkgd.name)
-            write(' v'..pkgd.version)
-            write_color(' b'..pkgd.build, colors.blue)
-            print_color(' ('..pkgd.license..')', colors.red)
+            write_cl(pkg_repo, colors.yellow)
+            write('/'..pkg)
+            if cached_pkg then
+                write(' v'..pkgd.version)
+            end
+            write_cl(' b'..pkgd.build, colors.blue)
+            if cached_pkg then
+                print_cl(' ('..pkgd.license..')', colors.red)
+            end
 
             --maintainer and email
             --print()
@@ -254,7 +269,9 @@ function main(args)
 
             --description of package
             print()
-            print_color("Description: "..pkgd.desc, colors.orange)
+            if cached_pkg then
+                print_cl("Description: "..pkgd.desc, colors.orange)
+            end
             --print("URL: "..ydata.url) --package url
 
         elseif string.sub(mode, 2, 2) == 'U' then
@@ -274,8 +291,12 @@ function main(args)
 
             --parse the given file
             local ydata = libyap.parse_yap(fdt)
+            if not ydata then
+                return ferror("libyap: error parsing yap file")
+            end
+
             if not libyap.check_yap(ydata) then
-                return ferror("check: error checking yap data")
+                return ferror("libyap: error checking yap data")
             end
 
             local packages = {ydata['name']}
@@ -291,8 +312,8 @@ function main(args)
             end
 
             --setting jobs and installing
-            yapi_db:job_set(packages)
-            if yapi_db:install_yap(ydata, 'manual') then
+            yapi_job_set(packages)
+            if yapi_db:pkg_install_yap(ydata, 'manual') then
                 nr("Done.")
             else
                 return ferror("[install_yap:error] "..ydata['name'])

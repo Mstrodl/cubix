@@ -6,7 +6,8 @@ if not http then
 end
 
 function usage()
-    print("usage: wget <url> <file>")
+    print("usage: wget <url> [file]")
+    print("<url> can be HTTP or pastebin:id")
 end
 
 function download_file_http(url)
@@ -61,14 +62,13 @@ function main(args)
         ferror("wget: "..response[2])
         return 1
     else
-        ferror("wget: ???")
+        ferror("wget: Unexpected response")
         return 1
     end
-    local p = fs_resolve(destination)
-    local h = fs.open(p, 'w')
-    h.write(response)
-    h.close()
-    print("wget: saved as "..p)
+
+    -- write to destination
+    fs_writedata(fs_resolve(destination), response)
+    print("wget: saved "..p)
 end
 
 main({...})
