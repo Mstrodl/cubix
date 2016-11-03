@@ -192,7 +192,7 @@ end
 function Yapidb:_load_db(repo)
     local splitted_spaces, tokens, current_package, package_name
 
-    local path = fs.combine(yapi_database_dir..'/', repo)
+    local path = fs.combine(yapi_database_dir..'/', repo['name'])
     local repo_data = fs_readall(path)
     if not repo_data then return false end
 
@@ -206,10 +206,6 @@ function Yapidb:_load_db(repo)
     }
     ]]
 
-    if not db_repo then
-        db_repo = {}
-    end
-
     local db_repo = {}
 
     -- read through repo_data and add package entries to self.db
@@ -218,16 +214,16 @@ function Yapidb:_load_db(repo)
 
         if string.sub(line, 1, 1) == 'p' then
             -- check if the last token is {
-            if tokens[2] ~= '{' then
-                ferror("[ydb:_load_db] t[2] ~= '{'")
+            if tokens[3] ~= '{' then
+                ferror("[ydb:_load_db] t[3] ~= '{'")
                 return false
             end
 
             -- get package name
-            package_name = tokens[1]
+            package_name = tokens[2]
 
             db_repo[package_name] = {}
-            current_package = pkgname
+            current_package = package_name
 
         elseif tokens[1] == 'build' then
             local pkgbuild = tokens[2]
@@ -260,15 +256,24 @@ function Yapidb:_load_db(repo)
     return true
 end
 
-function Yapidb:load_repos()
+function Yapidb:_load_repos()
     local repos = yapi_get_sources()
 
     for _,repo_type in pairs(repos) do
         for _,repo in ipairs(repo_type) do
-            if not self:_load_db(repo['name']) then
+            if not self:_load_db(repo) then
                 return false
             end
         end
     end
 
+    return true
+end
+
+function Yapidb:load_repos()
+    if not self:_load_repos() then
+        ferror("[ydb:load_repos] error loading repofiles")
+        return false
+    end
+    return true
 end
