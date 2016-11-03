@@ -188,3 +188,87 @@ function Yapidb:_save_local()
     if not new_local_file then return false end
     return fs_writedata(yapi_local_file, new_local_file)
 end
+
+function Yapidb:_load_db(repo)
+    local splitted_spaces, tokens, current_package, package_name
+
+    local path = fs.combine(yapi_database_dir..'/', repo)
+    local repo_data = fs_readall(path)
+    if not repo_data then return false end
+
+    --[[
+    Formatting for packages in repofiles:
+
+    p package-name {
+        dep dep1,dep2,dep3,...,depN
+        build Number
+        url url_to_yapfile
+    }
+    ]]
+
+    if not db_repo then
+        db_repo = {}
+    end
+
+    local db_repo = {}
+
+    -- read through repo_data and add package entries to self.db
+    for _,line in ipairs(string.splitlines(repo_data)) do
+        tokens = string.split(line, ' ')
+
+        if string.sub(line, 1, 1) == 'p' then
+            -- check if the last token is {
+            if tokens[2] ~= '{' then
+                ferror("[ydb:_load_db] t[2] ~= '{'")
+                return false
+            end
+
+            -- get package name
+            package_name = tokens[1]
+
+            db_repo[package_name] = {}
+            current_package = pkgname
+
+        elseif tokens[1] == 'build' then
+            local pkgbuild = tokens[2]
+            db_repo[current_package]['build'] = tonumber(pkgbuild)
+
+        elseif tokens[1] == 'dep' then
+            local str_pkg_dep = tokens[2]
+            local pkg_dep = string.split(str_pkg_dep, ',')
+            db_repo[current_package]['depends'] = pkg_dep
+
+        elseif tokens[1] == 'url' then
+            local url = tokens[2]
+            local yapurl = ''
+            if url == 'default' then
+                local build = db_repo[current_package]['build']
+                yapurl = rprintf("http://%s/%s/%s-%d.yap", yapi_server_url, repo['name'],
+                    current_package, build)
+            else
+                yapurl = url
+            end
+            db_repo[current_package]['url'] = yapurl
+
+        elseif line == '}' then
+            current_package = nil
+        end
+    end
+
+    self.db[repo['name']] = db_repo
+
+    return true
+end
+
+function Yapidb:load_repos()
+    local repos = yapi_get_sources()
+
+    for _,repo_type in pairs(repos) do
+        for _,repo in ipairs(repo_type) do
+            if not self:_load_db(repo['name']) then
+                return false
+            end
+        end
+    end
+
+end

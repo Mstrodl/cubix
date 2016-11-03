@@ -71,6 +71,7 @@ function main(args)
 
     -- load /var/yapi/local
     yapi_db:load_local()
+    yapi_db:load_repos()
 
     local mode = args[1]
     local arguments = table.tail(args)

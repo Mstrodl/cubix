@@ -7,7 +7,7 @@ local not_nil_entries = { 'name', 'version', 'build', 'author', 'description',
 
 function check_nil_entries(tbl, entries)
     for _,entry in ipairs(entries) do
-        if tbl[entry] == nil then
+        if tbl[entry] == nil or tbl[entry] == '' then
             return entry
         end
     end
