@@ -2,8 +2,6 @@
 
 [![Gitter](https://badges.gitter.im/lkmnds/cubix.svg)](https://gitter.im/lkmnds/cubix?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge)
 
-**Most development work is happening in the `rewrite` branch, this is the latest stable version**
-
 Cubix is an unix-like ComputerCraft OS, made for people who want to hack it as long as you want it to.
 
 ## Demos
@@ -20,6 +18,10 @@ Cubix is an unix-like ComputerCraft OS, made for people who want to hack it as l
  * MIT Licensed
  * Manual pages
  * Package management(yapi)
+
+### Notes
+
+The `master` branch contains the latest state of cubix, it shouldn't be used in any production enviroment, use the `stable` branch for this
 
 ## Installation in ComputerCraft machines
 
