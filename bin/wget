@@ -21,7 +21,7 @@ function download_file_http(url)
             return rText
         elseif e == 'http_failure' then
             req = false
-            return {false, 'http_failure'}
+            return {false, stext}
         end
     end
 end
@@ -39,16 +39,25 @@ function download_file(url)
 end
 
 function main(args)
-    if #args ~= 2 then
+    if #args < 1 then
         usage()
         return 0
     end
-    local url, destination = args[1], args[2]
-    local response = download_file(url)
+
+    local url, destination, response
+
+    url = args[1]
+    if args[2] then
+        destination = args[2]
+    else
+        local s = string.split(url, '/')
+        destination = s[#s]
+    end
+
+    response = download_file(url)
     if type(response) == 'string' then
-        print("wget: response ok")
+        print("wget: recieved string")
     elseif type(response) == 'table' and response[1] == false then
-        ferror("wget: response == table")
         ferror("wget: "..response[2])
         return 1
     else
