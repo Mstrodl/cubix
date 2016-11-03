@@ -8,34 +8,34 @@
 ## For helpers for other building platforms and they need a local copy, use type 1
 ## For other extra repositories that doesn't need a lot of power, type 3
 
-repo core
+repo core {
 type 1
 server lkmnds.github.io/yapi/database/
-end
+}
 
-repo extra
+repo extra {
 type 3
 server lkmnds.github.io/yapi/database/
-end
+}
 
-repo community
+repo community {
 type 4
 server lkmnds.github.io/yapi/database/
-end
+}
 
 ## Testing repos
-#repo community-testing
+#repo community-testing {
 #type 4
 #server lkmnds.github.io/yapi-testing/database/
-#end
+#}
 
 ## Other users repositories
-#repo user
+#repo user {
 #server http://their.server/database/user/
-#end
+#}
 
 ## Custom repository
-#repo custom
+#repo custom {
 #file /home/packages/
 #type 2
-#end
+#}

@@ -103,7 +103,7 @@ function yapi_get_sources()
         local tokens = string.split(line, ' ')
         if tokens[1] == 'repo' then
             current['name'] = tokens[2]
-        elseif tokens[1] == 'end' then
+        elseif tokens[1] == '}' then
             -- insert into repos
             table.insert(repos[current['type']], current)
             current = {}

@@ -122,7 +122,7 @@ end
 function _prompt(message, yes, nope)
     write(message..'['..yes..'/'..nope..'] ')
     local result = read()
-    if result == yes then
+    if result == yes or result == '' then
         return true
     else
         return false

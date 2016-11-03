@@ -102,7 +102,7 @@ function main(args)
 
             --clear cache(not a good option)
             if string.isin(mode, 'c') then
-                if not prompt(":: Proceed with cache clean(not recommended)?", "Y", "n") then
+                if not prompt("Proceed with clear cache?", "Y", "n") then
                     return msg_error("cache_clean_prompt")
                 end
                 yapi_db:clear_cache()
