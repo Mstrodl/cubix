@@ -364,7 +364,7 @@ function fs_writedata(fpath, str_data, flag, external_fs)
     if h == nil then return nil end
     h.write(tostring(str_data))
     h.close()
-    return data
+    return str_data
 end
 
 -- add /etc/fstab management

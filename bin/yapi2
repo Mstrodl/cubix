@@ -23,7 +23,7 @@ function msg_ct(str)
 end
 
 function msg_success(str)
-    print_cl(colors.green, rprintf("=> %s", str))
+    print_cl(colors.green, rprintf("[V] %s", str))
 end
 
 function msg_error(str)
@@ -38,6 +38,27 @@ function main(args)
 
     libyap.test()
 
+    local yapi_db = common.Yapidb()
+
+    if args[1] == '--init' then
+        msg_normal("Initializing yapi structure")
+        if common.yapi_mk_struct() then
+            msg_success("Initialized yapi structure")
+        end
+
+        msg_normal("Loading local file")
+        if not yapi_db:_load_local() then
+            msg_ct("Error loading, creating empty local file")
+            if yapi_db:_save_local() then
+                msg_success("Local file created")
+            else
+                msg_error("Error creating local file")
+            end
+        else
+            msg_ct("local file loaded, no action needed")
+        end
+    end
+
     if not common.yapi_check_struct() then
         msg_error("error checking yapi structure")
         return ferror("run yapi --init")
@@ -48,14 +69,8 @@ function main(args)
         return 0
     end
 
-    if args[1] == '--init' then
-        msg_normal("Initializing yapi structure")
-        if common.yapi_mk_struct() then
-            msg_success("Done.")
-        end
-    end
-
-    local yapi_db = common.Yapidb()
+    -- load /var/yapi/local
+    yapi_db:load_local()
 
     local mode = args[1]
     local arguments = table.tail(args)

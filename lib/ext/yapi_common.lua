@@ -155,6 +155,7 @@ end
 Yapidb = class(function(self)
     self.db = {}
     self.installed = {}
+    self.localdb = {}
 end)
 
 function Yapidb:usual_check()
@@ -164,6 +165,26 @@ function Yapidb:usual_check()
     --return self:check_conflicts()
 end
 
-function Yapidb:update_one_repo(repo)
-    -- get repo from database file, and get the file accordingly
+function Yapidb:_load_local()
+    local local_file = fs_readall(yapi_local_file)
+    local res
+    if not local_file then return false end
+    res = textutils.unserialize(local_file)
+    if not res then return false end
+    self.localdb = res
+    return true
+end
+
+function Yapidb:load_local()
+    if not self:_load_local() then
+        ferror("[ydb:load_local] error loading local file")
+        return false
+    end
+    return true
+end
+
+function Yapidb:_save_local()
+    local new_local_file = textutils.serialize(self.localdb)
+    if not new_local_file then return false end
+    return fs_writedata(yapi_local_file, new_local_file)
 end
