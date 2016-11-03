@@ -112,22 +112,27 @@ function main(args)
             -- if any package is passed on, install it
             if arguments ~= nil then
                 --check if all packages exist
-                for _,pkg in ipairs(arguments) do
-                    if yapi_db:find(pkg) == false then
+                for _,package in ipairs(arguments) do
+                    if yapi_db:package_find(package) == false then
                         return ferror("error: target not found: "..pkg)
                     end
                 end
 
                 --sanity check, installing already installed packages
-                for _,pkg in ipairs(arguments) do
-                    if ydb:is_installed(pkg) then
-                        warning(common.yapi_mkstr(pkg)..' already installed - reinstalling')
+                for k,pkg in ipairs(arguments) do
+                    if yapi_db:package_installed(pkg) then
+                        if flag_skip_installed then
+                            warning(common.yapi_mkstr(pkg)..' already installed - skipping')
+                            arguments[k] = nil
+                        else
+                            warning(common.yapi_mkstr(pkg)..' already installed - reinstalling')
+                        end
                     end
                 end
 
                 --get deps
                 print("resolving dependencies...")
-                local packages = yapi_db:get_deps(arguments)
+                local packages = yapi_db:make_deps(arguments)
                 print("")
                 if packages == nil then
                     return ferror("yapi: error getting dependencies")

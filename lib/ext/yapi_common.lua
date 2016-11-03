@@ -129,7 +129,7 @@ function yapi_update_repos()
     local total_repos = 0
     local jobs = 0
 
-    for _,repo_type in pairs(repos) do
+    for _,repo_type in ipairs(repos) do
         for _,repo in ipairs(repo_type) do
             total_repos = total_repos + 1
         end
@@ -137,7 +137,7 @@ function yapi_update_repos()
 
     yapi_job_set(total_repos)
 
-    for _,repo_type in pairs(repos) do
+    for _,repo_type in ipairs(repos) do
         for _,repo in ipairs(repo_type) do
             yapi_job_next()
             yapi_job_message('updating %s', repo['name'])
@@ -256,10 +256,21 @@ function Yapidb:_load_db(repo)
     return true
 end
 
+function Yapidb:pkg_get_data(pkgname)
+    for _,repodb in pairs(self.db) do
+        for pkg_name,pkg_data in pairs(repodb) do
+            if pkg_name == pkgname then
+                return pkg_data
+            end
+        end
+    end
+    return false
+end
+
 function Yapidb:_load_repos()
     local repos = yapi_get_sources()
 
-    for _,repo_type in pairs(repos) do
+    for _,repo_type in ipairs(repos) do
         for _,repo in ipairs(repo_type) do
             if not self:_load_db(repo) then
                 return false
@@ -276,4 +287,34 @@ function Yapidb:load_repos()
         return false
     end
     return true
+end
+
+function Yapidb:package_find(pkgwanted)
+    if pkgwanted == nil or pkgwanted == '' then return false end
+    for _,repodb in pairs(self.db) do
+        for pkgname,_ in pairs(repodb) do
+            if pkgname == pkgwanted then return true end
+        end
+    end
+    return false
+end
+
+function Yapidb:make_deps(listpkgs)
+    local new_list = {}
+    for _,pkgname in ipairs(listpkgs) do
+        local pkg_data = self:pkg_get_data(pkgname)
+        if pkg_data['depends'] then
+            for _,dep in ipairs(pkg_data['depends']) do
+                if dep ~= '' then
+                    local deps_of_dep = self:make_deps({dep})
+                    for _,dep_of_dep in pairs(deps_of_dep) do
+                        table.insert(new_list, dep_of_dep)
+                    end
+                end
+            end
+        end
+        table.insert(new_list, pkgname)
+    end
+
+    return new_list
 end

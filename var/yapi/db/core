@@ -1,24 +1,24 @@
 p base {
 build 52
-yapfile=default
+yapfile default
 }
 
 p base-git {
 build *
-yapfile=http://raw.githubusercontent.com/lkmnds/cubix/master/src/base-pkg/base.yap
+yapfile http://raw.githubusercontent.com/lkmnds/cubix/master/src/base-pkg/base.yap
 }
 
 p devscripts {
 build 11
-yapfile=default
+yapfile default
 }
 
 p bootsplash {
 build 5
-yapfile=default
+yapfile default
 }
 
 p initramfs-tools {
 build 3
-yapfile=default
+yapfile default
 }
