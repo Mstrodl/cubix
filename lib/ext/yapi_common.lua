@@ -1,6 +1,10 @@
 
+-- load libyap
+local libyap = cubix.load_file('/lib/ext/libyap.lua')
+
 -- configuration
 local yapi_default_dir = '/var/yapi'
+local yapi_server_url = 'lkmnds.github.io'
 
 local yapi_cache_dir = '/var/cache/yapi'
 local yapi_database_dir = fs.combine(yapi_default_dir, '/db')
@@ -28,7 +32,7 @@ local total_jobs = 0
 local done_jobs = 0
 
 function yapi_job_set(jobs)
-    total_jobs = jobs
+    total_jobs = #jobs
 end
 
 function yapi_job_next()
@@ -61,8 +65,17 @@ function yapi_download_file(url)
     end
 end
 
-function yapi_mkstr(yapd)
+function yapi_download_package(pkg_entry)
+    -- If available, use cache
+    return yapi_download_file(pkg_entry['url'])
+end
+
+function yapi_mkstr_yapd(yapd)
     return rprintf("%s-%s", yapd['name'], yapd['version'])
+end
+
+function yapi_mkstr_db(pkg_name, pkg_entry)
+    return rprintf("%s-%s", pkg_name, pkg_entry['build'])
 end
 
 function yapi_upd_one_repo(repo)
@@ -309,9 +322,9 @@ function Yapidb:package_find(pkgwanted)
         return false
     end
     for _,repodb in pairs(self.db) do
-        for pkgname,_ in pairs(repodb) do
+        for pkgname,pkg_entry in pairs(repodb) do
             if pkgname == pkgwanted then
-                return true
+                return pkg_entry
             end
         end
     end
@@ -329,6 +342,16 @@ function Yapidb:package_installed(pkg)
 end
 
 function Yapidb:make_deps(listpkgs)
+    --[[
+        Yapidb:make_deps(
+            listpkgs : table
+        )
+
+        note: listpkgs is an array, not a hashmap
+
+        make_deps creates another array with the packages needed to install
+        the packages in listpkgs(in order)
+    ]]
     local new_list = {}
     local pkg_data, deps_of_dep
     for _,pkgname in ipairs(listpkgs) do
@@ -351,4 +374,69 @@ function Yapidb:make_deps(listpkgs)
     end
 
     return new_list
+end
+
+function Yapidb:pkg_string(pkg_name)
+    --[[
+        Yapidb:pkg_string(
+            pkg_name : str
+        )
+
+        Makes a string representing the package
+    ]]
+    local pkg_entry = self:package_find(pkg_name)
+    return yapi_mkstr_db(pkg_name, pkg_entry)
+end
+
+function Yapidb:install(pkg_name)
+    --[[
+        Yapidb:install(
+            package_name : str
+        )
+
+        Install one package from the repositories. Returns true on success, false
+        on any error
+    ]]
+    local pkg_entry = self:package_find(pkg_name)
+
+    -- download .yap of the package
+    yapi_job_message("Downloading %s", pkg_name)
+    local pkgyap = yapi_download_package(pkg_entry)
+    if type(pkgyap) == 'table' then
+        ferror(rprintf("[install] Download error: %s", pkgyap[2]))
+        return false
+    end
+
+    -- cache file as needed
+    -- yapi_cache_file(pkg..'-'..pkgd['build']..'.yap', pkgyap)
+
+    -- check conflict files
+    --[[yapi_job_message("checking "..pkg)
+    if not self:check_conflicts({pkg}) then
+        ferror("check: error in conflict check")
+        return false
+    end]]
+
+    --parse yap and install it
+    yapi_job_message("parsing %s", pkg_name)
+    local yap_data = libyap.yap_parse(pkgyap)
+    if not yap_data then
+        ferror("[install] error in yap parsing")
+        return false
+    end
+
+    --check dependencies of a yap
+    local mdep = self:pkg_check_dep(ydata)
+    if mdep ~= nil then
+        ferror("[install] missing dependencies for %s, can't continue", pkg_name)
+        return false
+    end
+
+    --install
+    yapi_job_message("installing "..pkg)
+    if self:install_yap(ydata) then
+        return true
+    else
+        return false
+    end
 end

@@ -155,20 +155,20 @@ function main(args)
                 --user consent
                 write("Packages ("..#packages..") ")
                 for _,pkg in ipairs(packages) do
-                    write(common.yapi_mkstr(pkg)..' ')
+                    write(yapi_db:pkg_string(pkg)..' ')
                 end
                 print("\n")
+
                 if not prompt(":: Proceed with installation?", "Y", "n") then
-                    return abort("install_prompt")
+                    return 0
                 end
 
                 --installing.
-                yapi_db:job_set(packages)
-                extnr("Installing "..#packages.." package(s)")
+                common.yapi_job_set(packages)
+                msg_normal("Installing "..#packages.." package(s)")
                 for _, package in ipairs(packages) do
                     if yapi_db:install(package) then
-                        yapi_db:job_status("SUCCESS")
-                        yapi_db:job_next()
+                        common.yapi_job_next()
                     else
                         return abort("install_error")
                     end
@@ -201,7 +201,7 @@ function main(args)
                 print("\n")
 
                 if not prompt("Proceed with removal?", "Y", "n") then
-                    return abort("remove_prompt")
+                    return 0
                 end
 
                 --setting jobs and removing each one

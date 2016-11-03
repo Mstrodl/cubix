@@ -1,15 +1,15 @@
 p lx-base {
 build 0
-yapfile default
+url default
 }
 
 p libcubix-dev {
 build 0
-yapfile default
+url default
 }
 
 p devutils {
 dep libcubix-dev,devscripts
 build 0
-yapfile default
+url default
 }
