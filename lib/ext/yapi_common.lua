@@ -77,7 +77,9 @@ function yapi_upd_one_repo(repo)
 
     -- write to repofile
     local repofile_handler = fs.open(rprintf("%s/%s", yapi_database_dir, repo['name']), 'w')
-    if not repofile_handler then return false end
+    if not repofile_handler then
+        return false
+    end
     repofile_handler.write(k)
     repofile_handler.close()
 
@@ -141,7 +143,9 @@ function yapi_update_repos()
         for _,repo in ipairs(repo_type) do
             yapi_job_next()
             yapi_job_message('updating %s', repo['name'])
-            if not yapi_upd_one_repo(repo) then return false end
+            if not yapi_upd_one_repo(repo) then
+                return false
+            end
         end
     end
 
@@ -168,9 +172,15 @@ end
 function Yapidb:_load_local()
     local local_file = fs_readall(yapi_local_file)
     local res
-    if not local_file then return false end
+    if not local_file then
+        return false
+    end
+
     res = textutils.unserialize(local_file)
-    if not res then return false end
+    if not res then
+        return false
+    end
+
     self.localdb = res
     return true
 end
@@ -185,7 +195,10 @@ end
 
 function Yapidb:_save_local()
     local new_local_file = textutils.serialize(self.localdb)
-    if not new_local_file then return false end
+    if not new_local_file then
+        return false
+    end
+
     return fs_writedata(yapi_local_file, new_local_file)
 end
 
@@ -194,7 +207,9 @@ function Yapidb:_load_db(repo)
 
     local path = fs.combine(yapi_database_dir..'/', repo['name'])
     local repo_data = fs_readall(path)
-    if not repo_data then return false end
+    if not repo_data then
+        return false
+    end
 
     --[[
     Formatting for packages in repofiles:
@@ -290,10 +305,24 @@ function Yapidb:load_repos()
 end
 
 function Yapidb:package_find(pkgwanted)
-    if pkgwanted == nil or pkgwanted == '' then return false end
+    if pkgwanted == nil or pkgwanted == '' then
+        return false
+    end
     for _,repodb in pairs(self.db) do
         for pkgname,_ in pairs(repodb) do
-            if pkgname == pkgwanted then return true end
+            if pkgname == pkgwanted then
+                return true
+            end
+        end
+    end
+    return false
+end
+
+function Yapidb:package_installed(pkg)
+    for _,pkg_entry in ipairs(self.localdb) do
+        local name, build, install_type = table.unpack(pkg_entry)
+        if name == pkg then
+            return true
         end
     end
     return false
@@ -301,12 +330,17 @@ end
 
 function Yapidb:make_deps(listpkgs)
     local new_list = {}
+    local pkg_data, deps_of_dep
     for _,pkgname in ipairs(listpkgs) do
-        local pkg_data = self:pkg_get_data(pkgname)
+        pkg_data = self:pkg_get_data(pkgname)
+        if not pkg_data then
+            return false
+        end
+
         if pkg_data['depends'] then
             for _,dep in ipairs(pkg_data['depends']) do
                 if dep ~= '' then
-                    local deps_of_dep = self:make_deps({dep})
+                    deps_of_dep = self:make_deps({dep})
                     for _,dep_of_dep in pairs(deps_of_dep) do
                         table.insert(new_list, dep_of_dep)
                     end

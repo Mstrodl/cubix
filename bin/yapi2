@@ -114,7 +114,7 @@ function main(args)
                 --check if all packages exist
                 for _,package in ipairs(arguments) do
                     if yapi_db:package_find(package) == false then
-                        return ferror("error: target not found: "..pkg)
+                        return ferror("error: target not found: "..package)
                     end
                 end
 
@@ -139,7 +139,7 @@ function main(args)
                 end
 
                 --Cubix Standard rule 1 check
-                if inlist('base', packages) then
+                if table.exists('base', packages) then
                     ferror("WARNING: As Cubix Standards, devs should not install the base package as it will damage existing changes that they made.")
                     ferror("\nWARNING2: Only users with consent that all personal data will be lost after installation should continue.")
                     ferror("To upgrade the system, use cubixli.")
@@ -147,9 +147,8 @@ function main(args)
                         if prompt("Do you REALLY want to go with this?", "Y", "n") then
                             print("Ok then... don't issue this at github, pls.")
                         end
-                        return abort("base_warning")
                     else
-                        return abort("base_warning")
+                        return 0
                     end
                 end
 
