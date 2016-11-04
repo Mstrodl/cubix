@@ -1,6 +1,7 @@
 
 -- load libyap
-local libyap = cubix.load_file('/lib/ext/libyap.lua')
+local libyap = cubix.load_file('/lib/ext/yapi/libyap.lua')
+local cache = cubix.load_file("/lib/ext/yapi/yapi_cache.lua")
 
 -- configuration
 local yapi_default_dir = '/var/yapi'
