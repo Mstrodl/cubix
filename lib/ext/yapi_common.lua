@@ -150,7 +150,8 @@ function yapi_update_repos()
         end
     end
 
-    yapi_job_set(total_repos)
+    -- don't use yapi_job_set
+    total_jobs = total_repos
 
     for _,repo_type in ipairs(repos) do
         for _,repo in ipairs(repo_type) do
