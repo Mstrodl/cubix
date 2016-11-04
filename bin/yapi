@@ -5,8 +5,8 @@
 
 VERSION = '0.3.0'
 
-local libyap = cubix.load_file("/lib/ext/libyap.lua")
-local common = cubix.load_file("/lib/ext/yapi_common.lua")
+local libyap = cubix.load_file("/lib/ext/yapi/libyap.lua")
+local common = cubix.load_file("/lib/ext/yapi/yapi_common.lua")
 
 function write_cl(str, cl)
     term.set_term_color(cl)
