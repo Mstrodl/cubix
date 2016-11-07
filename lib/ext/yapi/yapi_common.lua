@@ -5,7 +5,7 @@ local cache = cubix.load_file("/lib/ext/yapi/yapi_cache.lua")
 
 -- configuration
 local yapi_default_dir = '/var/yapi'
-local yapi_server_url = 'lkmnds.github.io'
+local yapi_server_url = 'lkmnds.github.io/yapi'
 
 local yapi_cache_dir = '/var/cache/yapi'
 local yapi_database_dir = fs.combine(yapi_default_dir, '/db')
@@ -273,7 +273,7 @@ function Yapidb:_load_db(repo)
             local yapurl = ''
             if url == 'default' then
                 local build = db_repo[current_package]['build']
-                yapurl = rprintf("http://%s/%s/%s-%d.yap", yapi_server_url, repo['name'],
+                yapurl = rprintf("%s/%s/%s-%d.yap", yapi_server_url, repo['name'],
                     current_package, build)
             else
                 yapurl = url
@@ -439,7 +439,7 @@ function Yapidb:install(pkg_name)
 
     --parse yap and install it
     yapi_job_message("parsing %s", pkg_name)
-    local yap_data = libyap.yap_parse(pkgyap)
+    local yap_data = libyap.parse_yap(pkgyap)
     if not yap_data then
         ferror("[install] error in yap parsing")
         return false

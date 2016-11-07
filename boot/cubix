@@ -98,7 +98,7 @@ end
 os._read = read
 os._sleep = os.sleep
 
-local ferror = function(...)
+ferror = function(...)
     --[[
     device_write("/dev/stderr", message)
     ]]

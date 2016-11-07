@@ -28,6 +28,10 @@ function parse_yap(data)
     result['depends'] = {}
     result['optdepend'] = {}
     result['folders'] = {}
+
+    result['ufiles'] = {}
+    result['cfiles'] = {}
+
     for _,line in ipairs(string.splitlines(data)) do
         local d = string.split(line, '=')
         local decl = string.split(line, ';')
@@ -43,6 +47,13 @@ function parse_yap(data)
             table.insert(result['optdepend'], string.split(p[2], ':'))
         elseif decl[1] == 'folder' then
             table.insert(result['folders'], f[2])
+
+        elseif decl[1] == 'file' then -- uncompressed file
+            -- TODO
+
+        elseif decl[1] == 'compressed' then -- compressed file
+            -- TODO
+
         else
             ferror(rprintf("unrecognized key: %s", key))
             return nil

@@ -14,7 +14,7 @@ function Compressor:compress(data)
     return ferror("compress: Not Implemented")
 end
 
-function Compress:decompress(data)
+function Compressor:decompress(data)
     return ferror("decompress: Not Implemented")
 end
 

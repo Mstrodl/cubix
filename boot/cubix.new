@@ -48,9 +48,9 @@ function halt()
     while true do sleep(1) end
 end
 
-function ferror(message)
+function ferror(...)
     term.set_term_color(colors.red)
-    print(message)
+    printf(...)
     term.set_term_color(colors.white)
 end
 _G['ferror'] = ferror
