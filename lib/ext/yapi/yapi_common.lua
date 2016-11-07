@@ -408,6 +408,12 @@ function Yapidb:pkg_string(pkg_name)
     return yapi_mkstr_db(pkg_name, pkg_entry)
 end
 
+function Yapidb:pkg_check_idep(ydata)
+    for _,package in ipairs(ydata['dep']) do
+        print(package)
+    end
+end
+
 function Yapidb:install(pkg_name)
     --[[
         Yapidb:install(
@@ -446,7 +452,7 @@ function Yapidb:install(pkg_name)
     end
 
     --check dependencies of a yap
-    local mdep = self:pkg_check_dep(ydata)
+    local mdep = self:pkg_check_idep(ydata)
     if mdep ~= nil then
         ferror("[install] missing dependencies for %s, can't continue", pkg_name)
         return false

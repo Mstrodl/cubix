@@ -29,34 +29,50 @@ function parse_yap(data)
     result['optdepend'] = {}
     result['folders'] = {}
 
-    result['ufiles'] = {}
-    result['cfiles'] = {}
+    result['files'] = {}
+
+    if string.sub(data, 1, 4) == 'CYAP' then
+        -- compressed yap file
+        data = yap_lzw:decompress(string.sub(data, 4))
+    end
+
+    local flag_file = false
+    local files = result['files']
 
     for _,line in ipairs(string.splitlines(data)) do
-        local d = string.split(line, '=')
-        local decl = string.split(line, ';')
-        local key = d[1]
-
-        if table.exists(key, kv_keys) then
-            result[key] = d[2]
-        elseif key == 'depend' then
-            result['dep_str'] = p[2]
-            table.insert(result['dep'], string.split(p[2], ':'))
-        elseif key == 'optdepend' then
-            result['optdep_str'] = p[2]
-            table.insert(result['optdepend'], string.split(p[2], ':'))
-        elseif decl[1] == 'folder' then
-            table.insert(result['folders'], f[2])
-
-        elseif decl[1] == 'file' then -- uncompressed file
-            -- TODO
-
-        elseif decl[1] == 'compressed' then -- compressed file
-            -- TODO
-
+        if flag_file then
+            if line == 'END_FILE;' then
+                flag_file = false
+            else
+                if not files[flag_file] then
+                    files[flag_file] = line .. '\n'
+                else
+                    files[flag_file] = files[flag_file] .. line .. '\n'
+                end
+            end
         else
-            ferror(rprintf("unrecognized key: %s", key))
-            return nil
+            local d = string.split(line, '=')
+            local decl = string.split(line, ';')
+            local key = d[1]
+
+            if table.exists(key, kv_keys) then
+                result[key] = d[2]
+            elseif key == 'depend' then
+                result['dep_str'] = p[2]
+                table.insert(result['dep'], string.split(p[2], ':'))
+            elseif key == 'optdepend' then
+                result['optdep_str'] = p[2]
+                table.insert(result['optdepend'], string.split(p[2], ':'))
+            elseif decl[1] == 'folder' then
+                table.insert(result['folders'], f[2])
+
+            elseif decl[1] == 'file' then
+                flag_file = decl[2]
+
+            else
+                ferror(rprintf("unrecognized key: %s", key))
+                return nil
+            end
         end
     end
     return result
