@@ -98,16 +98,16 @@ end
 os._read = read
 os._sleep = os.sleep
 
-os.ferror = function(message)
+local ferror = function(...)
     --[[
     device_write("/dev/stderr", message)
     ]]
     term.set_term_color(colors.red)
-    print(message)
+    printf(...)
     term.set_term_color(colors.white)
 end
 
-_G['ferror'] = os.ferror
+_G['ferror'] = ferror
 
 if os.loadAPI("/lib/video_manager") then
     print("loaded video")

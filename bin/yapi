@@ -93,7 +93,7 @@ function main(args)
 
             if string.isin(mode, 'y') then
                 if not http then
-                    return abort("http not enabled")
+                    return ferror("[http_check] http not available")
                 end
                 msg_normal("Updating package database")
                 if not common.yapi_update_repos() then
@@ -176,7 +176,7 @@ function main(args)
                     if yapi_db:install(package) then
                         common.yapi_job_next()
                     else
-                        return abort("install_error")
+                        return ferror("yapi: install_error")
                     end
                 end
             end
@@ -307,8 +307,7 @@ function main(args)
             end
             print("\n")
             if not prompt(":: Proceed with installation?", "Y", "n") then
-                print("==> Aborted")
-                return true
+                return 0
             end
 
             --setting jobs and installing

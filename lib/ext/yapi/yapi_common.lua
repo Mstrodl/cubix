@@ -423,7 +423,7 @@ function Yapidb:install(pkg_name)
     yapi_job_message("Downloading %s", pkg_name)
     local pkgyap = yapi_download_package(pkg_entry)
     if type(pkgyap) == 'table' then
-        ferror(rprintf("[install] Download error: %s", pkgyap[2]))
+        ferror("[install] Download error: %s", pkgyap[2])
         return false
     end
 
