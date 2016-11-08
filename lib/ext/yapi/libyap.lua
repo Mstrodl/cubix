@@ -25,7 +25,7 @@ end
 
 function parse_yap(data)
     local result = {}
-    result['depends'] = {}
+    result['dep'] = {}
     result['optdepend'] = {}
     result['folders'] = {}
 
@@ -107,13 +107,6 @@ function yap_install(ydata)
         if not fs.makeDir(folder) then
             return false
         end
-    end
-
-    local decompressed_files = yap_decompress_files(ydata)
-
-    -- if any error happened decompressing, raise error
-    if not decompressed_files then
-        return false
     end
 
     for path, data in pairs(decompressed_files) do

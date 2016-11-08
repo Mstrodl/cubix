@@ -410,8 +410,11 @@ end
 
 function Yapidb:pkg_check_idep(ydata)
     for _,package in ipairs(ydata['dep']) do
-        print(package)
+        if not self:package_installed(package) then
+            return false
+        end
     end
+    return true
 end
 
 function Yapidb:install(pkg_name)
@@ -452,15 +455,15 @@ function Yapidb:install(pkg_name)
     end
 
     --check dependencies of a yap
-    local mdep = self:pkg_check_idep(ydata)
+    local mdep = self:pkg_check_idep(yap_data)
     if mdep ~= nil then
         ferror("[install] missing dependencies for %s, can't continue", pkg_name)
         return false
     end
 
     --install
-    yapi_job_message("installing "..pkg)
-    if libyap.install_yap(ydata) then
+    yapi_job_message("installing "..pkg_name)
+    if libyap.install_yap(yap_data) then
         return true
     else
         return false
