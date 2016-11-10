@@ -1,25 +1,15 @@
 #!/usr/bin/env lua
---libcubix: compatibility for cubix
+--initramfs
 
 AUTHOR = 'Luna Mendes'
-VERSION = '0.4'
+VERSION = '0.5'
 
 --[[
+    The Cubix initramfs has the implementations of functions that are simple
+    that they aren't supposed to be in the kernel
 
-Libcubix serves as a library that contains all the functions
-that do not use any "cubix" thing(like ferror for example)
-
-Libcubix is used in installation stage to create a cubix initramfs,
-this servers as the basic functions that are needed in systemboot and
-after it(os.strsplit, os.tail, etc.)
-
-As there can be other versions of initramfs created by the community,
-this version serves as the "official" libcubix and initramfs generator
-for cubix.
-
-Libcubix was created to make programs writed in Pure Lua to use some of
-the functions in Cubix, without making the programs to be run at Cubix enviroment
-
+    NOTE: Is CoC(Cubix on CraftOS) possible? meaning all Cubix calls
+    would be reimpĺemented to run in a CraftOS env?
 ]]
 
 -- install compatibility between color and non-color computers

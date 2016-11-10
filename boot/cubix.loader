@@ -57,8 +57,13 @@ else
 end
 
 print('[bootstrap:args] ', table.unpack(args, 1))
+
+--[[
+    Load kernel into memory using the `cubix` table
+]]
 os.run({}, '/boot/cubix.new', table.unpack(args, 1))
 
+-- use initramfs to load cubix.boot
 initramfs.cubix_boot_routine()
 
 print("[bootstrap] hlt.")
