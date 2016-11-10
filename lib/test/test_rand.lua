@@ -18,3 +18,6 @@ test_rand_1 = Test('syscall', 'testing range of randrange()', function()
         return (a <= n) and (b <= a)
     end
 end)
+
+lib.test.add_test(test_rand_0)
+lib.test.add_test(test_rand_1)

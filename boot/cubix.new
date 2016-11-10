@@ -38,6 +38,8 @@ for _,v in ipairs({...}) do
         kernel_flags.quiet = true
     elseif v == 'splash' then
         kernel_flags.splash = true
+    elseif v == 'test' then
+        kernel_flags.test = true
     elseif string.sub(v, 0, 4) == 'init' then
         k = string.split(v, '=')
         kernel_flags.init = k[2]
@@ -257,6 +259,16 @@ cubix.boot = function ()
         -- similar to os.lib.control in old kernel
     -- sysload("socket", "/lib/net/socket.lua")
     sysload("ansi", "/lib/ext/libansi.lua")
+
+    if kernel_flags.test then
+        sysload("test", "/lib/test/libtest.lua")
+        for k,v in ipairs(fs.list("/lib/test/libtest.lua")) do
+            if string.sub(v, 1, 4) == "test" then
+                execv(v, {})
+            end
+        end
+        return lib.test.run_tests()
+    end
 
     -- idle thread
     local p2_26 = math.pow(2, 26)

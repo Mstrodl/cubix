@@ -11,7 +11,7 @@ Test = class(function(self, mod_to_test, desc_test, func)
     self.func = func
 end)
 
-function register_test(test)
+function add_test(test)
     if not tests[test.module] then
         tests[test.module] = {}
     end
