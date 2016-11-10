@@ -3,15 +3,7 @@ Test = lib.test.Test
 
 test_rand_0 = Test('rand', 'range of rand()', function()
     local n = rand()
-    local minrange = 0 <= n
-    local maxrange = n <= math.pow(2, 32)-1
-    if minrange and maxrange then
-        return true, ''
-    else
-        print("minrange(0)", minrange)
-        print("maxrange(2^32-1)", maxrange)
-        return false, ''
-    end
+    return lib.test.t_number_range(n, 0, math.pow(2, 32)-1)
 end)
 
 test_rand_1 = Test('rand', 'range of randrange()', function()
@@ -24,16 +16,14 @@ test_rand_1 = Test('rand', 'range of randrange()', function()
     end
 
     local r_num = randrange(min, max)
-    local minrange = min <= r_num
-    local maxrange = r_num <= max
-    if minrange and maxrange then
-        return true, ''
-    else
-        ferror("minrange(%d) = %s", min, tostring(minrange))
-        ferror("maxrange(%d) = %s", max, tostring(maxrange))
-        return false, 'error comparing range values'
-    end
+    return lib.test.t_number_range(r_num, min, max)
+end)
+
+test_rand_2 = Test('rand', 'getrandombyte()', function()
+    local rnd_byte = getrandombyte()
+    return lib.test.t_number_range(rnd_byte, 0, 255)
 end)
 
 lib.test.add_test(test_rand_0)
 lib.test.add_test(test_rand_1)
+lib.test.add_test(test_rand_2)

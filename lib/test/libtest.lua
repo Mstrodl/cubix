@@ -26,11 +26,30 @@ function run_tests()
             printf("Running: %s", test.desc)
             local ok, err = test.func()
             if not ok then
-                ferror("ERROR[%s]: %s", group, err)
+                ferror("test_error[%s]: %s", group, err)
                 return false
             end
         end
     end
-    printf("all tests ended")
+    printf("libtest: all tests ended successfully")
     return true
+end
+
+function t_number_range(x, a, b)
+    --[[
+        t_number_range(
+            x, a, b : int
+        )
+        Already check if (a <= x <= b)
+    ]]
+    local minrange = a <= x
+    local maxrange = x <= b
+    if minrange and maxrange then
+        return true, ''
+    else
+        printf("val: %d", x)
+        printf("minrange(%d): %s", a, tostring(minrange))
+        printf("maxrange(%d): %s", b, tostring(maxrange))
+        return false, ''
+    end
 end
