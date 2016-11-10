@@ -262,9 +262,10 @@ cubix.boot = function ()
 
     if kernel_flags.test then
         sysload("test", "/lib/test/libtest.lua")
-        for k,v in ipairs(fs.list("/lib/test/libtest.lua")) do
+        for k,v in ipairs(fs.list("/lib/test")) do
             if string.sub(v, 1, 4) == "test" then
-                execv(v, {})
+                printf("test: loading %s", v)
+                execv(rprintf("%s/%s", "/lib/test", v), {})
             end
         end
         return lib.test.run_tests()

@@ -19,12 +19,14 @@ function add_test(test)
 end
 
 function run_tests()
-    for module,tests_module in pairs(tests) do
-        printf("running tests for module %s", module)
-        for _,test in ipairs(tests_module) do
+    for group, tests_group in pairs(tests) do
+        printf("running tests for group %s", group)
+
+        for _, test in ipairs(tests_group) do
             printf("Running: %s", test.desc)
-            if not test.func() then
-                ferror("ERROR running test, aborting")
+            local ok, err = test.func()
+            if not ok then
+                ferror("ERROR[%s]: %s", group, err)
                 return false
             end
         end
