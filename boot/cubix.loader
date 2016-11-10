@@ -66,6 +66,6 @@ os.run({}, '/boot/cubix.new', table.unpack(args, 1))
 -- use initramfs to load cubix.boot
 initramfs.cubix_boot_routine()
 
-print("[bootstrap] hlt.")
+print("[bootstrap] hlt")
 
 while true do sleep(1000) end -- hlt
