@@ -114,7 +114,7 @@ end
 _G['lib'] = lib
 
 cubix.load = function(module_name, path)
-    if not mod_reloadable[module_name] then
+    if mod_reloadable[module_name] == false then
         ferror("[mod] cannot reload %s: module locked", module_name)
         return false
     end
@@ -151,9 +151,9 @@ cubix.load = function(module_name, path)
 
     lib[module_name] = mod_tbl
     if mod_tbl.lib_reloadable then
-        isReloadable[module_name] = mod_tbl.lib_reloadable()
+        mod_reloadable[module_name] = mod_tbl.lib_reloadable()
     else
-        isReloadable[module_name] = mod_tbl.RELOADABLE
+        mod_reloadable[module_name] = mod_tbl.RELOADABLE
     end
     mod_order[#mod_order + 1] = module_name
 
