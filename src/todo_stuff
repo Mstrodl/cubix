@@ -1,5 +1,8 @@
 Things to do(not in order of priority):
 
+ * [0.6.x](0%) make an UEFI-like spec(CCUEFI)
+  * make Cubix compatible with it (0%)
+
  * [0.6.x](10%) Finish cshell rewrite
  * [0.6.x](33%) Finish filesystems
   * cbxfs (1%)
