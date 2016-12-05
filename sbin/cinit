@@ -4,64 +4,12 @@
 local RUNLEVELFUNC = {}
 
 function run_scripts(runlevel)
-    local runlevel_folder = rprintf("/etc/rc%d.d", runlevel)
-    for k,v in pairs(fs.list(runlevel_folder)) do
-        execv(lib.auth.getshell(lib.pm.currentuid()),
-            {fs.combine(runlevel_folder,v)})
+    local runlevel_folder = rprintf("/etc/cinit.d/rc%d.d", runlevel)
+
+    for _,filepath in pairs(fs.list(runlevel_folder)) do
+        execv(runlevel_folder .. '/' .. filepath, {"start"})
     end
 end
-
-function runlevel_0()
-    if permission.grantAccess(fs.perms.ROOT) then
-        os.shutdown()
-    end
-    permission.default()
-end
-
-function runlevel_1()
-    --single-user
-    while true do
-        execv('/sbin/login', {})
-    end
-end
-
-function runlevel_2()
-    --multiuser(all ttys running login) withtout network service
-    cubix.load("multiuser", "/lib/multiuser/multiuser.lua")
-end
-
-function runlevel_3()
-    --multiuser and network service
-    cubix.load("network", "/lib/net/network.lua")
-    cubix.load("multiuser", "/lib/multiuser/multiuser.lua")
-end
-
-function runlevel_5()
-    --start LuaX, multiuser and network support
-    cubix.load("network", "/lib/net/network.lua")
-    cubix.load("multiuser", "/lib/multiuser/multiuser.lua")
-    execv("/bin/lx", {'start'})
-end
-
-function runlevel_6()
-    --reboot
-    if permission.grantAccess(fs.perms.ROOT) then
-        syslog.serlog_info("init", "rebooting with root permission")
-        execv("/sbin/reboot", {})
-    else
-        --rebooting without permissions
-        syslog.serlog_info("init", "rebooting without root permission")
-        os.reboot()
-    end
-    permission.default()
-end
-
-RUNLEVELFUNC[0] = runlevel_0
-RUNLEVELFUNC[1] = runlevel_1
-RUNLEVELFUNC[2] = runlevel_2
-RUNLEVELFUNC[3] = runlevel_3
-RUNLEVELFUNC[5] = runlevel_5
-RUNLEVELFUNC[6] = runlevel_6
 
 function main(args)
     if lib.pm.currentuid() ~= 0 then
@@ -87,7 +35,7 @@ function main(args)
     end
 
     run_scripts(runlevel)
-    RUNLEVELFUNC[runlevel]()
+    -- RUNLEVELFUNC[runlevel]()
     return 0
 end
 
