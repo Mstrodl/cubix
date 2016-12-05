@@ -28,7 +28,7 @@ end
 
 -- hardcoded init
 local kernel_flags = {
-    ['init'] = '/sbin/init',
+    ['init'] = '/sbin/cinit',
     ['runlevel'] = '1',
 }
 
