@@ -34,6 +34,14 @@ function main(args)
         lib.tty.current_tty("/dev/tty1")
     end
 
+    if runlevel == 0 then
+        os.shutdown()
+    end
+
+    if runlevel == 6 then
+        os.reboot()
+    end
+
     run_scripts(runlevel)
     -- RUNLEVELFUNC[runlevel]()
     return 0

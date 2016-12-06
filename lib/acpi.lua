@@ -27,14 +27,14 @@ end
 
 local function acpi_shutdown()
     syslog.log(syslog.S_INFO, "acpi_shutdown", "")
-    if permission.grantAccess(fs.perms.SYS) then
+    if lib.auth.grant(lib.auth.system_perm) then
         syslog.serlog(syslog.S_OK, "shutdown", "shutting down for system halt")
         _G['CUBIX_TURNINGOFF'] = true
 
         syslog.serlog(syslog.S_OK, "shutdown", "sending SIGKILL to all processes")
         if not cubix.boot_flag then --proper userspace
-            os.lib.proc.__killallproc()
-            os.lib.fs_mngr.shutdown_procedure()
+            --lib.proc.__killallproc()
+            --lib.fs.shutdown_procedure()
         end
 
         os.sleep(1)
@@ -43,9 +43,8 @@ local function acpi_shutdown()
         os.sleep(.5)
         _shutdown()
     else
-        os.ferror("acpi_shutdown: cannot shutdown without SYSTEM permission")
+        os.ferror("acpi_shutdown: cannot shutdown without system permission")
     end
-    permission.default()
 end
 
 local function acpi_reboot()
@@ -73,7 +72,6 @@ local function acpi_reboot()
     else
         os.ferror("acpi_reboot: cannot reboot without SYSTEM permission")
     end
-    permission.default()
 end
 
 local function acpi_suspend()

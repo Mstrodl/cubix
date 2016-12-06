@@ -1,3 +1,4 @@
+#!/usr/bin/env lua
 --[[
     cshell.new - new cubix shell
 ]]
@@ -179,6 +180,17 @@ function main(args)
     -- default variables for shell
     csh_context['var']['PS1'] = default_PS1
     csh_context['var']['PATH'] = default_PATH
+
+    if #args > 1 then
+        local filedata = fs_readall(args[1])
+        if not filedata then
+            return ferror("csh: error reading file")
+        end
+        for _,line in string.splitlines(filedata) do
+            csh_context = shell_command(csh_context, line)
+        end
+        return
+    end
 
     csh_context = exec_script(fs_resolve('.cshrc'), csh_context)
 
