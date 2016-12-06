@@ -1,1 +1,0 @@
-execv("/sbin/reboot", {})
