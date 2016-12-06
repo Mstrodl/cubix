@@ -12,12 +12,10 @@ function main(args)
     os.runfile("mkdir /etc/opt")
     os.runfile("mkdir /etc/luaX")
     os.runfile("mkdir /etc/cinit.d/")
-    os.runfile("mkdir /etc/cinit.d/rc0.d")
     os.runfile("mkdir /etc/cinit.d/rc1.d")
     os.runfile("mkdir /etc/cinit.d/rc2.d")
     os.runfile("mkdir /etc/cinit.d/rc3.d")
     os.runfile("mkdir /etc/cinit.d/rc5.d")
-    os.runfile("mkdir /etc/cinit.d/rc6.d")
 
     os.runfile("mkdir /home") --home folder
     os.runfile("mkdir /home/cubix") --default user
