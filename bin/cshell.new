@@ -61,6 +61,10 @@ function exec_command(cxt, cmd)
         return cxt
     elseif executable_to_find == 'cd' then
         return cxt
+    elseif executable_to_find == 'loop' then
+        while true do
+            execv(args[1], {})
+        end
     end
 
     -- if it is an absolute path, treat it as one
@@ -181,15 +185,8 @@ function main(args)
     csh_context['var']['PS1'] = default_PS1
     csh_context['var']['PATH'] = default_PATH
 
-    if #args > 1 then
-        local filedata = fs_readall(args[1])
-        if not filedata then
-            return ferror("csh: error reading file")
-        end
-        for _,line in string.splitlines(filedata) do
-            csh_context = shell_command(csh_context, line)
-        end
-        return
+    if #args >= 1 then
+        return exec_script(args[1], csh_context)
     end
 
     csh_context = exec_script(fs_resolve('.cshrc'), csh_context)

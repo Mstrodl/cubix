@@ -7,7 +7,8 @@ function run_scripts(runlevel)
     local runlevel_folder = rprintf("/etc/cinit.d/rc%d.d", runlevel)
 
     for _,filepath in pairs(fs.list(runlevel_folder)) do
-        execv(runlevel_folder .. '/' .. filepath, {"start"})
+        local src_path = runlevel_folder .. '/' .. filepath
+        execv('/bin/cshell.new', {src_path})
     end
 end
 
