@@ -102,7 +102,7 @@ end
 
 function yapi_get_sources()
     -- get sources file
-    local sources_data = fs_readall("/var/yapi/sources")
+    local sources_data = fs_readall("/etc/yapi/sources")
     if not sources_data then
         return false
     end
