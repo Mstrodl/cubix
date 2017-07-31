@@ -18,7 +18,7 @@
         +Mersenne Twister as the default PRNG
         +ISAAC as the default CSPRNG in Cubix
         +Event Gather(to seed the CSPRNG)
-        +lots of random functions
+        +Lots of random functions
             rand(), randrange(min,max), getrandbits...
 
     +crypto:
@@ -26,10 +26,10 @@
         +RSA functions(wip)
 
     login:
-        +change sha256 work factor to 7 rounds
+        +Change sha256 work factor to 7 rounds
 
     yapi:
-        +full system upgrade
+        +Full system upgrade
 
     New libs:
         syslog: default logging system after boot
@@ -59,21 +59,21 @@
 0.5.1 - 0.5.2 (28-03-2016)
 
   Major changes:
-    +login manager rewrited (sudoers, groups, and more)!
-    +added better support for devices
+    +Login manager rewrited (sudoers, groups, and more)!
+    +Added better support for devices
     +proc_manager doesn't load main automatically, using os.run(see 0.2.1 log)
         pros:
             +This fixes the discrepancy between Cubix and CC programs
             +loadAPI doesn't mess around with _G anymore (I think read and sleep can be rewrited and used now.)
         cons:
             -Lost control of signals
-    +rewrited cshell
+    +Rewrited cshell
         pros:
             +Simpler code(it was a lot of spaghetti code)
         cons:
             -Because of proc_manager change, we lost piping
                 Still thinking of a way to pipe programs without mess around
-    +rewrited yapi(almost, missing -Su)
+    +Rewrited yapi(almost, missing -Su)
         pros:
             +New YAP and pkgdata formats
             +New databse format
@@ -88,13 +88,13 @@
         Almost like GNU make, with support to makefiles
 
   Devices:
-    +new device handling, with character and block devices
-    +changed way /dev/random and /dev/urandom get random seeds(based on os.clock(), not os.time())
+    +New device handling, with character and block devices
+    +Changed way /dev/random and /dev/urandom get random seeds(based on os.clock(), not os.time())
 
   CubixLI 0.2:
-    +refactor of cubixli 0.1 to be simpler and smaller
-    +the major change is smallyapi
-        a small version of yapi with only the basic update and install functions
+    +Refactor of cubixli 0.1 to be simpler and smaller
+    +The major change is smallyapi
+        A small version of yapi with only the basic update and install functions
         (it can only install packages from core)
 
 0.4.0 - 0.5.1 (12-21-2015)
@@ -108,7 +108,7 @@
     *bugfix: running runlevel as a kernel option
     */tmp/debug_info is now /tmp/syslog
     +os.ferror is in _G too(as only ferror)
-    +external device support(stdin, stdout and stderr almost finished)
+    +External device support(stdin, stdout and stderr almost finished)
     +new device: /dev/full
     +added more signals in os.signals
     +loadmodule_ret: returns the module _G, instead of putting it on os.lib
@@ -123,10 +123,10 @@
     +os.debug.kpanic: when lx is loaded, shows a beautiful panic message
     +login: kpanic when opening /tmp/current_user or /tmp/current_path gives an error
     +acpi:
-        +clears /proc/<pid> folders when __clear_temp is called
-        +sets CUBIX_TURNINGOFF to true when acpi_shutdown is called
-        +sets CUBIX_REBOOTING to true when acpi_reboot is called
-          +because of that, init won't cause a reboot to be a shutdown
+        +Clears /proc/<pid> folders when __clear_temp is called
+        +Sets CUBIX_TURNINGOFF to true when acpi_shutdown is called
+        +Sets CUBIX_REBOOTING to true when acpi_reboot is called
+          +Because of that, init won't cause a reboot to be a shutdown
 
   Added programs:
     +/bin/panic: just calls kpanic
@@ -157,11 +157,11 @@
 0.3.6 - 0.3.7 (11-16-2015)
   +Writing a Installer(cubix_live_installer or cubixli for short)
   -/boot/cubix_minimal does not exist anymore
-  +rewrited manuals for 0.3.7
+  +Rewrited manuals for 0.3.7
   -os.runfile (yes, this is now marked as bad)
-  +finally, /bin/cksum works(only with files)!
+  +Finally, /bin/cksum works(only with files)!
   +/bin/cat works with pipes(getting from file and throwing into a pipe)
-  +rewrited [/bin/cp /bin/mkdir /bin/mv], using os.chell.resolve now
+  +Rewrited [/bin/cp /bin/mkdir /bin/mv], using os.chell.resolve now
   +os.cshell.getpwd
   +/bin/eject works using disk.eject, not os.runfile
   -[/bin/read /bin/sleep] is not working [proposital as I'm working on a solution]
@@ -171,22 +171,22 @@
   !/bin/yapi: still WIP
   +/bin/yes: rewrite based on dev_random
   +/boot/cubix sets IS_CUBIX = true when booting
-  *bugfix: runlevel= wasnt working
+  *Bugfix: runlevel= wasnt working
   +_prompt(message, yescmd, ncmd)
     -Shows a prompt to the user, if he types the same as yescmd, return true
-  *bugfix_sbl: kernel module works
+  *Bugfix_sbl: kernel module works
   +/dev/MAKEDEV removes /tmp
   +acpi deletes and creates /tmp, not using os.runfile
   +Pipe:readAll()
-  +check in proc_manager if p.rfile.main ~= nil and p.rfile.main == function
+  +Check in proc_manager if p.rfile.main ~= nil and p.rfile.main == function
   +os.run_process sends SIGKILL to process after its execution
-  *bugfix: /sbin/adduser crashed when #args == 0
+  *Bugfix: /sbin/adduser crashed when #args == 0
   +/sbin/adduser uses os.lib.login
   +/sbin/init runs scripts in /etc/rc1.d using shell.run, not os.runfile
   +Rewrite of some manual pages
 
 0.3.5 - 0.3.6 (11-07-2015)
-  *bugfix: /dev/MAKEDEV does not work more on craftOS, fixed installation
+  *Bugfix: /dev/MAKEDEV does not work more on craftOS, fixed installation
   +SBL: bootscripts!
   +Yet Another Package Installer: /bin/yapi
   +NEW: os.tail
@@ -195,12 +195,12 @@
 
 0.3.4 - 0.3.5 (10-31-2015)
   +Cubix is now MIT licensed
-  +new (not new) security lock: when kernel is stable, "os.pullEvent = os.pullEventRaw" is applied
-  +new: /sbin/modprobe
-  +when loadmodule() loads a module that RELOADABLE = false is defined, it does not load the module
+  +New (not new) security lock: when kernel is stable, "os.pullEvent = os.pullEventRaw" is applied
+  +New: /sbin/modprobe
+  +When loadmodule() loads a module that RELOADABLE = false is defined, it does not load the module
     This helps when trying to "modprobe proc /lib/proc_manager", since this would wipe os.processes,
     leaving no trace of init or other processes
-  *bugfix: /bin/cshell does not run /sbin/, even if you provide the path
+  *Bugfix: /bin/cshell does not run /sbin/, even if you provide the path
   +/bin/ls does not depend of os.runfile (own algorithim now)
   -os.runfile: DEPRECATED!
   +/bin/sudo uses permission module and front_login
@@ -212,65 +212,65 @@
   +new: debug.warning(message)
   {disclaimer here: I used quite a lot of code from UberOS to create
   the filesystem manager to now, because of this, cubix is now MIT licensed}
-  +fs_manager: permissions in unix format, load filesystems(for now its
+  +fs_manager: Permissions in unix format, load filesystems(for now its
   CFS, cubix file system, but there will be more), nodes and mounting devices(/bin/mount and /bin/umount) :D
   +/sbin/kill: now can kill multiple PIDs!
-  !sudo: because of magic, sudo still makes it way to os.processes, even
+  !sudo: Because of magic, sudo still makes it way to os.processes, even
   if killed, so, don't trust it
-  +/bin/license: shows /LICENSE
+  +/bin/license: Shows /LICENSE
 
 
 0.3.3 - 0.3.4 (10-21-2015)
-  +new loading mechanism for kernel, decreasing its size
-  +login now uses sha256(password + salt) instead of sha256(password)
-  +login: session tokens!
+  +New loading mechanism for kernel, decreasing its size
+  +Login now uses sha256(password + salt) instead of sha256(password)
+  +Login: session tokens!
   +ACPI management now possible(SBL loads it by default)!
-  +new: os.generateSalt
-  *bugfix: /proc/cpuinfo & /proc/temperature now support stripping
-  +new: /proc/partitions
-  +new TTY logic
+  +New: os.generateSalt
+  *Bugfix: /proc/cpuinfo & /proc/temperature now support stripping
+  +New: /proc/partitions
+  +New TTY logic
 
 0.3.2 - 0.3.3 (10-13-2015)
-  +new pipe logic using classes
-  +starting fs_manager
+  +New pipe logic using classes
+  +Starting fs_manager
   +/bin/tee now works!
-  *bugfix: "while true do" in /bin/yes
+  *Bugfix: "while true do" in /bin/yes
   +/bin/cshell: now searches in path
   +/bin/sudo: now ignores if current user is root
   +/bin/init: runlevels (incomplete)
-  +debug: kernel panic complete
-  *fix: proc_manager: now the first PID is 1, not 2!
+  +Debug: kernel panic complete
+  *Fix: proc_manager: now the first PID is 1, not 2!
   +/bin/cpkg: Cubix Packages [wip]
   +reboot moved to /sbin
 
 0.3.1 - 0.3.2 (10-10-2015)
-  *bugfix: factor makes a infinite loop when n <= 0
+  *Bugfix: Factor makes a infinite loop when n <= 0
   +/bin/cscript: CubixScript [going to create a manual]!
   +/bin/glep: grep in lua!
-  +SBL: now you can load a kernel manually!
+  +SBL: Now you can load a kernel manually!
   +/bin/cubix
-    +added boot options, for now its just "quiet" and "nodebug".
+    +Added boot options, for now its just "quiet" and "nodebug".
     +NEW os.pprint, stands for "pipe print"
   +/sbin/init
     +runlevels (still working)
   +/bin/cshell: FINALLY, PIPES! ("ps | glep login" works)
 
 0.3.0 - 0.3.1 (10-07-2015)
-  +/bin/cshell: now has a history
+  +/bin/cshell: Now has a history
   +/bin/wget
   +/bin/cubix: NEW os.safestr, os.strsplit
-    +about init: now init has some control about how the system will load (just loads /sbin/login, but its a thing!)
+    +About init: now init has some control about how the system will load (just loads /sbin/login, but its a thing!)
   +/dev/random: not using os.time(), using os.clock() instead!
-  +procmanager: calls to debug are being written to os.debug
+  +Procmanager: calls to debug are being written to os.debug
 
 0.2.1 - 0.3.0 (10-05-2015)
-  -bugfix in cp, rn, mv, mkdir, touch (including the draft nano)... (string comparison, "s[1] == 'a'" does not work)
-  -consistency fix on cat: opening a file and not closing it after use
+  -Bugfix in cp, rn, mv, mkdir, touch (including the draft nano)... (string comparison, "s[1] == 'a'" does not work)
+  -Consistency fix on cat: opening a file and not closing it after use
   -cp: does not require absolute paths now!
   -su and sulogin: using os.runfile() now
   -cleanup: not using /bin/shell and /bin/wshell anymore!
   -/dev/MAKEDEV now creates /usr
-  -login manager: add users and change password of a user
+  -Login manager: add users and change password of a user
 
 0.1.0a - 0.2.1 (by 09-30-2015)
   -proc_manager now can kill processes, including their children!
