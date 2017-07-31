@@ -2,7 +2,7 @@
 
 [![Gitter](https://badges.gitter.im/lkmnds/cubix.svg)](https://gitter.im/lkmnds/cubix?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge)
 
-Cubix is an unix-like ComputerCraft OS, made for people who want to hack it as long as you want it to.
+Cubix is a unix-like ComputerCraft OS, made to be extremely flexible.
 
 ## Demos
 
@@ -26,7 +26,7 @@ The `master` branch contains the latest state of cubix, it shouldn't be used in 
 ## Installation in ComputerCraft machines
 
 Cubix works in normal(in theory, not tested) and advanced computers.
-You **need** to know how to manage a system with many code and anything could happen, all code is unstable and can change at any moment
+You **need** to know how to manage a system with lots of code and anything could happen, all code is unstable and can change at any moment
 
 
 ### Installing using cubixLI
