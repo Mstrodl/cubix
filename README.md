@@ -2,9 +2,7 @@
 
 [![Gitter](https://badges.gitter.im/lkmnds/cubix.svg)](https://gitter.im/lkmnds/cubix?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge)
 
-**Most development work is happening in the `rewrite` branch, this is the latest stable version**
-
-Cubix is an unix-like ComputerCraft OS, made for people who want to hack it as long as you want it to.
+Cubix is a unix-like ComputerCraft OS, made to be extremely flexible.
 
 ## Demos
 
@@ -52,7 +50,7 @@ reboot
 
 ### Installation using git (suitable for developers)
 
-Since most of Cubix codebase is on ComputerCraft LUA, you need or a ComputerCraft accesible directory or a emulator(I use ccemuredux.)
+Since most of Cubix codebase is on ComputerCraft LUA, you need or a ComputerCraft accesible directory or a emulator(I use ccemuredux)
 
 ##### ccemuredux instructions
 You can clone the repository(the folder needs to have a valid computercraft id) and link that to a computer id in ccemuredux directory
