@@ -8,7 +8,7 @@ function run_scripts(runlevel)
 
     for _,filepath in pairs(fs.list(runlevel_folder)) do
         local src_path = runlevel_folder .. '/' .. filepath
-        --TODO: Add shel ability to parse shebangs
+        --TODO: Add shell ability to parse shebangs
         execv('/bin/cshell.new', {src_path})
     end
 end
