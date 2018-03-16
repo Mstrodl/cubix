@@ -1,6 +1,6 @@
 #!/usr/bin/env lua
 --[[
-    yapi2 - 2nd yapi
+    yapi - yet another package manager
 ]]
 
 VERSION = '0.3.0'
